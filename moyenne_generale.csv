@@ -1,0 +1,3 @@
+id_etudiant;nom;prenom;matricule;classe_groupe;id_session;type_session;annee_universitaire;moyenne_generale
+1;Balti;Amina;20231045;3A40;1;Principale;2025-2026;"12,43"
+2;Trabelsi;Yasmine;20231046;3A40;1;Principale;2025-2026;"11,9"

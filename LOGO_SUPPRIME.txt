@@ -1,0 +1,75 @@
+✅ LOGO ESPRIT SUPPRIMÉ
+
+Les logos ESPRIT ont été supprimés des deux écrans:
+
+1. LoginWindow.xaml (Écran de Connexion)
+   ❌ Supprimé: Logo "esprit" + "Se former autrement"
+   ✅ Conservé: Titre "Connexion" + Description du système
+
+2. MainWindow.xaml (Fenêtre Principale)
+   ❌ Supprimé: Logo "esprit" + "Se former autrement" à gauche
+   ✅ Conservé: Titre "Système Automatisé de Génération des PV" + Sous-titre
+
+═══════════════════════════════════════════════════════════════════════════════
+
+AVANT:
+──────
+
+LoginWindow:
+┌─────────────────────────────────┐
+│      ┌─────────────┐            │
+│      │   esprit    │ ← LOGO     │
+│      │Se former... │ ← LOGO     │
+│      └─────────────┘            │
+│         Connexion               │
+│      [Formulaire]               │
+└─────────────────────────────────┘
+
+MainWindow (Header):
+┌────────────────────────────────────────┐
+│ esprit        Système Automatisé de ... │ ← LOGO À GAUCHE
+│ Se former...  Procès-Verbaux...        │
+└────────────────────────────────────────┘
+
+APRÈS:
+──────
+
+LoginWindow:
+┌─────────────────────────────────┐
+│         Connexion               │ ✅ Pas de logo
+│      [Formulaire]               │
+└─────────────────────────────────┘
+
+MainWindow (Header):
+┌────────────────────────────────────────┐
+│   Système Automatisé de Génération ... │ ✅ Pas de logo
+│   Procès-Verbaux de Délibération       │
+└────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+FICHIERS MODIFIÉS:
+──────────────────
+
+✅ LoginWindow.xaml
+   - Suppression du StackPanel avec le logo ESPRIT
+   - Suppression de "Se former autrement"
+
+✅ MainWindow.xaml
+   - Suppression du StackPanel gauche avec le logo
+   - Correction de la structure XML (suppression de la Grid inutile)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PROCHAINE ÉTAPE:
+────────────────
+
+Compilez l'application dans Visual Studio pour voir les changements:
+
+1. Visual Studio → Build → Rebuild Solution
+2. F5 pour lancer l'application
+3. Les écrans n'afficheront plus le logo ESPRIT
+
+L'interface sera plus épurée et focalisée sur le titre principal.
+
+═══════════════════════════════════════════════════════════════════════════════

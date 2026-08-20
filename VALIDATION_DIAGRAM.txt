@@ -1,0 +1,268 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                 ARCHITECTURE DU CONTRÔLE DE SAISIE                           ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                        INTERFACE UTILISATEUR                                 ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃                                                                               ┃
+┃  ┌─────────────────────────────────────────────────────────────┐           ┃
+┃  │ 🟠 Connexion - Système de Génération des PV                 │           ┃
+┃  ├─────────────────────────────────────────────────────────────┤           ┃
+┃  │                                                              │           ┃
+┃  │  Nom d'utilisateur                                          │           ┃
+┃  │  [___________________________]                              │           ┃
+┃  │                        ↓                                    │           ┃
+┃  │          TextChanged Event                                 │           ┃
+┃  │                        ↓                                    │           ┃
+┃  │  ⚠️ Caractères invalides (Temps réel)                      │           ┃
+┃  │                                                              │           ┃
+┃  │  Mot de passe                                               │           ┃
+┃  │  [•••••••••] [👁️]  ← Toggle affichage/masquage            │           ┃
+┃  │       ↓           ↓                                         │           ┃
+┃  │  PasswordBox    BtnToggle                                  │           ┃
+┃  │  Changed     PasswordChanged                               │           ┃
+┃  │       ↓                                                     │           ┃
+┃  │  Sync vers TextBox caché                                   │           ┃
+┃  │                                                              │           ┃
+┃  │  ⚠️ Message d'erreur (rouge)                               │           ┃
+┃  │                                                              │           ┃
+┃  │  [Se connecter]  [Annuler]                                 │           ┃
+┃  │        ↓                                                    │           ┃
+┃  │    BtnLogin_Click                                          │           ┃
+┃  │                                                              │           ┃
+┃  └─────────────────────────────────────────────────────────────┘           ┃
+┃                                                                               ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                    FLUX DE VALIDATION COMPLÈTE                               ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+                    ╔══════════════════════════╗
+                    ║  ÉVÉNEMENTS DÉTECTÉS    ║
+                    ╚══════════════════════════╝
+                              │
+                    ┌─────────┼─────────┐
+                    │         │         │
+                    ▼         ▼         ▼
+            ┌────────────┐ ┌──────────┐ ┌──────────┐
+            │TextChanged │ │Password  │ │TextChanged│
+            │(Username)  │ │Changed   │ │(Password)│
+            └────────────┘ └──────────┘ └──────────┘
+                    │         │         │
+                    ▼         ▼         ▼
+            ┌────────────┐ ┌──────────┐ ┌──────────┐
+            │  VALIDE    │ │  SYNC    │ │  SYNC    │
+            │ ✓ Char OK  │ │ ↔ Cache  │ │ ↔ Cache  │
+            │ ✓ Lg < 50  │ │          │ │          │
+            └────────────┘ └──────────┘ └──────────┘
+                    │         │         │
+                    └─────────┼─────────┘
+                              │
+                              ▼
+                    ╔══════════════════════════╗
+                    ║ UTILISATEUR CLIQUE       ║
+                    ║ "SE CONNECTER"           ║
+                    ╚══════════════════════════╝
+                              │
+                              ▼
+                    ╔══════════════════════════╗
+                    ║  BtnLogin_Click()        ║
+                    ║                          ║
+                    ║ 1. Récupère les valeurs ║
+                    ║ 2. Appelle ValidateInputs║
+                    ╚══════════════════════════╝
+                              │
+                              ▼
+                    ┌──────────────────────────┐
+                    │   VALIDATION COMPLÈTE    │
+                    │                          │
+                    │ ✓ Username vide?         │
+                    │ ✓ Password vide?         │
+                    │ ✓ Min 3 caractères?      │
+                    │ ✓ Caractères valides?    │
+                    │ ✓ SQL Injection?         │
+                    │ ✓ Espace au début?       │
+                    └──────────────────────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+                    ▼                   ▼
+            ┌──────────────┐    ┌──────────────┐
+            │   ERREUR     │    │  VALIDE      │
+            │ Affiche ⚠️   │    │              │
+            │ Message rouge│    │ Continue...  │
+            └──────────────┘    └──────────────┘
+                    │                   │
+                    │                   ▼
+                    │        ╔═══════════════════════╗
+                    │        ║ Authenticate (BD)    ║
+                    │        ║                      ║
+                    │        ║ SELECT FROM users   ║
+                    │        ╚═══════════════════════╝
+                    │                   │
+                    │        ┌──────────┴──────────┐
+                    │        │                     │
+                    │        ▼                     ▼
+                    │    ┌─────────┐          ┌──────────┐
+                    │    │ RÉUSSIE │          │  ÉCHOUÉE │
+                    │    │ ✅      │          │ ❌       │
+                    │    └─────────┘          └──────────┘
+                    │        │                     │
+                    │        ▼                     ▼
+                    │   MainWindow         Affiche "Incorrect"
+                    │   ouverte            Vide les champs
+                    │   LoginWindow        Attend nouvelle
+                    │   fermée             tentative
+                    │
+                    └─────→ Utilisateur retourne corriger
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                   SYNCHRONISATION MOT DE PASSE                               ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+État Initial (Masqué):
+┌──────────────────────────────┐
+│ Mot de passe                 │
+│ [•••••••••] [👁️ Afficher]   │
+│                              │
+│ PasswordBox: VISIBLE         │
+│ TextBox:     CACHÉ           │
+└──────────────────────────────┘
+         │ Saisir "password123"
+         ▼
+PasswordBox: "password123" (masqué)
+TextBox caché synchronisé: "password123"
+
+
+Après clic sur 👁️:
+┌──────────────────────────────┐
+│ Mot de passe                 │
+│ [password123] [🔒 Masquer]   │
+│                              │
+│ PasswordBox: CACHÉ           │
+│ TextBox:     VISIBLE         │
+└──────────────────────────────┘
+         │ Continuer la saisie
+         ▼
+TextBox visible: "password123xxx"
+PasswordBox caché synchronisé: "password123xxx"
+
+
+Retour au masquage (clic 🔒):
+┌──────────────────────────────┐
+│ Mot de passe                 │
+│ [••••••••••••••] [👁️ Afficher]│
+│                              │
+│ PasswordBox: VISIBLE         │
+│ TextBox:     CACHÉ           │
+└──────────────────────────────┘
+
+Valeur conservée lors du toggle ✅
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                    ARBRE DE VALIDATION                                       ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+                            ValidateInputs()
+                                   │
+                    ┌──────────────┼──────────────┐
+                    │              │              │
+                    ▼              ▼              ▼
+            ┌─────────────┐   ┌─────────────┐   ┌──────────────┐
+            │ Username    │   │  Password   │   │  Caractères  │
+            │ Contrôles   │   │  Contrôles  │   │  Spéciaux    │
+            └─────────────┘   └─────────────┘   └──────────────┘
+                    │              │                  │
+            ┌───────┼────┬──┐  ┌───┴───┐        ┌────┴────┐
+            ▼       ▼    ▼   ▼  ▼       ▼        ▼         ▼
+        Vide? Min? Reg? Espace? Vide? SQL?  SQL?  Regex?
+          │     │   │    │      │    │      │      │
+          ├─────┴───┴────┴──────┴────┴──────┴──────┴─→ Erreur ❌
+          │
+          └──────────────────────────────────→ Valide ✅
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                    ÉTATS ET TRANSITIONS                                      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+                        ┌─────────────────┐
+                        │  Formulaire     │
+                        │  Vierge         │
+                        └────────┬────────┘
+                                 │
+                    ┌────────────┼────────────┐
+                    │            │            │
+                    ▼            ▼            ▼
+            ┌──────────────┐ ┌──────────┐ ┌────────────┐
+            │ Saisie en    │ │ Affichage│ │ Validation │
+            │ cours (Temps │ │ Masquage │ │ À la soumis│
+            │ réel)        │ │ Toggle   │ │ sion       │
+            └──────────────┘ └──────────┘ └────────────┘
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+        ▼                       ▼
+    ✅ Valide          ❌ Invalide
+        │                       │
+        │                       ▼
+        │               Affiche Message Erreur
+        │               Utilisateur corrige
+        │               (Retour à saisie)
+        │                       │
+        │                       └──────→ ✅ Valide
+        │                               │
+        └───────────────┬───────────────┘
+                        │
+                        ▼
+                ┌───────────────────┐
+                │ Validation Finale │
+                │ (À la soumission) │
+                └────────┬──────────┘
+                         │
+                ┌────────┴────────┐
+                │                 │
+                ▼                 ▼
+        ✅ VALIDE           ❌ INVALIDE
+            │                   │
+            ▼                   ▼
+        Authentifier      Afficher Erreur
+        en BD
+            │                   │
+        ┌───┴───┐              │
+        │       │              │
+        ▼       ▼              │
+    ✅ OK  ❌ FAIL             │
+        │       │              │
+        │       └──────────┬──→ Message "Incorrect"
+        │                  │   Vide les champs
+        │                  │   Attend nouvelle tentative
+        │
+        ▼
+    MainWindow
+    ouverte
+    LoginWindow
+    fermée
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+                        RÉSUMÉ: 9 VALIDATIONS ACTIVÉES
+═══════════════════════════════════════════════════════════════════════════════════
+
+Niveau:          Temps Réel + À la Soumission
+Sécurité:        SQL Injection Protection
+UX:              Messages Clairs + Feedback Immédiat
+Performance:     Synchrone et Optimisé
+Status:          ✅ Production Ready
+
+═══════════════════════════════════════════════════════════════════════════════════

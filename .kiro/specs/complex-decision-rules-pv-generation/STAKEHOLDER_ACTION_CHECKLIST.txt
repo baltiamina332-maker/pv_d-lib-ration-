@@ -1,0 +1,314 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║          STAKEHOLDER ACTION CHECKLIST - PV Délibération Project           ║
+║                                                                            ║
+║                 Requirements Review Complete - 27 July 2026              ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+PROJECT STATUS:
+────────────────
+
+The system requirements have been reviewed and analyzed by the development team.
+4 decisions from institutional stakeholders are needed before design can begin.
+
+Your action is needed. Estimated time: 15 minutes per decision-maker.
+
+════════════════════════════════════════════════════════════════════════════
+
+STAKEHOLDER ROLES & ACTIONS:
+─────────────────────────────
+
+ROLE 1: Pedagogical Authority / Jury President
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ PRIMARY DECISION: Confirm Rule for ECTS > 22 when MG ≥ 10 
+  
+  Current Spec Says: Decision = "Admis avec modération"
+  
+  Your Task: Confirm this is correct OR provide alternative
+  
+  Time: 5 minutes
+
+✓ SECONDARY DECISION: Choose Option A, B, or C for "Multiple Rescue Conditions"
+  
+  Current Spec Issue: When student qualifies for multiple rescue rules,
+                      which one takes priority?
+  
+  Your Task: Read explanation + choose preferred option + sign
+  
+  Time: 10 minutes
+
+📄 DOCUMENT TO READ & COMPLETE: INSTITUTIONAL_DECISION_FORM.md
+
+════════════════════════════════════════════════════════════════════════════
+
+ROLE 2: Data Manager / IT Administrator  
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ DECISION: Session Management Approach
+  
+  Question: Are session imports handled separately? Or should we add 
+            session columns (id_session, type_session) to Excel files?
+  
+  Your Task: Confirm current approach OR specify new Excel columns needed
+  
+  Time: 5 minutes
+
+📄 DOCUMENT TO READ & COMPLETE: INSTITUTIONAL_DECISION_FORM.md
+
+════════════════════════════════════════════════════════════════════════════
+
+ROLE 3: Academic Affairs / Registrar
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ DECISION: Confirm Honor Grade Thresholds
+  
+  Current Spec Says: 
+    - Très Bien: MG ≥ 16.0
+    - Bien: 14.0 ≤ MG < 16.0
+    - Assez Bien: 12.0 ≤ MG < 14.0
+    - Passable: 10.0 ≤ MG < 12.0
+  
+  Your Task: Verify these are ESPRIT's official thresholds
+             If different, provide correct values with source documentation
+  
+  Time: 5 minutes (check Règlement des Études)
+
+📄 DOCUMENT TO READ & COMPLETE: INSTITUTIONAL_DECISION_FORM.md
+
+════════════════════════════════════════════════════════════════════════════
+
+ROLE 4: Institution Leadership / Jury President (CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 CRITICAL DECISION: Multiple Rescue Conditions Priority
+
+⚠️  THIS IS THE MOST IMPORTANT DECISION ⚠️
+
+THE ISSUE:
+──────────
+When a student qualifies for MULTIPLE rescue conditions simultaneously,
+the system must decide which one to apply.
+
+CONCRETE EXAMPLE:
+─────────────────
+Student: Name = Jean, Status = Ancien (returning), MG = 9.8, ECTS = 18
+
+This student qualifies for:
+  ✅ Rule A: Ancien AND MG ≥ 9.7
+  ✅ Rule C: MG ≥ 8.0 AND Moyenne_UE ≥ 7.0
+
+PROBLEM:
+────────
+If we just say "apply first matching condition", the result depends on
+the ORDER we check the conditions in the code:
+
+  Scenario 1: Check Rule A first → Mention = "Rachat validé (Ancien)"
+  Scenario 2: Check Rule C first → Mention = "Rachat UE validé"
+
+SAME STUDENT, DIFFERENT DECISION!
+
+This is NOT a fair business rule. It's an arbitrary implementation choice.
+
+YOUR DECISION:
+───────────────
+
+Choose ONE of three options:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ OPTION A: List All Applicable Rescue Reasons                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Decision: "Admis avec modération"                                       │
+│ Mention: "Rachat validé (Critères multiples)"                          │
+│ Observation: "Ancien étudiant (MG ≥ 9.7) + Moyenne UE suffisante      │
+│              (≥ 7.0)"                                                   │
+│                                                                          │
+│ PROS:                                                                    │
+│  ✅ Complete transparency - jury sees all reasons                      │
+│  ✅ Fair to students - all qualifying criteria documented              │
+│  ✅ Auditable - clear record of decision justification                 │
+│                                                                          │
+│ CONS:                                                                    │
+│  ❌ More complex to display in UI                                      │
+│  ❌ Observation field can get long                                     │
+│  ❌ May need DataGrid column width adjustment                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ OPTION B: Define Explicit Priority Hierarchy (Recommended)              │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Institution defines: "Always apply MG-based rescue if eligible,        │
+│                      ignore UE-based rescue"                            │
+│                                                                          │
+│ For above example:                                                       │
+│ Decision: "Admis avec modération"                                       │
+│ Mention: "Rachat validé (Ancien)"                                      │
+│ Observation: "Ancien étudiant - rachat par MG ≥ 9.7"                  │
+│ (UE-based criterion is NOT mentioned)                                   │
+│                                                                          │
+│ PROS:                                                                    │
+│  ✅ Simple, deterministic logic                                        │
+│  ✅ Same student ALWAYS gets same decision                             │
+│  ✅ Easy to code and maintain                                          │
+│                                                                          │
+│ CONS:                                                                    │
+│  ❌ Some information is discarded (not mentioned)                      │
+│  ❌ Institution must formally define hierarchy                         │
+│  ❌ Could feel arbitrary to jury members                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ OPTION C: Separate Decision Type Per Rescue Type                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│ New decision types:                                                      │
+│  - "Admis (Rachat Ancien)"                                             │
+│  - "Admis (Rachat Nouveau)"                                            │
+│  - "Admis (Rachat UE)"                                                 │
+│                                                                          │
+│ For above example:                                                       │
+│ Could show as "Admis (Rachat Ancien)" OR "Admis (Rachat UE)"           │
+│ OR track BOTH with extended decision types                              │
+│                                                                          │
+│ PROS:                                                                    │
+│  ✅ No information loss                                                 │
+│  ✅ Full audit trail                                                    │
+│  ✅ Transparent about rescue type used                                 │
+│                                                                          │
+│ CONS:                                                                    │
+│  ❌ More complex decision model                                        │
+│  ❌ UI may need redesign                                               │
+│  ❌ More database fields/complexity                                    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+YOUR ACTION:
+────────────
+[ ] Choose Option A
+[ ] Choose Option B  
+[ ] Choose Option C
+
+Explain your choice and why:
+___________________________________________________________________
+___________________________________________________________________
+___________________________________________________________________
+
+Time: 10 minutes
+
+📄 DOCUMENT TO READ & COMPLETE: INSTITUTIONAL_DECISION_FORM.md
+
+════════════════════════════════════════════════════════════════════════════
+
+SUMMARY CHECKLIST:
+───────────────────
+
+FOR PEDAGOGICAL AUTHORITY / JURY PRESIDENT:
+  [ ] Read INSTITUTIONAL_DECISION_FORM.md (Decision 1 & 4)
+  [ ] Make decision on Case 1c rule
+  [ ] Make decision on Rescue priority (Option A, B, or C) ← CRITICAL
+  [ ] Sign form
+  [ ] Return to development team
+
+FOR DATA MANAGER / IT ADMINISTRATOR:
+  [ ] Read INSTITUTIONAL_DECISION_FORM.md (Decision 2)
+  [ ] Confirm session management approach
+  [ ] Sign form
+  [ ] Return to development team
+
+FOR ACADEMIC AFFAIRS / REGISTRAR:
+  [ ] Read INSTITUTIONAL_DECISION_FORM.md (Decision 3)
+  [ ] Verify mention thresholds in Règlement des Études
+  [ ] Confirm or provide corrected values
+  [ ] Sign form
+  [ ] Return to development team
+
+════════════════════════════════════════════════════════════════════════════
+
+HOW TO PROCEED:
+────────────────
+
+1. RECEIVE: INSTITUTIONAL_DECISION_FORM.md (from project manager)
+
+2. READ: Section(s) relevant to your role (5-10 minutes)
+
+3. DECIDE: Mark your choice/response
+
+4. SIGN: Put your name, title, date, signature
+
+5. RETURN: Email completed form to development team
+   
+   TO: [Development Lead - TBD]
+   SUBJECT: PV Délibération - Institutional Decision Form [YOUR NAME]
+   DEADLINE: ASAP (target: within 3-5 business days)
+
+════════════════════════════════════════════════════════════════════════════
+
+WHAT HAPPENS NEXT:
+───────────────────
+
+AFTER all forms are received:
+
+1. Development team reviews decisions
+2. Specification is updated if needed
+3. Design phase begins immediately
+4. Design phase output: System architecture, data models, document templates
+5. Design review: Stakeholders approve technical approach
+6. Implementation phase: Coding begins
+
+ESTIMATED TIMELINE FROM NOW:
+  • Decisions: 3-5 business days
+  • Spec updates: 1 day
+  • Design: 3-5 days
+  • Design review: 1-2 days
+  • Implementation: 2-3 weeks
+  • Testing: 1 week
+
+TOTAL: ~4-5 weeks from now
+
+════════════════════════════════════════════════════════════════════════════
+
+QUESTIONS?
+───────────
+
+If you need clarification on any decision:
+
+[ ] Read REVIEW_SUMMARY.md (executive summary, 5 min)
+[ ] Read user-review-clarifications.md (detailed analysis, 15 min)
+[ ] Contact development team for specific questions
+
+════════════════════════════════════════════════════════════════════════════
+
+DOCUMENT LOCATION:
+───────────────────
+
+All specification documents are in:
+  .kiro/specs/complex-decision-rules-pv-generation/
+
+Key files:
+  • 00_START_HERE.txt ← Start here
+  • INSTITUTIONAL_DECISION_FORM.md ← YOUR TASK
+  • REVIEW_SUMMARY.md ← For context
+  • user-review-clarifications.md ← For deep dive
+
+════════════════════════════════════════════════════════════════════════════
+
+✨ IMPORTANCE:
+───────────────
+
+These decisions directly impact:
+  ✅ Fair treatment of students
+  ✅ Compliance with institutional rules
+  ✅ System accuracy and correctness
+  ✅ Official record-keeping
+  ✅ Jury satisfaction with system
+
+Your input is CRITICAL for project success.
+
+════════════════════════════════════════════════════════════════════════════
+
+Ready to decide? →  Open: INSTITUTIONAL_DECISION_FORM.md
+
+Deadline: ASAP (target: 3-5 business days)
+
+Return to: [Development Lead Contact TBD]
+
+════════════════════════════════════════════════════════════════════════════
+
+                    Thank you for your participation!
+
+════════════════════════════════════════════════════════════════════════════

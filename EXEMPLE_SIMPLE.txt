@@ -1,0 +1,85 @@
+EXEMPLE SIMPLE - À COPIER DANS EXCEL
+
+Copiez ceci dans Excel et sauvegardez en .xlsx pour tester l'application immédiatement.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Ligne 1 (En-têtes - ne pas modifier):
+N°	Nom Prénom	Matricule	Classe	Année	MG	ECTS
+
+Ligne 2:
+1	Ali Benzema	STU001	L2 Informatique	2025/26	14.5	30
+
+Ligne 3:
+2	Fatima Oumansour	STU002	L2 Informatique	2025/26	12.0	28
+
+Ligne 4:
+3	Karim Hamidaoui	STU003	L2 Informatique	2025/26	10.8	25
+
+Ligne 5:
+4	Leila Saidi	STU004	L2 Informatique	2025/26	9.5	20
+
+Ligne 6:
+5	Mohamed Khaldi	STU005	L2 Informatique	2025/26	11.3	27
+
+═══════════════════════════════════════════════════════════════════════════════
+
+RÉSULTATS ATTENDUS APRÈS IMPORT:
+
+Étudiant           MG      Décision        Couleur
+─────────────────────────────────────────────────
+Ali Benzema        14.5    Admis ✅        VERT
+Fatima O.          12.0    Admis ✅        VERT  
+Karim H.           10.8    Rattrapage ⚠️   JAUNE
+Leila S.           9.5     Refusé ❌       ROUGE
+Mohamed K.         11.3    Rattrapage ⚠️   JAUNE
+
+═══════════════════════════════════════════════════════════════════════════════
+
+INSTRUCTIONS POUR TESTER:
+
+1. Créer un nouveau fichier dans Microsoft Excel ou Calc
+
+2. Dans la première ligne, taper exactement:
+   N°	Nom Prénom	Matricule	Classe	Année	MG	ECTS
+   (Les données sont séparées par des tabulations)
+
+3. Copier les 5 lignes de données ci-dessus dans le fichier
+
+4. Sauvegarder le fichier en .xlsx ou .xls
+   (File → Save As → Format Excel)
+
+5. Lancer l'application PV Délibération
+
+6. Aller dans l'onglet "📥 Import Excel"
+
+7. Cliquer "Parcourir" et sélectionner votre fichier
+
+8. Cliquer "✅ Charger et valider le fichier"
+
+9. Vérifier que:
+   ✅ Les 5 étudiants apparaissent dans le tableau
+   ✅ La colonne MG affiche les moyennes (14.5, 12.0, 10.8, etc.)
+   ✅ La colonne Décision affiche Admis/Rattrapage/Refusé
+   ✅ Message "✅ Import réussi avec 5 étudiants" en bas
+
+═══════════════════════════════════════════════════════════════════════════════
+
+MONTRER LES COLONNES DANS LE TABLEAU:
+
+N° | Nom Prénom  | Matricule | Classe   | Année   | MG   | ECTS | Décision   |
+1  | Ali Benzema | STU001    | L2 Info  | 2025/26| 14.50| 30   | Admis      |
+2  | Fatima O.   | STU002    | L2 Info  | 2025/26| 12.00| 28   | Admis      |
+3  | Karim H.    | STU003    | L2 Info  | 2025/26| 10.80| 25   | Rattrapage |
+4  | Leila S.    | STU004    | L2 Info  | 2025/26|  9.50| 20   | Refusé     |
+5  | Mohamed K.  | STU005    | L2 Info  | 2025/26| 11.30| 27   | Rattrapage |
+
+═══════════════════════════════════════════════════════════════════════════════
+
+C'EST TOUT! L'application va:
+✅ Lire le fichier
+✅ Afficher la colonne MG
+✅ Calculer les décisions (Admis/Rattrapage/Refusé)
+✅ Afficher le tout dans le tableau
+
+═══════════════════════════════════════════════════════════════════════════════

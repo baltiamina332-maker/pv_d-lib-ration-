@@ -1,0 +1,46 @@
+═══════════════════════════════════════════════════════════════════════════════
+              FAIRE FONCTIONNER L'HISTORIQUE - RÉSUMÉ COURT
+═══════════════════════════════════════════════════════════════════════════════
+
+3 CHOSES À FAIRE:
+
+1️⃣  CRÉER LA TABLE EN BD
+   Exécutez en MySQL:
+   
+   CREATE TABLE IF NOT EXISTS deliberations (
+       id INT PRIMARY KEY AUTO_INCREMENT,
+       date_deliberation DATETIME DEFAULT CURRENT_TIMESTAMP,
+       nb_etudiants INT NOT NULL DEFAULT 0,
+       nb_admis INT NOT NULL DEFAULT 0,
+       nb_ajournes INT NOT NULL DEFAULT 0,
+       fichier_pv VARCHAR(500) NOT NULL,
+       utilisateur_id INT
+   );
+
+2️⃣  COMPILER L'APP
+   Visual Studio: Build → Rebuild Solution
+
+3️⃣  TESTER
+   • Run DesktopApp.exe
+   • Générer un PV
+   • Aller à l'onglet "Historique"
+   • ✅ Une ligne s'affiche!
+
+C'EST TOUT! 🎉
+
+═══════════════════════════════════════════════════════════════════════════════
+
+QU'EST-CE QUI A ÉTÉ AJOUTÉ:
+
+✅ Modèle Historique (Models/Historique.cs)
+✅ Service Historique (Services/HistoriqueService.cs)
+✅ LoadHistorique() dans MainWindow.xaml.cs
+✅ Integration dans GenererPVWord()
+
+SEULE CHOSE À FAIRE: Créer la table en BD + recompiler
+
+═══════════════════════════════════════════════════════════════════════════════
+
+DÉTAILS COMPLETS: Voir "FAIRE_FONCTIONNER_HISTORIQUE.md"
+
+═══════════════════════════════════════════════════════════════════════════════

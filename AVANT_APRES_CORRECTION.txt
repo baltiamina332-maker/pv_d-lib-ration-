@@ -1,0 +1,202 @@
+═══════════════════════════════════════════════════════════════════════════════
+  AVANT/APRÈS - CORRECTIONS UI
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLÈME 1️⃣: LISTE NUMÉROTÉE AVEC EMOJIS CASSÉS
+────────────────────────────────────────────────
+
+AVANT (Image 2):
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 📋 Processus de génération                                  │
+  │                                                              │
+  │ 1⬜ Importer un fichier Excel...    ← CARRÉS CASSÉS         │
+  │ 2⬜ Valider et vérifier...         ← UTF-8 ERROR            │
+  │ 3⬜ Calculer automatiquement...                             │
+  │ 4⬜ Générer le document Word...                             │
+  │ 5⬜ Exporter et archiver...                                 │
+  └─────────────────────────────────────────────────────────────┘
+
+APRÈS (Corrigé):
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 📋 Processus de génération                                  │
+  │                                                              │
+  │ 1. Importer un fichier Excel...    ← TEXTE PROPRE          │
+  │ 2. Valider et vérifier...          ← FACILE À LIRE         │
+  │ 3. Calculer automatiquement...                             │
+  │ 4. Générer le document Word...                             │
+  │ 5. Exporter et archiver...                                 │
+  └─────────────────────────────────────────────────────────────┘
+
+CHANGEMENT: Emojis numérotés → Numéros simples avec point
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLÈME 2️⃣: BOUTONS "ACTIONS RAPIDES" - 3 COULEURS DIFFÉRENTES
+────────────────────────────────────────────────────────────────
+
+AVANT (Image 3):
+  ┌─────────────────────────────────────────────────────────────┐
+  │ ⚡ Actions rapides                                          │
+  │                                                              │
+  │ ┌──────────────────┐ ┌──────────────────┐ ┌──────────────┐ │
+  │ │📥 Importer Excel │ │📄 Générer PV     │ │📂 Historique │ │
+  │ │  BORDEAUX        │ │  VERT ❌         │ │  BLEU ❌     │ │
+  │ │   #8B3A3A        │ │  #4CAF50         │ │  #4A90E2     │ │
+  │ └──────────────────┘ └──────────────────┘ └──────────────┘ │
+  │  Cohérent         Non cohérent         Non cohérent         │
+  └─────────────────────────────────────────────────────────────┘
+
+APRÈS (Corrigé):
+  ┌─────────────────────────────────────────────────────────────┐
+  │ ⚡ Actions rapides                                          │
+  │                                                              │
+  │ ┌──────────────────┐ ┌──────────────────┐ ┌──────────────┐ │
+  │ │📥 Importer Excel │ │📄 Générer PV     │ │📂 Historique │ │
+  │ │  BORDEAUX        │ │  BORDEAUX        │ │  BORDEAUX    │ │
+  │ │   #8B3A3A        │ │   #8B3A3A        │ │   #8B3A3A    │ │
+  │ └──────────────────┘ └──────────────────┘ └──────────────┘ │
+  │  Cohérent           Cohérent              Cohérent         │
+  └─────────────────────────────────────────────────────────────┘
+
+CHANGEMENT: Tous en bordeaux (PrimaryButton)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLÈME 3️⃣: BOUTON "GÉNÉRER PV" EN VERT
+──────────────────────────────────────────
+
+AVANT (Image 5):
+  ┌─────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │          ┌──────────────────────────────────────┐           │
+  │          │📄 Générer PV (Document Word)        │           │
+  │          │  VERT #4CAF50 ❌                    │           │
+  │          │  (SuccessButton style)              │           │
+  │          └──────────────────────────────────────┘           │
+  │                                                              │
+  │  Problème: Couleur signifie "succès" en termes d'UI,       │
+  │  mais ce n'est qu'un bouton d'action (pas de confirmation) │
+  └─────────────────────────────────────────────────────────────┘
+
+APRÈS (Corrigé):
+  ┌─────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │          ┌──────────────────────────────────────┐           │
+  │          │📄 Générer PV (Document Word)        │           │
+  │          │  BORDEAUX #8B3A3A ✓                 │           │
+  │          │  (PrimaryButton style)              │           │
+  │          └──────────────────────────────────────┘           │
+  │                                                              │
+  │  Correct: Bordeaux = action principale                      │
+  │  Vert réservé pour la confirmation après génération         │
+  └─────────────────────────────────────────────────────────────┘
+
+CHANGEMENT: SuccessButton → PrimaryButton
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLÈME 4️⃣: BOUTON "OUVRIR ARCHIVE" EN BLEU
+───────────────────────────────────────────────
+
+AVANT (Image 5):
+  ┌─────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │          ┌──────────────────────────────────────┐           │
+  │          │📁 Ouvrir Dossier d'Archive          │           │
+  │          │  BLEU #4A90E2 ❌                    │           │
+  │          │  (AccentButton style)               │           │
+  │          └──────────────────────────────────────┘           │
+  │                                                              │
+  │  Problème: Bleu utilisé pour action secondaire, mais       │
+  │  ce bouton est aussi important que "Générer PV"            │
+  └─────────────────────────────────────────────────────────────┘
+
+APRÈS (Corrigé):
+  ┌─────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │          ┌──────────────────────────────────────┐           │
+  │          │📁 Ouvrir Dossier d'Archive          │           │
+  │          │  BORDEAUX #8B3A3A ✓                 │           │
+  │          │  (PrimaryButton style)              │           │
+  │          └──────────────────────────────────────┘           │
+  │                                                              │
+  │  Correct: Bordeaux = action principale                      │
+  └─────────────────────────────────────────────────────────────┘
+
+CHANGEMENT: AccentButton → PrimaryButton
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLÈME 5️⃣: BOUTON "AJOUTER UTILISATEUR" EN VERT
+───────────────────────────────────────────────────
+
+AVANT (Image 1 - Admin tab):
+  Bouton "Ajouter": VERT #4CAF50 (couleur inline, pas de style)
+
+APRÈS (Corrigé):
+  Bouton "Ajouter": BORDEAUX #8B3A3A (style PrimaryButton)
+
+CHANGEMENT: Couleur inline → Style PrimaryButton
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SYSTÈME DE COULEURS FINAL
+──────────────────────────
+
+┌──────────┬─────────────────────────────────────────────────────────────┐
+│ Couleur  │ Usage                                                       │
+├──────────┼─────────────────────────────────────────────────────────────┤
+│ BORDEAUX │ ✓ Boutons d'action principale                             │
+│ #8B3A3A  │ ✓ Charger/Valider/Importer                               │
+│          │ ✓ Générer PV                                              │
+│          │ ✓ Ajouter/Modifier/Supprimer                             │
+│          │ ✓ Ouvrir Archive                                          │
+├──────────┼─────────────────────────────────────────────────────────────┤
+│ VERT     │ ⏳ RÉSERVÉ pour confirmations/succès post-action          │
+│ #4CAF50  │ ⏳ Ex: "PV généré avec succès" (message box)              │
+│          │ ⏳ Pas pour boutons d'action                               │
+├──────────┼─────────────────────────────────────────────────────────────┤
+│ BLEU     │ ⏳ RÉSERVÉ pour consultations/infos secondaires           │
+│ #4A90E2  │ ⏳ Pas utilisé actuellement                                │
+├──────────┼─────────────────────────────────────────────────────────────┤
+│ GRIS     │ ✓ Boutons secondaires (Parcourir, etc.)                   │
+│ #E8EAED  │ ✓ Boutons d'annulation                                    │
+└──────────┴─────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+RÉSUMÉ DES CHANGEMENTS
+──────────────────────
+
+Fichier modifié: MainWindow.xaml
+
+1. Ligne 190-194:
+   1️⃣ → 1. (emojis numérotés → numéros simples)
+   2️⃣ → 2.
+   3️⃣ → 3.
+   4️⃣ → 4.
+   5️⃣ → 5.
+
+2. Ligne 234-240:
+   "Générer nouveau PV":  SuccessButton → PrimaryButton
+   "Voir l'historique":   AccentButton → PrimaryButton
+
+3. Ligne 373:
+   "Générer PV Word": SuccessButton → PrimaryButton
+
+4. Ligne 383:
+   "Ouvrir Archive": AccentButton → PrimaryButton
+
+5. Ligne 517:
+   "Ajouter": Couleur inline → PrimaryButton style
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PROCHAINE ACTION
+────────────────
+
+1. Visual Studio → Build → Rebuild Solution
+2. F5 pour lancer et vérifier les changements
+3. Tous les boutons principaux sont maintenant en bordeaux ✓
+
+═══════════════════════════════════════════════════════════════════════════════

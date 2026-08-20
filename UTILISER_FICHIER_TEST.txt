@@ -1,0 +1,145 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                    ✅ FICHIER TEST CRÉÉ - INSTRUCTIONS                        ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+FICHIER CRÉÉ:
+─────────────
+
+✅ donnees_test.xlsx
+   Localisation: F:\pv de deliberation\donnees_test.xlsx
+   
+Ce fichier contient 5 étudiants de test avec toutes les colonnes requises.
+
+
+ÉTAPES POUR IMPORTER:
+─────────────────────
+
+1️⃣  APPLICATION OUVERTE
+    L'application "PV de Délibération" est déjà lancée
+    Vous êtes dans l'onglet "📥 Import Excel"
+    
+2️⃣  FERMER LA BOÎTE DE DIALOGUE ACTUELLE
+    ☑ Cliquez "Annuler" pour fermer le dialogue ouvert
+    
+3️⃣  CLIQUER SUR "PARCOURIR"
+    ☑ Cliquez le bouton "📁 Parcourir" dans l'application
+    → La boîte de dialogue s'ouvre
+    
+4️⃣  NAVIGUER VERS LE FICHIER TEST
+    ☑ Dans la boîte de dialogue, allez au dossier: F:\pv de deliberation\
+    ☑ Vous verrez le fichier: donnees_test.xlsx
+    ☑ Cliquez dessus pour le sélectionner
+    
+5️⃣  OUVRIR LE FICHIER
+    ☑ Cliquez le bouton "Ouvrir"
+    → Le chemin du fichier s'affiche dans l'application
+    
+6️⃣  CHARGER LES DONNÉES
+    ☑ Cliquez le bouton "📥 Charger Excel"
+    → L'application lit le fichier
+    → Les données s'affichent dans le tableau!
+    
+7️⃣  VÉRIFIER LES RÉSULTATS
+    Le tableau devrait afficher:
+    
+    ┌──────────────────────────────────────────────────────────────┐
+    │ N° │ Nom Prénom    │ Matricule │ Classe   │ MG   │ ECTS │... │
+    ├──────────────────────────────────────────────────────────────┤
+    │ 1  │ Ali Ahmed     │ MAT001    │ 3INFO-A  │ 10.5 │ 12   │    │
+    │ 2  │ Fatima Bella  │ MAT002    │ 3INFO-A  │ 9.8  │ 18   │    │
+    │ 3  │ Mohamed Kari  │ MAT003    │ 3INFO-A  │ 11.2 │ 10   │    │
+    │ 4  │ Amira Zouaoui │ MAT004    │ 3INFO-A  │ 8.5  │ 25   │    │
+    │ 5  │ Hassan Benamu │ MAT005    │ 3INFO-A  │ 12.0 │ 8    │    │
+    └──────────────────────────────────────────────────────────────┘
+
+
+CONTENU DU FICHIER TEST:
+────────────────────────
+
+Le fichier donnees_test.xlsx contient:
+
+| N° | Nom et Prénom    | Matricule | Classe/Groupe | Année Univ. | MG   | ECTS |
+|----|------------------|-----------|---------------|-------------|------|------|
+| 1  | Ali Ahmed        | MAT001    | 3INFO-A       | 2024-2025   | 10.5 | 12   |
+| 2  | Fatima Belabbes  | MAT002    | 3INFO-A       | 2024-2025   | 9.8  | 18   |
+| 3  | Mohamed Karim    | MAT003    | 3INFO-A       | 2024-2025   | 11.2 | 10   |
+| 4  | Amira Zouaoui    | MAT004    | 3INFO-A       | 2024-2025   | 8.5  | 25   |
+| 5  | Hassan Benameur  | MAT005    | 3INFO-A       | 2024-2025   | 12.0 | 8    |
+
+Après import, les décisions seront calculées automatiquement:
+- Ali Ahmed (MG=10.5, ECTS=12)     → ✅ ADMIS
+- Fatima (MG=9.8, ECTS=18)         → ⚠️  DÉCISION CONSEIL
+- Mohamed (MG=11.2, ECTS=10)       → ✅ ADMIS
+- Amira (MG=8.5, ECTS=25)          → ❌ REDOUBLE/EXCLU
+- Hassan (MG=12.0, ECTS=8)         → ✅ ADMIS
+
+
+APRÈS IMPORT RÉUSSI:
+────────────────────
+
+✅ Le tableau s'affiche avec toutes les données
+✅ Les colonnes Décision et Mention se remplissent automatiquement
+✅ Vous pouvez voir:
+   - Moyenne Générale (MG)
+   - ECTS non validés
+   - Décision (Admis, Conseil, Redouble, etc.)
+   - Mention (Très Bien, Bien, Assez Bien, etc.)
+
+✅ Vous pouvez ensuite:
+   - Aller à l'onglet "📄 Génération PV"
+   - Cliquer "Générer PV Word"
+   - Un document sera créé et archivé automatiquement
+
+
+SI VOUS AVEZ VOTRE PROPRE FICHIER:
+──────────────────────────────────
+
+Au lieu d'utiliser donnees_test.xlsx, vous pouvez utiliser votre propre fichier.
+
+Assurez-vous que:
+✓ Le fichier est en format .xlsx (pas .csv, .xls, .ods)
+✓ Le fichier a 7 colonnes: N°, Nom Prénom, Matricule, Classe, Année, MG, ECTS
+✓ Les données commencent ligne 2 (ligne 1 = en-têtes)
+✓ MG est un nombre (10.5, pas "10.5")
+✓ ECTS est un nombre (12, pas "12")
+✓ Le fichier n'est pas ouvert dans Excel
+✓ Le fichier est accessible (pas sur un lecteur réseau inaccessible)
+
+
+TROUBLESHOOTING:
+────────────────
+
+Si vous avez une erreur lors du chargement:
+
+❌ "Le fichier ne contient pas assez de colonnes"
+   → Vérifiez que vous avez 7 colonnes (A-G)
+
+❌ "Le fichier est verrouillé"
+   → Fermez le fichier dans Excel et réessayez
+
+❌ "Aucune donnée valide trouvée"
+   → Vérifiez qu'il y a une ligne 2 avec des données
+
+❌ "Valeur non valide pour MG"
+   → Vérifiez que MG est un nombre (pas du texte)
+
+Si le problème persiste:
+1. Utilisez le fichier de test (donnees_test.xlsx) pour vérifier que le système fonctionne
+2. Consultez FORMAT_EXCEL_REQUIS.md pour le format exact
+3. Consultez SOLUTION_IMPORT_EXCEL.md pour les solutions détaillées
+
+
+PRÊT À COMMENCER?
+─────────────────
+
+Suivez les étapes ci-dessus avec le fichier donnees_test.xlsx
+
+Dans 2 minutes, vous verrez:
+  1. Les données importées dans le tableau
+  2. Les décisions calculées automatiquement
+  3. Les mentions affichées
+  4. La possibilité de générer les PV Word
+
+Bonne chance! 🚀
+
+═══════════════════════════════════════════════════════════════════════════════
