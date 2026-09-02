@@ -9,6 +9,7 @@ using DesktopApp.Services;
 using DesktopApp.Models;
 using System.Linq;
 using System.ComponentModel;
+using System.Windows.Controls.Primitives;
 
 namespace DesktopApp
 {
@@ -22,7 +23,15 @@ namespace DesktopApp
         private ExcelExportService excelExportService;
         private CsvExportService csvExportService;
         private ExcelExportFromDatabaseService excelExportFromDatabaseService;
-        private List<Etudiant> etudiatsActuels; // Stocker les étudiants actuels
+        private StudentManagementService studentManagementService; // Service de gestion des étudiants
+        private NommageAutomatiqueService nommageService;          // Service de nommage CDC
+        private PerformanceMetricsService performanceService;      // Service de métriques CDC  
+        private SecuriteService securiteService;                   // Service de sécurité CDC
+        private ExempleExcelService exempleExcelService;           // Service d'exemples CDC
+        private AiAssistantService aiAssistantService;             // Service d'Assistant IA / Chatbot
+        private JuryMemoryService juryMemoryService;               // Service de mémorisation du jury
+        private List<Etudiant> etudiatsActuels; // Stocker les étudiants actuellement affichés
+        private List<Etudiant> tousLesEtudiants; // Stocker tous les étudiants chargés
         private DecisionRule currentRules;     // Configuration des règles de décision par l'Admin
 
         public MainWindow()
@@ -46,7 +55,19 @@ namespace DesktopApp
                 excelExportService = new ExcelExportService();
                 csvExportService = new CsvExportService();
                 excelExportFromDatabaseService = new ExcelExportFromDatabaseService();
+                studentManagementService = new StudentManagementService(); // Initialiser le service de gestion étudiants
+                
+                // Initialiser les nouveaux services CDC
+                nommageService = new NommageAutomatiqueService();
+                performanceService = new PerformanceMetricsService();
+                securiteService = new SecuriteService();
+                exempleExcelService = new ExempleExcelService();
+                aiAssistantService = new AiAssistantService();
+                juryMemoryService = new JuryMemoryService();
                 etudiatsActuels = new List<Etudiant>();
+
+                // Message de bienvenue initial dans le Chatbot
+                InitAiChatWelcome();
 
                 // Afficher le dossier de sortie des PV dans Paramètres
                 try
@@ -503,99 +524,43 @@ namespace DesktopApp
                 }
 
                 // Afficher un message de chargement
-                txtStatutImport.Text = "⏳ Chargement et validation en cours...";
+                txtStatutImport.Text = "⏳ Chargement et analyse en cours...";
                 this.Cursor = Cursors.Wait;
 
-                // Importer les données
-                var result = excelService.ImporterDonneesExcel(cheminFichier);
+                // Utiliser notre nouveau service d'import
+                var result = ImportExcelEtudiants(cheminFichier);
 
                 this.Cursor = null;
 
-                if (result.Succes)
+                if (result.Success)
                 {
-                    // Stocker les étudiants actuels
-                    etudiatsActuels = result.Etudiants;
-
-                    // NOUVEAU: Calculer les décisions
-                    Console.WriteLine("[UI] Calcul des décisions après import...");
-                    var decisionCalcService = new DecisionCalculatorService();
-                    etudiatsActuels = decisionCalcService.TraiterEtudiants(etudiatsActuels);
-
-                    // DEBUG: Vérifier le nombre d'étudiants
-                    Console.WriteLine($"\n[UI] ═══════════════════════════════════════════════════════");
-                    Console.WriteLine($"[UI] DÉBUG: Nombre d'étudiants après TraiterEtudiants():");
-                    Console.WriteLine($"[UI]   etudiatsActuels.Count = {etudiatsActuels.Count}");
-                    foreach (var et in etudiatsActuels)
+                    // Activer le bouton de validation automatique
+                    if (btnValidationAuto != null)
                     {
-                        Console.WriteLine($"[UI]     - {et.NumeroOrdre}. {et.NomPrenom} ({et.Matricule}) - Décision: {et.Decision}");
+                        btnValidationAuto.IsEnabled = true;
                     }
-                    Console.WriteLine($"[UI] ═══════════════════════════════════════════════════════\n");
-
-                    // Afficher les données dans le DataGrid
-                    Console.WriteLine($"[UI] Liaison des données au DataGrid: {etudiatsActuels.Count} étudiants");
-                    dgDonnees.ItemsSource = null; // Forcer le rafraîchissement
-                    dgDonnees.ItemsSource = etudiatsActuels;
-                    Console.WriteLine($"[UI] DataGrid.Items.Count après binding: {dgDonnees.Items.Count}");
-                    
-                    // DEBUG: Liste tous les items du DataGrid
-                    Console.WriteLine($"[UI] Items dans le DataGrid:");
-                    for (int i = 0; i < dgDonnees.Items.Count; i++)
-                    {
-                        var item = dgDonnees.Items[i] as Etudiant;
-                        if (item != null)
-                            Console.WriteLine($"[UI]   [{i}] {item.NumeroOrdre}. {item.NomPrenom}");
-                    }
-                    Console.WriteLine($"[UI] ═══════════════════════════════════════════════════════\n");
-                    
-                    // S'assurer que le DataGrid est visible ET contient les données
-                    dgDonnees.Visibility = Visibility.Visible;
-                    dgDonnees.UpdateLayout();
-                    
-                    // FORCER l'actualisation de l'interface
-                    this.UpdateLayout();
-                    MettreAJourCompteurEtudiants();
                     
                     // Activer le bouton d'export
-                    btnExporterExcel.IsEnabled = true;
-
-                    // Afficher le résumé des décisions
-                    string resumeDecisions = decisionCalcService.ObtenirResume(etudiatsActuels);
-                    txtStatutImport.Text = $"✅ {result.MessageSucces}\n\n{resumeDecisions}";
-
-                    // Afficher les avertissements s'il y en a
-                    if (result.Avertissements.Any())
+                    if (btnExporterExcel != null)
                     {
-                        string avertissements = string.Join("\n", result.Avertissements);
-                        MessageBox.Show($"Import réussi avec quelques avertissements :\n\n{avertissements}", 
-                            "Avertissements", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        btnExporterExcel.IsEnabled = true;
                     }
-                    else
-                    {
-                        MessageBox.Show($"{result.MessageSucces}\n\n{resumeDecisions}", "Succès", 
-                            MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
+
+                    MessageBox.Show($"Import réussi !\n\n{result.Message}\n\nVous pouvez maintenant utiliser la validation automatique.", 
+                        "Succès", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
-                    // Masquer le DataGrid en cas d'erreur
-                    dgDonnees.Visibility = Visibility.Collapsed;
-                    
-                    // Afficher l'erreur
-                    txtStatutImport.Text = $"❌ Erreur : {result.MessageErreur}";
-                    MessageBox.Show(result.MessageErreur, "Erreur d'import", 
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Erreur lors de l'import :\n\n{result.Message}", 
+                        "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
             {
                 this.Cursor = null;
-                
-                // Masquer le DataGrid en cas d'exception
-                dgDonnees.Visibility = Visibility.Collapsed;
-                
-                MessageBox.Show($"Erreur inattendue lors du chargement : {ex.Message}", "Erreur", 
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                txtStatutImport.Text = $"❌ Erreur : {ex.Message}";
+                MessageBox.Show($"Erreur inattendue :\n\n{ex.Message}", 
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                UpdateImportStatus("❌ Erreur lors de l'import", false);
             }
         }
 
@@ -724,16 +689,28 @@ namespace DesktopApp
         }
 
         /// <summary>
-        /// Générer le PV de délibération en Word
+        /// Générer le PV de délibération en Word - Version corrigée selon CDC
         /// </summary>
         public void GenererPVWord()
         {
             try
             {
+                // Démarrer les métriques de performance CDC
+                performanceService.DemarrerMesure("generation_pv", $"{etudiatsActuels?.Count ?? 0} étudiants");
+
                 if (etudiatsActuels == null || etudiatsActuels.Count == 0)
                 {
                     MessageBox.Show("Aucune donnée à générer. Veuillez d'abord importer un fichier Excel.",
                         "Attention", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Vérification de sécurité CDC - Pas de transmission externe
+                var checkSecurite = securiteService.VerifierTransmissionDonnees(etudiatsActuels, "génération_pv", "local");
+                if (!checkSecurite.EstSecurise)
+                {
+                    MessageBox.Show($"Violation de sécurité détectée:\n{checkSecurite.MessageSecurite}", "Sécurité", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    performanceService.ArreterMesure("generation_pv", "SÉCURITÉ_VIOLATION", 0);
                     return;
                 }
 
@@ -751,9 +728,19 @@ namespace DesktopApp
                     AnneeUniversitaire = etudiatsActuels[0].AnneeUniversitaire ?? DateTime.Now.Year.ToString()
                 };
 
+                // Mémoriser automatiquement la composition du jury pour l'autocomplétion future
+                if (juryMemoryService != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(jury.PresidentJury)) juryMemoryService.AddOrUpdateMember(jury.PresidentJury, "President");
+                    if (!string.IsNullOrWhiteSpace(jury.Secretaire)) juryMemoryService.AddOrUpdateMember(jury.Secretaire, "Secretaire");
+                    if (!string.IsNullOrWhiteSpace(jury.MembreJury1)) juryMemoryService.AddOrUpdateMember(jury.MembreJury1, "Membre");
+                    if (!string.IsNullOrWhiteSpace(jury.MembreJury2)) juryMemoryService.AddOrUpdateMember(jury.MembreJury2, "Membre");
+                }
+
                 string classeGroupe = etudiatsActuels[0].ClasseGroupe ?? "Sans classe";
-                string dateActuelle = DateTime.Now.ToString("yyyy-MM-dd_HHmmss");
-                string nomFichier = $"PV_{classeGroupe}_{dateActuelle}.docx";
+                
+                // Utiliser le service de nommage automatique CDC
+                string nomFichier = nommageService.GenererNomPV(classeGroupe, jury.DateDeliberation);
 
                 string dossierSortie = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -763,18 +750,24 @@ namespace DesktopApp
                 if (!Directory.Exists(dossierSortie))
                     Directory.CreateDirectory(dossierSortie);
 
+                // Rendre le nom unique si nécessaire
+                string cheminComplet = Path.Combine(dossierSortie, nomFichier);
+                cheminComplet = nommageService.RendreNomUnique(cheminComplet);
+                nomFichier = Path.GetFileName(cheminComplet);
+
                 this.Cursor = Cursors.Wait;
                 bool succes = wordService.GenererPV(etudiatsActuels, dossierSortie, nomFichier, classeGroupe, jury);
                 this.Cursor = null;
 
+                // Mesurer les performances et vérifier conformité CDC
+                var metrique = performanceService.ArreterMesure("generation_pv", classeGroupe, etudiatsActuels.Count);
+
                 if (succes)
                 {
-                    string cheminComplet = Path.Combine(dossierSortie, nomFichier);
-
-                    // Archiver le PV
+                    // Archiver le PV avec les nouvelles métriques
                     archiveService.ArchiverPV(cheminComplet, classeGroupe, etudiatsActuels, jury.TypeSession);
 
-                    // Ajouter à l'historique
+                    // Ajouter à l'historique avec métriques de performance
                     try
                     {
                         var historiqueEntry = new Historique
@@ -798,23 +791,46 @@ namespace DesktopApp
                     }
 
                     // Mettre à jour le statut dans l'onglet
-                    try { txtStatutGeneration.Text = $"✅ PV généré : {nomFichier}"; } catch { }
+                    try 
+                    { 
+                        string statutMessage = $"✅ PV généré : {nomFichier}";
+                        if (!metrique.ConformeCDC)
+                        {
+                            statutMessage += $" ⚠️ Performance: {metrique.MessageConformite}";
+                        }
+                        txtStatutGeneration.Text = statutMessage;
+                    } 
+                    catch { }
 
-                    var resultMessage = MessageBox.Show(
-                        $"✅ PV généré avec succès!\n\nFichier: {nomFichier}\nChemin: {dossierSortie}\n\nVoulez-vous ouvrir le fichier?",
-                        "Succès", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    // Message de succès avec informations de performance
+                    string messageSucces = $"✅ PV généré avec succès!\n\nFichier: {nomFichier}\nChemin: {dossierSortie}";
+                    
+                    if (!metrique.ConformeCDC)
+                    {
+                        messageSucces += $"\n\n⚠️ Performance: {metrique.MessageConformite}";
+                    }
+                    else
+                    {
+                        messageSucces += $"\n✅ Performance: {metrique.DureeSecondes:F2}s (conforme CDC)";
+                    }
+
+                    messageSucces += "\n\nVoulez-vous ouvrir le fichier?";
+
+                    var resultMessage = MessageBox.Show(messageSucces, "Succès", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
                     if (resultMessage == MessageBoxResult.Yes)
                         System.Diagnostics.Process.Start(cheminComplet);
                 }
                 else
                 {
-                    MessageBox.Show("Erreur lors de la génération du PV.", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                    string messageErreur = $"Erreur lors de la génération du PV.\n\nPerformance: {metrique.MessageConformite}";
+                    MessageBox.Show(messageErreur, "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
             {
                 this.Cursor = null;
+                performanceService.ArreterMesure("generation_pv", "ERREUR", 0);
                 MessageBox.Show($"Erreur: {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -908,6 +924,66 @@ namespace DesktopApp
         private void BtnTestHistorique_Click(object sender, RoutedEventArgs e)
         {
             TestHistorique();
+        }
+
+        /// <summary>
+        /// Supprimer une entrée de l'historique
+        /// </summary>
+        private void BtnDeleteHistorique_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var button = sender as Button;
+                var historique = button?.DataContext as Historique;
+
+                if (historique == null)
+                {
+                    MessageBox.Show("Impossible de récupérer les informations de l'entrée d'historique.", 
+                        "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Demander confirmation avant suppression
+                var result = MessageBox.Show(
+                    $"Êtes-vous sûr de vouloir supprimer cette entrée de l'historique ?\n\n" +
+                    $"Date : {historique.DateDeliberation:dd/MM/yyyy HH:mm}\n" +
+                    $"Classe : {historique.Classe}\n" +
+                    $"Fichier : {historique.NomFichier}\n\n" +
+                    $"⚠️ Attention : Cette action supprimera uniquement l'entrée de l'historique.\n" +
+                    $"Le fichier PV sur le disque ne sera pas supprimé.",
+                    "Confirmation de suppression", 
+                    MessageBoxButton.YesNo, 
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Supprimer l'entrée de l'historique en base de données
+                    bool success = historiqueService.DeleteHistorique(historique.Id);
+
+                    if (success)
+                    {
+                        MessageBox.Show("L'entrée a été supprimée de l'historique avec succès.", 
+                            "Suppression réussie", MessageBoxButton.OK, MessageBoxImage.Information);
+                        
+                        // Actualiser l'affichage de l'historique
+                        LoadHistorique();
+                        
+                        // Actualiser les statistiques
+                        LoadStatistics();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Erreur lors de la suppression de l'entrée d'historique.\n" +
+                            "Vérifiez que la base de données est accessible.", 
+                            "Erreur de suppression", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur inattendue lors de la suppression :\n\n{ex.Message}", 
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
@@ -1283,6 +1359,7 @@ namespace DesktopApp
                 {
                     // Stocker les étudiants actuels
                     etudiatsActuels = result.Etudiants;
+                    tousLesEtudiants = result.Etudiants;
                     Console.WriteLine($"[AUTO] ✅ {etudiatsActuels.Count} étudiants importés");
 
                     // Calculer les décisions automatiquement
@@ -1469,6 +1546,7 @@ namespace DesktopApp
                 };
                 
                 // Assigner au DataGrid et forcer l'affichage
+                tousLesEtudiants = etudiatsActuels;
                 dgDonnees.ItemsSource = null;
                 dgDonnees.ItemsSource = etudiatsActuels;
                 dgDonnees.Visibility = Visibility.Visible;
@@ -1657,5 +1735,1247 @@ namespace DesktopApp
             }
             return null;
         }
+
+        #region Gestion des Étudiants - Fonctionnalités Desktop
+
+        /// <summary>
+        /// Import Excel - upload d'un fichier Excel, retourne les données parsées
+        /// </summary>
+        public ImportResult ImportExcelEtudiants(string filePath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
+                {
+                    return new ImportResult
+                    {
+                        Success = false,
+                        Message = "Fichier non trouvé ou chemin invalide"
+                    };
+                }
+
+                // Utiliser le service de gestion des étudiants
+                var result = studentManagementService.ImportEtudiantsFromExcel(filePath);
+
+                if (result.Success && result.Etudiants != null)
+                {
+                    // Mettre à jour la liste locale
+                    tousLesEtudiants = result.Etudiants;
+                    etudiatsActuels = result.Etudiants;
+                    
+                    // Mettre à jour l'interface
+                    RefreshStudentDataGrid();
+                    
+                    // Mettre à jour le statut
+                    UpdateImportStatus($"✅ {result.Message}", true);
+                }
+                else
+                {
+                    UpdateImportStatus($"❌ {result.Message}", false);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new ImportResult
+                {
+                    Success = false,
+                    Message = $"Erreur lors de l'import: {ex.Message}"
+                };
+                
+                UpdateImportStatus($"❌ {errorResult.Message}", false);
+                return errorResult;
+            }
+        }
+
+        /// <summary>
+        /// Validation des décisions - applique les règles de décision et retourne un aperçu
+        /// </summary>
+        public ImportResult ValidateDecisionsEtudiants()
+        {
+            try
+            {
+                if (etudiatsActuels == null || !etudiatsActuels.Any())
+                {
+                    return new ImportResult
+                    {
+                        Success = false,
+                        Message = "Aucun étudiant chargé. Veuillez d'abord importer un fichier Excel."
+                    };
+                }
+
+                // Appliquer les règles de décision
+                var result = studentManagementService.ApplyDecisionRules(etudiatsActuels);
+
+                if (result.Success)
+                {
+                    // Mettre à jour l'interface
+                    RefreshStudentDataGrid();
+                    
+                    // Afficher les statistiques
+                    ShowStatistics(result.Statistics);
+                    
+                    // Mettre à jour le statut
+                    UpdateImportStatus($"✅ {result.Message}", true);
+                }
+                else
+                {
+                    UpdateImportStatus($"❌ {result.Message}", false);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new ImportResult
+                {
+                    Success = false,
+                    Message = $"Erreur lors de la validation: {ex.Message}"
+                };
+                
+                UpdateImportStatus($"❌ {errorResult.Message}", false);
+                return errorResult;
+            }
+        }
+
+        /// <summary>
+        /// Récupérer les étudiants d'une classe
+        /// </summary>
+        /// <param name="classe">Code de classe (ex: 3A40)</param>
+        /// <param name="session">ID de session (optionnel)</param>
+        /// <returns>Liste des étudiants</returns>
+        public List<Etudiant> GetEtudiantsClasse(string classe = null, int? session = null)
+        {
+            try
+            {
+                // S'assurer que tousLesEtudiants contient la liste actuelle si tousLesEtudiants était null
+                if ((tousLesEtudiants == null || !tousLesEtudiants.Any()) && etudiatsActuels != null && etudiatsActuels.Any())
+                {
+                    tousLesEtudiants = etudiatsActuels;
+                }
+
+                if (string.IsNullOrWhiteSpace(classe) || classe.Contains("Toutes"))
+                {
+                    if (tousLesEtudiants != null && tousLesEtudiants.Any())
+                    {
+                        etudiatsActuels = tousLesEtudiants;
+                    }
+                    else
+                    {
+                        var dbEtudiants = studentManagementService.GetEtudiants(null, session);
+                        if (dbEtudiants != null && dbEtudiants.Any())
+                        {
+                            etudiatsActuels = dbEtudiants;
+                            tousLesEtudiants = dbEtudiants;
+                        }
+                    }
+                }
+                else
+                {
+                    string classeFiltre = classe.Trim();
+
+                    // 1. Filtrer d'abord les étudiants déjà en mémoire (ex: via import Excel)
+                    if (tousLesEtudiants != null && tousLesEtudiants.Any())
+                    {
+                        string cleanFiltre = classeFiltre.Replace(" ", "").Replace("-", "").ToLower();
+
+                        var etudiantsFiltres = tousLesEtudiants.Where(e => 
+                        {
+                            if (string.IsNullOrWhiteSpace(e.ClasseGroupe)) return false;
+                            string cleanClasse = e.ClasseGroupe.Replace(" ", "").Replace("-", "").ToLower();
+                            return cleanClasse.Contains(cleanFiltre) || cleanFiltre.Contains(cleanClasse);
+                        }).ToList();
+
+                        if (etudiantsFiltres.Any())
+                        {
+                            etudiatsActuels = etudiantsFiltres;
+                        }
+                        else
+                        {
+                            // Tenter de charger depuis la DB
+                            var dbEtudiants = studentManagementService.GetEtudiants(classeFiltre, session);
+                            if (dbEtudiants != null && dbEtudiants.Any())
+                            {
+                                etudiatsActuels = dbEtudiants;
+                            }
+                            else
+                            {
+                                var classesPresentes = string.Join(", ", tousLesEtudiants
+                                    .Select(e => e.ClasseGroupe)
+                                    .Where(c => !string.IsNullOrEmpty(c))
+                                    .Distinct());
+
+                                var askImportMem = MessageBox.Show(
+                                    $"Aucun étudiant trouvé pour la classe '{classeFiltre}'.\n" +
+                                    (string.IsNullOrEmpty(classesPresentes) ? "" : $"Classes disponibles actuellement: {classesPresentes}\n\n") +
+                                    $"Souhaitez-vous importer un fichier Excel pour la classe '{classeFiltre}' ?", 
+                                    "Classe non trouvée", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                                if (askImportMem == MessageBoxResult.Yes)
+                                {
+                                    ImporterFichierPourClasse(classeFiltre, session);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // 2. Sinon, interroger la base de données
+                        var dbEtudiants = studentManagementService.GetEtudiants(classeFiltre, session);
+                        if (dbEtudiants != null && dbEtudiants.Any())
+                        {
+                            etudiatsActuels = dbEtudiants;
+                            tousLesEtudiants = dbEtudiants;
+                        }
+                        else
+                        {
+                            var askImportDb = MessageBox.Show(
+                                $"Aucun étudiant trouvé pour la classe '{classeFiltre}' dans la base de données.\n\n" +
+                                $"Souhaitez-vous parcourir et importer un fichier Excel / CSV pour la classe '{classeFiltre}' ?", 
+                                "Classe non trouvée", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                            if (askImportDb == MessageBoxResult.Yes)
+                            {
+                                ImporterFichierPourClasse(classeFiltre, session);
+                            }
+                        }
+                    }
+                }
+
+                RefreshStudentDataGrid();
+
+                var message = string.IsNullOrEmpty(classe) 
+                    ? $"✅ {etudiatsActuels?.Count ?? 0} étudiants chargés (toutes les classes)"
+                    : $"✅ {etudiatsActuels?.Count ?? 0} étudiant(s) affiché(s) pour la classe {classe}";
+
+                UpdateImportStatus(message, true);
+
+                return etudiatsActuels ?? new List<Etudiant>();
+            }
+            catch (Exception ex)
+            {
+                UpdateImportStatus($"❌ Erreur lors du chargement: {ex.Message}", false);
+                return new List<Etudiant>();
+            }
+        }
+
+        /// <summary>
+        /// Ouvre le dialogue de fichier pour importer directement un fichier Excel/CSV pour la classe spécifiée
+        /// </summary>
+        private void ImporterFichierPourClasse(string classe, int? session = null)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Fichiers Excel et CSV (*.xlsx;*.xls;*.csv)|*.xlsx;*.xls;*.csv|Tous les fichiers (*.*)|*.*",
+                Title = $"Sélectionner le fichier d'étudiants (Classe {classe})"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                var result = ImportExcelEtudiants(openFileDialog.FileName);
+                if (result.Success && etudiatsActuels != null && etudiatsActuels.Any())
+                {
+                    // Si les étudiants importés n'ont pas de classe définie, leur assigner la classe demandée
+                    foreach (var et in etudiatsActuels)
+                    {
+                        if (string.IsNullOrWhiteSpace(et.ClasseGroupe))
+                        {
+                            et.ClasseGroupe = classe;
+                        }
+                    }
+                    GetEtudiantsClasse(classe, session);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Corriger manuellement une décision/mention d'un étudiant
+        /// </summary>
+        /// <param name="etudiantId">ID de l'étudiant</param>
+        /// <param name="nouvelleDecision">Nouvelle décision</param>
+        /// <param name="nouvelleMention">Nouvelle mention</param>
+        /// <param name="nouvelleObservation">Nouvelle observation</param>
+        /// <returns>True si succès</returns>
+        public bool CorrigerDecisionEtudiant(int etudiantId, string nouvelleDecision = null, 
+            string nouvelleMention = null, string nouvelleObservation = null)
+        {
+            try
+            {
+                var success = studentManagementService.UpdateEtudiant(etudiantId, 
+                    nouvelleDecision, nouvelleMention, nouvelleObservation);
+
+                if (success)
+                {
+                    // Mettre à jour l'étudiant dans la liste locale
+                    var etudiant = etudiatsActuels.FirstOrDefault(e => e.Id == etudiantId);
+                    if (etudiant != null)
+                    {
+                        if (!string.IsNullOrEmpty(nouvelleDecision))
+                            etudiant.Decision = nouvelleDecision;
+                        if (!string.IsNullOrEmpty(nouvelleMention))
+                            etudiant.Mention = nouvelleMention;
+                        if (!string.IsNullOrEmpty(nouvelleObservation))
+                            etudiant.Observation = nouvelleObservation;
+                    }
+                    
+                    // Rafraîchir l'interface
+                    RefreshStudentDataGrid();
+                    
+                    UpdateImportStatus($"✅ Étudiant ID {etudiantId} mis à jour avec succès", true);
+                }
+                else
+                {
+                    UpdateImportStatus($"❌ Impossible de mettre à jour l'étudiant ID {etudiantId}", false);
+                }
+
+                return success;
+            }
+            catch (Exception ex)
+            {
+                UpdateImportStatus($"❌ Erreur lors de la correction: {ex.Message}", false);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Ouvre une fenêtre de dialogue pour corriger un étudiant
+        /// </summary>
+        /// <param name="etudiant">Étudiant à corriger</param>
+        public void OuvrirDialogueCorrection(Etudiant etudiant)
+        {
+            if (etudiant == null) return;
+
+            var dialogue = new CorrectionEtudiantWindow(etudiant);
+            if (dialogue.ShowDialog() == true)
+            {
+                // Appliquer les corrections
+                CorrigerDecisionEtudiant(etudiant.Id, 
+                    dialogue.NouvelleDecision, 
+                    dialogue.NouvelleMention, 
+                    dialogue.NouvelleObservation);
+            }
+        }
+
+        /// <summary>
+        /// Met à jour l'affichage du DataGrid des étudiants
+        /// </summary>
+        private void RefreshStudentDataGrid()
+        {
+            try
+            {
+                if (dgDonnees != null && etudiatsActuels != null)
+                {
+                    dgDonnees.ItemsSource = null;
+                    dgDonnees.ItemsSource = etudiatsActuels;
+                    
+                    // Mettre à jour le compteur
+                    if (txtCompteurEtudiants != null)
+                    {
+                        txtCompteurEtudiants.Text = $"{etudiatsActuels.Count} étudiant(s)";
+                    }
+
+                    // Mettre à jour le statut des décisions
+                    UpdateDecisionStatus();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du rafraîchissement du DataGrid: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Met à jour le statut d'import dans l'interface
+        /// </summary>
+        /// <param name="message">Message à afficher</param>
+        /// <param name="success">Succès ou erreur</param>
+        private void UpdateImportStatus(string message, bool success)
+        {
+            try
+            {
+                if (txtStatutImport != null)
+                {
+                    txtStatutImport.Text = message;
+                    
+                    // Changer la couleur selon le statut
+                    txtStatutImport.Foreground = success 
+                        ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(46, 125, 50)) // Vert
+                        : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(211, 47, 47)); // Rouge
+                }
+
+                // Mettre à jour les informations supplémentaires
+                UpdateDecisionStatus();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la mise à jour du statut: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Met à jour le statut des décisions
+        /// </summary>
+        private void UpdateDecisionStatus()
+        {
+            try
+            {
+                if (etudiatsActuels == null || !etudiatsActuels.Any())
+                {
+                    // Masquer l'indicateur de statut des décisions
+                    if (borderStatutDecisions != null)
+                        borderStatutDecisions.Visibility = Visibility.Collapsed;
+                    if (txtInfoSupplementaire != null)
+                        txtInfoSupplementaire.Text = "";
+                    return;
+                }
+
+                // Compter les décisions
+                var totalEtudiants = etudiatsActuels.Count;
+                var decisionsCalculees = etudiatsActuels.Count(e => !string.IsNullOrEmpty(e.Decision));
+                var decisionsEnAttente = totalEtudiants - decisionsCalculees;
+
+                // Mettre à jour l'affichage
+                if (txtInfoSupplementaire != null)
+                {
+                    txtInfoSupplementaire.Text = $"{totalEtudiants} étudiants chargés";
+                }
+
+                if (borderStatutDecisions != null && txtStatutDecisions != null)
+                {
+                    if (decisionsEnAttente > 0)
+                    {
+                        borderStatutDecisions.Visibility = Visibility.Visible;
+                        borderStatutDecisions.Background = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(255, 243, 224)); // Orange clair
+                        borderStatutDecisions.BorderBrush = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(255, 183, 77)); // Orange
+                        
+                        txtStatutDecisions.Text = $"⏳ {decisionsEnAttente} décisions en attente";
+                        txtStatutDecisions.Foreground = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(230, 81, 0)); // Orange foncé
+                    }
+                    else if (decisionsCalculees > 0)
+                    {
+                        borderStatutDecisions.Visibility = Visibility.Visible;
+                        borderStatutDecisions.Background = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(232, 245, 233)); // Vert clair
+                        borderStatutDecisions.BorderBrush = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(129, 199, 132)); // Vert
+                        
+                        txtStatutDecisions.Text = $"✅ {decisionsCalculees} décisions calculées";
+                        txtStatutDecisions.Foreground = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(56, 142, 60)); // Vert foncé
+                    }
+                    else
+                    {
+                        borderStatutDecisions.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la mise à jour du statut des décisions: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Affiche les statistiques de délibération
+        /// </summary>
+        /// <param name="stats">Statistiques à afficher</param>
+        private void ShowStatistics(DeliberationStatistics stats)
+        {
+            if (stats == null) return;
+
+            var message = $"📊 Statistiques: {stats.NbEtudiants} étudiants • " +
+                         $"Admis: {stats.NbAdmis} ({stats.PourcentageAdmis:F1}%) • " +
+                         $"Ajournés: {stats.NbAjournes} ({stats.PourcentageAjournes:F1}%) • " +
+                         $"Moyenne: {stats.MoyenneGenerale:F2}";
+
+            MessageBox.Show(message, "Statistiques de Délibération", 
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        /// <summary>
+        /// Gestionnaire pour le double-clic sur un étudiant (pour correction)
+        /// </summary>
+        private void DgDonnees_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (dgDonnees.SelectedItem is Etudiant etudiant)
+                {
+                    OuvrirDialogueCorrection(etudiant);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'ouverture du dialogue: {ex.Message}", 
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Gestionnaire pour le bouton de chargement des étudiants par classe
+        /// </summary>
+        private void BtnChargerClasse_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> classesDisponibles = null;
+            if (tousLesEtudiants != null && tousLesEtudiants.Any())
+            {
+                classesDisponibles = tousLesEtudiants
+                    .Where(et => !string.IsNullOrWhiteSpace(et.ClasseGroupe))
+                    .Select(et => et.ClasseGroupe.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+
+            var dialogue = new ChargerClasseWindow(classesDisponibles);
+            if (dialogue.ShowDialog() == true)
+            {
+                try
+                {
+                    // Charger les étudiants
+                    GetEtudiantsClasse(dialogue.ClasseSelectionnee, dialogue.SessionSelectionnee);
+                    
+                    // Options post-chargement
+                    if (dialogue.RecalculerDecisions && etudiatsActuels != null && etudiatsActuels.Any())
+                    {
+                        var result = ValidateDecisionsEtudiants();
+                        
+                        if (dialogue.AfficherStatistiques && result.Success && result.Statistics != null)
+                        {
+                            ShowStatistics(result.Statistics);
+                        }
+                    }
+                    
+                    // Activer les boutons appropriés
+                    if (etudiatsActuels != null && etudiatsActuels.Any())
+                    {
+                        if (btnValidationAuto != null)
+                            btnValidationAuto.IsEnabled = true;
+                        if (btnExporterExcel != null)
+                            btnExporterExcel.IsEnabled = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Erreur lors du chargement de la classe: {ex.Message}", 
+                        "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gestionnaire pour le bouton de validation automatique des décisions
+        /// </summary>
+        private void BtnValidationAutomatique_Click(object sender, RoutedEventArgs e)
+        {
+            if (etudiatsActuels == null || !etudiatsActuels.Any())
+            {
+                MessageBox.Show("Aucun étudiant chargé. Veuillez d'abord importer des données.", 
+                    "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"Appliquer les règles de décision automatiques sur {etudiatsActuels.Count} étudiants ?", 
+                "Validation Automatique", 
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                ValidateDecisionsEtudiants();
+            }
+        }
+
+        /// <summary>
+        /// Recharger les données depuis la base ou le fichier
+        /// </summary>
+        private void BtnRechargerDonnees_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (etudiatsActuels != null && etudiatsActuels.Any())
+                {
+                    RefreshStudentDataGrid();
+                    UpdateImportStatus($"✅ Données actualisées ({etudiatsActuels.Count} étudiants)", true);
+                }
+                else
+                {
+                    UpdateImportStatus("ℹ️ Aucune donnée à actualiser", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'actualisation: {ex.Message}", "Erreur", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Vider le tableau et réinitialiser
+        /// </summary>
+        private void BtnViderTableau_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (etudiatsActuels == null || !etudiatsActuels.Any())
+                {
+                    MessageBox.Show("Le tableau est déjà vide.", "Information", 
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var result = MessageBox.Show(
+                    $"Êtes-vous sûr de vouloir vider le tableau ?\n\nCela effacera {etudiatsActuels.Count} étudiants de l'affichage.", 
+                    "Confirmer la suppression", 
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    etudiatsActuels.Clear();
+                    RefreshStudentDataGrid();
+                    
+                    // Désactiver les boutons
+                    if (btnValidationAuto != null)
+                        btnValidationAuto.IsEnabled = false;
+                    if (btnExporterExcel != null)
+                        btnExporterExcel.IsEnabled = false;
+                    
+                    UpdateImportStatus("🔄 Tableau vidé - Prêt pour un nouvel import", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors du vidage: {ex.Message}", "Erreur", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Afficher l'aide d'utilisation
+        /// </summary>
+        private void BtnAideUtilisation_Click(object sender, RoutedEventArgs e)
+        {
+            var aide = @"🎯 Guide Rapide d'Utilisation
+
+📥 IMPORT EXCEL:
+1. Cliquez 'Parcourir' pour sélectionner votre fichier .xlsx
+2. Cliquez 'Charger et Analyser' pour importer
+3. Vos données apparaissent dans le tableau
+
+✅ VALIDATION AUTOMATIQUE:
+1. Après import, cliquez 'Validation Auto'
+2. Les décisions sont calculées selon les règles officielles
+3. Vérifiez les résultats dans le tableau
+
+📚 CHARGER CLASSE:
+1. Cliquez 'Charger Classe'
+2. Saisissez le code (ex: 3A40)
+3. Les étudiants de la classe s'affichent
+
+✏️ CORRECTIONS MANUELLES:
+1. Double-cliquez sur un étudiant dans le tableau
+2. Modifiez décision, mention ou observation
+3. Validez pour sauvegarder
+
+💾 EXPORT:
+1. Cliquez 'Exporter Excel'
+2. Sauvegardez vos résultats
+
+🔧 OUTILS:
+• 🔄 Actualiser: Rafraîchit l'affichage
+• 🗑️ Vider: Remet à zéro le tableau  
+• ❓ Aide: Ce message
+
+💡 ASTUCE: Double-cliquez sur un étudiant pour le corriger rapidement !";
+
+            MessageBox.Show(aide, "Guide d'Utilisation", 
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Générer un fichier Excel d'exemple conforme au CDC
+        /// </summary>
+        private void BtnCreerExempleExcel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Title = "Enregistrer le fichier Excel d'exemple CDC",
+                    Filter = "Fichier Excel (*.xlsx)|*.xlsx",
+                    DefaultExt = "xlsx",
+                    FileName = "Exemple_Deliberation_CDC.xlsx",
+                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    this.Cursor = Cursors.Wait;
+
+                    bool succes = exempleExcelService.CreerFichierExemple(saveFileDialog.FileName, true);
+
+                    this.Cursor = null;
+
+                    if (succes)
+                    {
+                        var result = MessageBox.Show(
+                            $"✅ Fichier Excel d'exemple créé avec succès!\n\n" +
+                            $"📁 Fichier: {Path.GetFileName(saveFileDialog.FileName)}\n" +
+                            $"📂 Emplacement: {Path.GetDirectoryName(saveFileDialog.FileName)}\n\n" +
+                            $"Le fichier contient:\n" +
+                            $"• Structure conforme au CDC Annexe A\n" +
+                            $"• 10 étudiants d'exemple avec données réalistes\n" +
+                            $"• Feuille d'instructions complète\n" +
+                            $"• Formatage et validation intégrés\n\n" +
+                            $"Voulez-vous ouvrir le fichier?",
+                            "Fichier Excel d'exemple créé",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Information);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            try
+                            {
+                                System.Diagnostics.Process.Start(saveFileDialog.FileName);
+                            }
+                            catch (Exception openEx)
+                            {
+                                MessageBox.Show($"Impossible d'ouvrir le fichier automatiquement: {openEx.Message}\n\nVous pouvez l'ouvrir manuellement depuis: {saveFileDialog.FileName}", 
+                                    "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("❌ Erreur lors de la création du fichier d'exemple.\n\nVérifiez que vous avez les permissions d'écriture dans ce répertoire.", 
+                            "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Cursor = null;
+                MessageBox.Show($"❌ Erreur: {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Afficher les métriques de performance
+        /// </summary>
+        private void BtnVoirMetriques_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var rapport = performanceService.GenererRapport();
+                var metriques = performanceService.ObtenirMetriques();
+
+                string message = $"📊 RAPPORT DE PERFORMANCE\n\n";
+                message += $"📈 Résumé: {rapport.MessageResume}\n";
+                message += $"🔢 Opérations: {rapport.NombreOperations}\n";
+                message += $"✅ Conformité CDC: {rapport.PourcentageConformite:F1}%\n";
+                message += $"⏱️ Durée moyenne: {rapport.DureeMoyenne:F2}s\n\n";
+
+                if (metriques.Any())
+                {
+                    message += "📋 DERNIÈRES OPÉRATIONS:\n";
+                    foreach (var metrique in metriques.Skip(Math.Max(0, metriques.Count - 5)))
+                    {
+                        message += $"• {metrique.NomOperation} ({metrique.Details}): {metrique.DureeSecondes:F2}s ";
+                        message += metrique.ConformeCDC ? "✅" : "❌";
+                        message += $"\n";
+                    }
+                }
+                else
+                {
+                    message += "ℹ️ Aucune métrique enregistrée pour le moment.";
+                }
+
+                if (rapport.OperationsLentes.Any())
+                {
+                    message += $"\n⚠️ OPÉRATIONS NON CONFORMES CDC:\n";
+                    foreach (var lente in rapport.OperationsLentes.Take(3))
+                    {
+                        message += $"• {lente.NomOperation}: {lente.MessageConformite}\n";
+                    }
+                }
+
+                MessageBox.Show(message, "Métriques de Performance", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'affichage des métriques: {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Afficher l'audit de sécurité
+        /// </summary>
+        private void BtnAuditSecurite_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var audits = securiteService.ObtenirHistoriqueAudit();
+                var domaines = securiteService.ObtenirDomainesAutorises();
+
+                string message = $"🔒 AUDIT DE SÉCURITÉ\n\n";
+                message += $"🎯 Conformité CDC: Aucune donnée sensible transmise à des services externes non autorisés\n\n";
+
+                message += $"📋 DOMAINES AUTORISÉS ({domaines.Count}):\n";
+                foreach (var domaine in domaines.Take(5))
+                {
+                    message += $"• {domaine}\n";
+                }
+                if (domaines.Count > 5)
+                    message += $"... et {domaines.Count - 5} autre(s)\n";
+
+                if (audits.Any())
+                {
+                    message += $"\n📊 DERNIÈRES VÉRIFICATIONS ({audits.Count}):\n";
+                    foreach (var audit in audits.Skip(Math.Max(0, audits.Count - 5)))
+                    {
+                        message += $"• {audit}\n";
+                    }
+                }
+                else
+                {
+                    message += "\nℹ️ Aucun audit enregistré pour le moment.";
+                }
+
+                MessageBox.Show(message, "Audit de Sécurité", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'affichage de l'audit: {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        #region --- ASSISTANT IA & CHATBOT ---
+
+        private void InitAiChatWelcome()
+        {
+            if (panelAiMessages == null) return;
+            panelAiMessages.Children.Clear();
+
+            // Vérifier l'état du chatbot Python
+            string statusMessage = "🤖 Assistant IA de Délibération";
+            string detailMessage = "Bonjour ! Je suis votre Assistant IA de Délibération.\n\n";
+
+            // Note: La vérification Python se fait maintenant dans AiAssistantService
+            detailMessage += "✅ **Mode Intelligent Activé** : Support Python + Claude + Fallback local.\n\n";
+
+            detailMessage += "Posez-moi des questions en langage naturel comme :\n" +
+                           "• *\"Combien d'étudiants ont eu une mention Bien ce semestre ?\"*\n" +
+                           "• *\"Génère-moi le PV de la classe 3A40\"*\n" +
+                           "• *\"Quel est le taux de réussite de la promotion ?\"*\n" +
+                           "• *\"Exporte les admis en Excel\"*";
+
+            AddAiBubbleToChat(statusMessage, detailMessage,
+                new List<string> { "Effectif connecté: " + (etudiatsActuels?.Count ?? 0) },
+                new List<string> {
+                    "Combien d'étudiants ont eu une mention Bien ce semestre ?",
+                    "Génère-moi le PV de la classe 3A40",
+                    "Quel est le taux de réussite ?",
+                    "Exporte les admis en Excel"
+                });
+        }
+
+        private void BtnToggleAiDrawer_Click(object sender, RoutedEventArgs e)
+        {
+            if (gridAiDrawerOverlay == null) return;
+            if (gridAiDrawerOverlay.Visibility == Visibility.Visible)
+            {
+                gridAiDrawerOverlay.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                gridAiDrawerOverlay.Visibility = Visibility.Visible;
+                txtAiInput?.Focus();
+            }
+        }
+
+        private void BtnCloseAiDrawer_Click(object sender, RoutedEventArgs e)
+        {
+            if (gridAiDrawerOverlay != null)
+                gridAiDrawerOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void GridAiDrawerOverlay_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.OriginalSource == sender || (e.OriginalSource is Border b && b.Background is System.Windows.Media.SolidColorBrush scb && scb.Color.A == 128))
+            {
+                if (gridAiDrawerOverlay != null)
+                    gridAiDrawerOverlay.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void TxtQuickAiPrompt_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtQuickAiPrompt != null && txtQuickAiPrompt.Text.StartsWith("Demandez à l'IA"))
+            {
+                txtQuickAiPrompt.Text = "";
+                txtQuickAiPrompt.Foreground = System.Windows.Media.Brushes.White;
+            }
+        }
+
+        private void TxtQuickAiPrompt_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtQuickAiPrompt != null && string.IsNullOrWhiteSpace(txtQuickAiPrompt.Text))
+            {
+                txtQuickAiPrompt.Text = "Demandez à l'IA... (ex: Mentions Bien ?, PV 3A40)";
+                txtQuickAiPrompt.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#A0AEC0");
+            }
+        }
+
+        private void TxtQuickAiPrompt_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                SubmitAiPrompt(txtQuickAiPrompt.Text);
+            }
+        }
+
+        private void BtnQuickAiSend_Click(object sender, RoutedEventArgs e)
+        {
+            SubmitAiPrompt(txtQuickAiPrompt?.Text);
+        }
+
+        private void TxtAiInput_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && !Keyboard.IsKeyDown(Key.LeftShift))
+            {
+                e.Handled = true;
+                SubmitAiPrompt(txtAiInput.Text);
+                if (txtAiInput != null) txtAiInput.Text = "";
+            }
+        }
+
+        private void BtnSendAiMessage_Click(object sender, RoutedEventArgs e)
+        {
+            SubmitAiPrompt(txtAiInput?.Text);
+            if (txtAiInput != null) txtAiInput.Text = "";
+        }
+
+        private void BtnQuickQuestion_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag != null)
+            {
+                SubmitAiPrompt(btn.Tag.ToString());
+            }
+        }
+
+        private void SubmitAiPrompt(string promptText)
+        {
+            if (string.IsNullOrWhiteSpace(promptText) || promptText.StartsWith("Demandez à l'IA")) return;
+
+            string cleanedPrompt = promptText.Trim();
+
+            if (gridAiDrawerOverlay != null)
+            {
+                gridAiDrawerOverlay.Visibility = Visibility.Visible;
+            }
+
+            AddUserBubbleToChat(cleanedPrompt);
+
+            string currentFilter = txtRechercheEtudiants?.Text?.Trim();
+
+            if (aiAssistantService == null) aiAssistantService = new AiAssistantService();
+            var aiResult = aiAssistantService.ProcessPrompt(cleanedPrompt, etudiatsActuels, currentFilter);
+
+            AddAiBubbleToChat(aiResult.Title, aiResult.ResponseText, aiResult.StatHighlights, aiResult.SuggestedFollowUps);
+
+            if (aiResult.Action != null && aiResult.Action.Type != AiActionType.None)
+            {
+                ExecuteAiAction(aiResult.Action);
+            }
+        }
+
+        private void AddUserBubbleToChat(string message)
+        {
+            if (panelAiMessages == null) return;
+
+            var border = new Border
+            {
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(139, 58, 58)),
+                CornerRadius = new CornerRadius(12, 12, 0, 12),
+                Padding = new Thickness(12, 9, 12, 9),
+                Margin = new Thickness(40, 6, 0, 6),
+                HorizontalAlignment = HorizontalAlignment.Right
+            };
+
+            var txt = new TextBlock
+            {
+                Text = message,
+                Foreground = System.Windows.Media.Brushes.White,
+                FontSize = 12.5,
+                TextWrapping = TextWrapping.Wrap
+            };
+
+            border.Child = txt;
+            panelAiMessages.Children.Add(border);
+            scrollAiChat?.ScrollToBottom();
+        }
+
+        private void AddAiBubbleToChat(string title, string text, List<string> highlights = null, List<string> suggestions = null)
+        {
+            if (panelAiMessages == null) return;
+
+            var mainBorder = new Border
+            {
+                Background = System.Windows.Media.Brushes.White,
+                BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#CBD5E1"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(12, 12, 12, 0),
+                Padding = new Thickness(12, 10, 12, 10),
+                Margin = new Thickness(0, 6, 40, 6),
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+
+            var stack = new StackPanel();
+
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                var txtTitle = new TextBlock
+                {
+                    Text = title,
+                    FontWeight = FontWeights.Bold,
+                    FontSize = 13,
+                    Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#2C3E50"),
+                    Margin = new Thickness(0, 0, 0, 6)
+                };
+                stack.Children.Add(txtTitle);
+            }
+
+            var txtBody = new TextBlock
+            {
+                Text = text,
+                FontSize = 12.5,
+                Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#333333"),
+                TextWrapping = TextWrapping.Wrap,
+                LineHeight = 18
+            };
+            stack.Children.Add(txtBody);
+
+            if (highlights != null && highlights.Any())
+            {
+                var wrapPanel = new WrapPanel { Margin = new Thickness(0, 8, 0, 4) };
+                foreach (var h in highlights)
+                {
+                    var badge = new Border
+                    {
+                        Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#EDF2F7"),
+                        BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#CBD5E1"),
+                        BorderThickness = new Thickness(1),
+                        CornerRadius = new CornerRadius(10),
+                        Padding = new Thickness(8, 3, 8, 3),
+                        Margin = new Thickness(0, 0, 6, 4)
+                    };
+                    badge.Child = new TextBlock
+                    {
+                        Text = h,
+                        FontSize = 11,
+                        FontWeight = FontWeights.SemiBold,
+                        Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#2B5B84")
+                    };
+                    wrapPanel.Children.Add(badge);
+                }
+                stack.Children.Add(wrapPanel);
+            }
+
+            if (suggestions != null && suggestions.Any())
+            {
+                var suggPanel = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
+                suggPanel.Children.Add(new TextBlock
+                {
+                    Text = "Suggestions :",
+                    FontSize = 10.5,
+                    Foreground = System.Windows.Media.Brushes.Gray,
+                    Margin = new Thickness(0, 0, 0, 4)
+                });
+
+                foreach (var s in suggestions)
+                {
+                    var btnSugg = new Button
+                    {
+                        Content = "💬 " + s,
+                        Tag = s,
+                        Style = (Style)FindResource("SecondaryButton"),
+                        Padding = new Thickness(8, 3, 8, 3),
+                        Margin = new Thickness(0, 0, 0, 4),
+                        FontSize = 11,
+                        HorizontalAlignment = HorizontalAlignment.Left
+                    };
+                    btnSugg.Click += BtnQuickQuestion_Click;
+                    suggPanel.Children.Add(btnSugg);
+                }
+                stack.Children.Add(suggPanel);
+            }
+
+            mainBorder.Child = stack;
+            panelAiMessages.Children.Add(mainBorder);
+            scrollAiChat?.ScrollToBottom();
+        }
+
+        private void ExecuteAiAction(AiAction action)
+        {
+            if (action == null) return;
+
+            try
+            {
+                switch (action.Type)
+                {
+                    case AiActionType.SwitchTab:
+                        if (action.TargetIndex >= 0 && tabMain != null && action.TargetIndex < tabMain.Items.Count)
+                        {
+                            tabMain.SelectedIndex = action.TargetIndex;
+                        }
+                        break;
+
+                    case AiActionType.GeneratePVWord:
+                        if (tabMain != null) tabMain.SelectedIndex = 2; // Onglet Génération PV
+                        if (!string.IsNullOrWhiteSpace(action.TargetParameter))
+                        {
+                            if (txtRechercheEtudiants != null) txtRechercheEtudiants.Text = action.TargetParameter;
+                        }
+                        break;
+
+                    case AiActionType.ExportExcel:
+                        BtnExporterExcel_Click(this, new RoutedEventArgs());
+                        break;
+
+                    case AiActionType.FilterClass:
+                        if (!string.IsNullOrWhiteSpace(action.TargetParameter) && txtRechercheEtudiants != null)
+                        {
+                            txtRechercheEtudiants.Text = action.TargetParameter;
+                            TxtRechercheEtudiants_TextChanged(this, null);
+                        }
+                        break;
+
+                    case AiActionType.ClearFilter:
+                        if (txtRechercheEtudiants != null)
+                        {
+                            txtRechercheEtudiants.Text = "";
+                            TxtRechercheEtudiants_TextChanged(this, null);
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AI ACTION] Erreur exécution action: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region --- AIDE À LA SAISIE : AUTOCOMPLÉTION JURY & SUGGESTIONS DATES ---
+
+        private void BtnDateSuggestion_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag != null && dpDateDeliberation != null)
+            {
+                string tag = btn.Tag.ToString();
+                if (tag == "Today")
+                {
+                    dpDateDeliberation.SelectedDate = DateTime.Now;
+                }
+                else if (tag == "Janvier")
+                {
+                    dpDateDeliberation.SelectedDate = new DateTime(DateTime.Now.Year, 1, 31);
+                }
+                else if (tag == "Juin")
+                {
+                    dpDateDeliberation.SelectedDate = new DateTime(DateTime.Now.Year, 6, 30);
+                }
+            }
+        }
+
+        private void TxtJury_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (sender is TextBox txt && txt.Tag != null)
+            {
+                string role = txt.Tag.ToString();
+                ShowJurySuggestions(txt, role);
+            }
+        }
+
+        private void TxtJury_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox txt && txt.Tag != null)
+            {
+                string role = txt.Tag.ToString();
+                ShowJurySuggestions(txt, role);
+            }
+        }
+
+        private void TxtJury_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Popup fermée automatiquement via StaysOpen=False
+        }
+
+        private void ShowJurySuggestions(TextBox txt, string role)
+        {
+            if (juryMemoryService == null) juryMemoryService = new JuryMemoryService();
+
+            var suggestions = juryMemoryService.GetSuggestions(txt.Text, role);
+
+            Popup targetPopup = null;
+            ListBox targetList = null;
+
+            if (txt.Name == "txtPresidentJury") { targetPopup = popPresidentJury; targetList = lstPresidentJury; }
+            else if (txt.Name == "txtSecretaire") { targetPopup = popSecretaire; targetList = lstSecretaire; }
+            else if (txt.Name == "txtMembreJury1") { targetPopup = popMembreJury1; targetList = lstMembreJury1; }
+            else if (txt.Name == "txtMembreJury2") { targetPopup = popMembreJury2; targetList = lstMembreJury2; }
+
+            if (targetPopup == null || targetList == null) return;
+
+            if (suggestions.Any())
+            {
+                targetList.ItemsSource = suggestions;
+                targetPopup.IsOpen = true;
+            }
+            else
+            {
+                targetPopup.IsOpen = false;
+            }
+        }
+
+        private void LstJurySuggestion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ListBox lst && lst.SelectedItem != null)
+            {
+                string selectedName = lst.SelectedItem.ToString();
+                string targetTxtName = lst.Tag?.ToString();
+
+                TextBox targetTxt = null;
+                Popup targetPop = null;
+
+                if (targetTxtName == "txtPresidentJury") { targetTxt = txtPresidentJury; targetPop = popPresidentJury; }
+                else if (targetTxtName == "txtSecretaire") { targetTxt = txtSecretaire; targetPop = popSecretaire; }
+                else if (targetTxtName == "txtMembreJury1") { targetTxt = txtMembreJury1; targetPop = popMembreJury1; }
+                else if (targetTxtName == "txtMembreJury2") { targetTxt = txtMembreJury2; targetPop = popMembreJury2; }
+
+                if (targetTxt != null)
+                {
+                    targetTxt.Text = selectedName;
+                    targetTxt.SelectionStart = selectedName.Length;
+                }
+
+                if (targetPop != null)
+                {
+                    targetPop.IsOpen = false;
+                }
+
+                lst.SelectedItem = null;
+            }
+        }
+
+        #endregion
+
     }
 }

@@ -21,6 +21,7 @@ namespace DesktopApp.Models
         public string Filiere { get; set; }     // Filière/Spécialité
         public string Statut { get; set; }
         public decimal MoyenneGenerale { get; set; }
+        public string MoyenneOriginale { get; set; }  // NOUVEAU: Moyenne exacte du fichier Excel
         public int EctsValides { get; set; }    // Gardé pour compatibilité
         public int EctsTotal { get; set; }      // Total ECTS (par défaut 30)
         public bool EstAncienEtudiant { get; set; }
@@ -56,6 +57,7 @@ namespace DesktopApp.Models
             Observation = string.Empty;
             AnneeUniversitaire = string.Empty;
             RescueType = string.Empty;
+            MoyenneOriginale = string.Empty;  // NOUVEAU: Initialiser la moyenne originale
             EctsTotal = 30;
             EstAncienEtudiant = false;
             MoyenneUE = 0;
@@ -96,6 +98,18 @@ namespace DesktopApp.Models
                         rule?.SeuilBien ?? 14.0m, 
                         rule?.SeuilAssezBien ?? 12.0m, 
                         rule?.SeuilPassable ?? 10.0m);
+                }
+
+                if (string.IsNullOrWhiteSpace(Validation))
+                {
+                    Validation = Decision.StartsWith("Admis", StringComparison.OrdinalIgnoreCase) ? "Oui" : "Non";
+                }
+
+                if (string.IsNullOrWhiteSpace(Observation))
+                {
+                    Observation = Decision.StartsWith("Admis", StringComparison.OrdinalIgnoreCase)
+                        ? $"Admis avec mention {(string.IsNullOrWhiteSpace(Mention) ? "Passable" : Mention)}"
+                        : "Session de rattrapage / Exclu";
                 }
                 return;
             }

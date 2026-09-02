@@ -18,6 +18,14 @@ namespace DesktopApp
         }
 
         /// <summary>
+        /// Exécuter une requête SQL sans retour de données (INSERT, UPDATE, DELETE)
+        /// </summary>
+        public int ExecuteNonQuery(string query)
+        {
+            return dbConnection?.ExecuteNonQuery(query) ?? 0;
+        }
+
+        /// <summary>
         /// Obtenir toutes les tables de la base de données
         /// </summary>
         public List<string> GetAllTables()

@@ -58,6 +58,11 @@ namespace DesktopApp.Models
         public long TailleFichierOctets { get; set; }
         public string HashMD5 { get; set; }        // Pour vérifier intégrité du fichier
         
+        // Métriques de performance CDC (nouvelles propriétés)
+        public int DureeGeneration { get; set; }        // Durée en millisecondes
+        public bool ConformeCDC { get; set; }           // Respecte les seuils CDC
+        public string MessagePerformance { get; set; }   // Message de conformité
+        
         // Informations de session
         public int IdSession { get; set; }
         public DateTime DateCreation { get; set; }
@@ -77,6 +82,7 @@ namespace DesktopApp.Models
             GenerePar = string.Empty;
             CommentaireArchive = string.Empty;
             HashMD5 = string.Empty;
+            MessagePerformance = string.Empty;  // Nouvelle propriété
             DateArchivage = DateTime.Now;
             DateCreation = DateTime.Now;
         }

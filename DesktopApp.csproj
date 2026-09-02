@@ -130,6 +130,9 @@
     <Reference Include="RBush, Version=4.0.0.0, Culture=neutral, PublicKeyToken=c77e27b81f4d0187, processorArchitecture=MSIL">
       <HintPath>packages\RBush.Signed.4.0.0\lib\net47\RBush.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="SixLabors.Fonts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d998eea7b14cab13, processorArchitecture=MSIL">
       <HintPath>packages\SixLabors.Fonts.1.0.0\lib\netstandard2.0\SixLabors.Fonts.dll</HintPath>
     </Reference>
@@ -163,6 +166,7 @@
     </Reference>
     <Reference Include="System.Security" />
 
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
@@ -205,7 +209,20 @@
     <Compile Include="Services\StatisticsCalculator.cs" />
     <Compile Include="Services\ConfigurationService.cs" />
     <Compile Include="Services\DocumentGenerator.cs" />
+    <Compile Include="Services\StudentManagementService.cs" />
+    <Compile Include="Services\NommageAutomatiqueService.cs" />
+    <Compile Include="Services\PerformanceMetricsService.cs" />
+    <Compile Include="Services\SecuriteService.cs" />
+    <Compile Include="Services\ExempleExcelService.cs" />
+    <Compile Include="Services\AiAssistantService.cs" />
+    <Compile Include="Services\JuryMemoryService.cs" />
     <Compile Include="Models\Historique.cs" />
+    <Compile Include="Windows\CorrectionEtudiantWindow.xaml.cs">
+      <DependentUpon>CorrectionEtudiantWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ChargerClasseWindow.xaml.cs">
+      <DependentUpon>ChargerClasseWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DatabaseConnection.cs" />
     <Compile Include="DatabaseHelper.cs" />
     <Compile Include="ExportData.cs" />
@@ -216,12 +233,23 @@
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
     <Page Include="LoginWindow.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MainWindow.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\CorrectionEtudiantWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ChargerClasseWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>

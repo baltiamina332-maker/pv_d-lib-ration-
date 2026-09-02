@@ -240,6 +240,13 @@ namespace DesktopApp.Services
         public decimal PourcentageRedoubleExclu { get; set; }
         public decimal PourcentageRachat { get; set; }
 
+        // Propriétés de compatibilité / alias
+        public int NbEtudiants => NombreTotal;
+        public int NbAdmis => NombreTotalAdmis;
+        public int NbAjournes => NombreTotalConseil + NombreRedoubleExclu;
+        public decimal PourcentageAjournes => PourcentageConseil + PourcentageRedoubleExclu;
+        public decimal MoyenneGenerale => MoyenneGeneraleGlobale;
+
         public DeliberationStatistics()
         {
             DateCalcul = DateTime.Now;

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client de Test API - Système PV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .header {
+            background: #8B3A3A;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #8B3A3A;
+            border-bottom: 2px solid #8B3A3A;
+            padding-bottom: 10px;
+        }
+        input[type="text"], input[type="file"], textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #8B3A3A;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #6B2A2A;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .response {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            border-left: 4px solid #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-left: 4px solid #dc3545;
+            background-color: #f8d7da;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.online {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .flex {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌐 Client de Test API REST</h1>
+        <p>Interface de test pour le Système de Génération des PV</p>
+    </div>
+
+    <!-- Section de Configuration -->
+    <div class="container">
+        <div class="section">
+            <h3>⚙️ Configuration</h3>
+            <div class="flex">
+                <label>URL de l'API:</label>
+                <input type="text" id="apiUrl" value="http://localhost:8080" placeholder="http://localhost:8080">
+                <button onclick="testConnection()">Tester la connexion</button>
+                <span id="connectionStatus" class="status offline">Hors ligne</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- Import Excel -->
+        <div class="container">
+            <div class="section">
+                <h3>📥 Import Excel</h3>
+                <input type="file" id="excelFile" accept=".xlsx,.xls">
+                <button onclick="importExcel()">Importer le fichier</button>
+                <div id="importResponse" class="response"></div>
+            </div>
+        </div>
+
+        <!-- Validation des Décisions -->
+        <div class="container">
+            <div class="section">
+                <h3>✅ Validation des Décisions</h3>
+                <textarea id="studentsJson" placeholder="Coller ici les données JSON des étudiants..." rows="5"></textarea>
+                <input type="text" id="classeGroupe" placeholder="Classe/Groupe (ex: 3A40)">
+                <button onclick="validateDecisions()">Valider les décisions</button>
+                <div id="validateResponse" class="response"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- Récupération des Étudiants -->
+        <div class="container">
+            <div class="section">
+                <h3>👥 Récupération des Étudiants</h3>
+                <input type="text" id="filterClasse" placeholder="Classe (optionnel)">
+                <input type="text" id="filterSession" placeholder="Session ID (optionnel)">
+                <button onclick="getStudents()">Récupérer les étudiants</button>
+                <div id="studentsResponse" class="response"></div>
+            </div>
+        </div>
+
+        <!-- Modification d'un Étudiant -->
+        <div class="container">
+            <div class="section">
+                <h3>✏️ Modification d'un Étudiant</h3>
+                <input type="text" id="studentId" placeholder="ID de l'étudiant">
+                <input type="text" id="newDecision" placeholder="Nouvelle décision">
+                <input type="text" id="newMention" placeholder="Nouvelle mention">
+                <textarea id="newObservation" placeholder="Nouvelle observation" rows="2"></textarea>
+                <button onclick="updateStudent()">Mettre à jour</button>
+                <div id="updateResponse" class="response"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs et Historique -->
+    <div class="container">
+        <div class="section">
+            <h3>📋 Logs des Requêtes</h3>
+            <button onclick="clearLogs()">Vider les logs</button>
+            <div id="requestLogs" class="response"></div>
+        </div>
+    </div>
+
+    <script>
+        let logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${message}`);
+            
+            // Garder seulement les 50 derniers logs
+            if (logs.length > 50) {
+                logs = logs.slice(-50);
+            }
+            
+            document.getElementById('requestLogs').textContent = logs.join('\n');
+        }
+
+        function clearLogs() {
+            logs = [];
+            document.getElementById('requestLogs').textContent = '';
+        }
+
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value.trim();
+        }
+
+        function showResponse(elementId, data, success = true) {
+            const element = document.getElementById(elementId);
+            element.className = `response ${success ? 'success' : 'error'}`;
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function testConnection() {
+            const url = getApiUrl();
+            log(`Test de connexion à ${url}...`);
+            
+            try {
+                const response = await fetch(`${url}/api/students`);
+                const statusElement = document.getElementById('connectionStatus');
+                
+                if (response.ok) {
+                    statusElement.textContent = 'En ligne';
+                    statusElement.className = 'status online';
+                    log('✓ Connexion réussie');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                const statusElement = document.getElementById('connectionStatus');
+                statusElement.textContent = 'Hors ligne';
+                statusElement.className = 'status offline';
+                log(`✗ Erreur de connexion: ${error.message}`);
+            }
+        }
+
+        async function importExcel() {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Veuillez sélectionner un fichier Excel');
+                return;
+            }
+
+            log(`Import du fichier: ${file.name}`);
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${getApiUrl()}/api/import/excel`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                showResponse('importResponse', data, response.ok);
+                
+                if (response.ok) {
+                    log(`✓ Import réussi: ${data.studentsCount} étudiants`);
+                    // Préremplir le JSON pour validation
+                    document.getElementById('studentsJson').value = JSON.stringify(data.students, null, 2);
+                } else {
+                    log(`✗ Erreur d'import: ${data.message}`);
+                }
+            } catch (error) {
+                log(`✗ Erreur réseau: ${error.message}`);
+                showResponse('importResponse', { error: error.message }, false);
+            }
+        }
+
+        async function validateDecisions() {
+            const studentsText = document.getElementById('studentsJson').value.trim();
+            const classe = document.getElementById('classeGroupe').value.trim();
+
+            if (!studentsText) {
+                alert('Veuillez fournir les données JSON des étudiants');
+                return;
+            }
+
+            try {
+                const students = JSON.parse(studentsText);
+                const requestData = {
+                    students: students,
+                    classeGroupe: classe,
+                    applyAutoCorrections: true
+                };
+
+                log(`Validation de ${students.length} étudiants...`);
+
+                const response = await fetch(`${getApiUrl()}/api/import/validate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+                showResponse('validateResponse', data, response.ok);
+
+                if (response.ok) {
+                    log(`✓ Validation réussie: ${data.statistics.totalEtudiants} étudiants traités`);
+                } else {
+                    log(`✗ Erreur de validation: ${data.message}`);
+                }
+            } catch (error) {
+                log(`✗ Erreur: ${error.message}`);
+                showResponse('validateResponse', { error: error.message }, false);
+            }
+        }
+
+        async function getStudents() {
+            const classe = document.getElementById('filterClasse').value.trim();
+            const session = document.getElementById('filterSession').value.trim();
+            
+            let url = `${getApiUrl()}/api/students`;
+            const params = new URLSearchParams();
+            
+            if (classe) params.append('classe', classe);
+            if (session) params.append('session', session);
+            
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+
+            log(`Récupération des étudiants: ${url}`);
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                showResponse('studentsResponse', data, response.ok);
+
+                if (response.ok) {
+                    log(`✓ ${data.count} étudiants récupérés`);
+                } else {
+                    log(`✗ Erreur: ${data.message}`);
+                }
+            } catch (error) {
+                log(`✗ Erreur réseau: ${error.message}`);
+                showResponse('studentsResponse', { error: error.message }, false);
+            }
+        }
+
+        async function updateStudent() {
+            const id = document.getElementById('studentId').value.trim();
+            const decision = document.getElementById('newDecision').value.trim();
+            const mention = document.getElementById('newMention').value.trim();
+            const observation = document.getElementById('newObservation').value.trim();
+
+            if (!id) {
+                alert('Veuillez saisir l\'ID de l\'étudiant');
+                return;
+            }
+
+            const updateData = {};
+            if (decision) updateData.decision = decision;
+            if (mention) updateData.mention = mention;
+            if (observation) updateData.observation = observation;
+
+            if (Object.keys(updateData).length === 0) {
+                alert('Veuillez saisir au moins une modification');
+                return;
+            }
+
+            log(`Mise à jour de l'étudiant ID ${id}...`);
+
+            try {
+                const response = await fetch(`${getApiUrl()}/api/students/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+                showResponse('updateResponse', data, response.ok);
+
+                if (response.ok) {
+                    log(`✓ Étudiant ${id} mis à jour`);
+                    // Vider les champs
+                    document.getElementById('studentId').value = '';
+                    document.getElementById('newDecision').value = '';
+                    document.getElementById('newMention').value = '';
+                    document.getElementById('newObservation').value = '';
+                } else {
+                    log(`✗ Erreur mise à jour: ${data.message}`);
+                }
+            } catch (error) {
+                log(`✗ Erreur réseau: ${error.message}`);
+                showResponse('updateResponse', { error: error.message }, false);
+            }
+        }
+
+        // Test de connexion automatique au chargement
+        window.onload = function() {
+            setTimeout(testConnection, 1000);
+        };
+    </script>
+</body>
+</html>

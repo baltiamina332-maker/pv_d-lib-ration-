@@ -180,11 +180,43 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Espace central -->
-                <TextBlock Grid.Column="1"/>
+                <!-- Espace central avec Barre d'accès rapide IA -->
+                <Border Grid.Column="1" Background="#1E2B37" CornerRadius="16" Padding="10,3" Margin="20,0" Width="380" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="🤖" FontSize="13" VerticalAlignment="Center" Margin="4,0,8,0"/>
+                        <TextBox Name="txtQuickAiPrompt" Grid.Column="1" 
+                                 Text="Demandez à l'IA... (ex: Mentions Bien ?, PV 3A40)" 
+                                 Foreground="#A0AEC0" Background="Transparent" BorderThickness="0" 
+                                 FontSize="12" VerticalAlignment="Center"
+                                 GotFocus="TxtQuickAiPrompt_GotFocus" LostFocus="TxtQuickAiPrompt_LostFocus"
+                                 KeyDown="TxtQuickAiPrompt_KeyDown"/>
+                        <Button Grid.Column="2" Content="➔" Click="BtnQuickAiSend_Click" 
+                                Background="Transparent" Foreground="#64B5F6" FontWeight="Bold" BorderThickness="0" 
+                                Cursor="Hand" Padding="6,2" ToolTip="Poser la question à l'IA"/>
+                    </Grid>
+                </Border>
                 
-                <!-- Informations utilisateur et déconnexion -->
+                <!-- Informations utilisateur, Bouton IA et déconnexion -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Name="btnToggleAiDrawer" Content="🤖 Assistant IA" Click="BtnToggleAiDrawer_Click"
+                            Background="#2B5B84" Foreground="White" FontSize="11.5" FontWeight="SemiBold"
+                            Padding="12,6" Margin="0,0,12,0" BorderThickness="0" Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="#2B5B84"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#1E3E5B"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                     <Border Background="#34495E" Padding="12,6" Margin="0,0,15,0">
                         <TextBlock Name="txtUserInfo" 
                                    Text="👤 admin (Admin)" 
@@ -235,7 +267,7 @@
 
         <!-- ZONE DE TRAVAIL PRINCIPALE -->
         <Grid Grid.Row="2" Background="#F8F9FA">
-            <TabControl Background="Transparent" BorderThickness="0" Padding="0" Margin="0">
+            <TabControl Name="tabMain" Background="Transparent" BorderThickness="0" Padding="0" Margin="0">
                 <TabControl.Resources>
                     <Style TargetType="TabItem">
                         <Setter Property="Template">
@@ -496,6 +528,30 @@
                                                     BorderThickness="0"
                                                     Cursor="Hand"
                                                     Margin="0,0,15,0"/>
+                                            <Button Name="btnValidationAuto" 
+                                                    Content="✅ Validation Auto" 
+                                                    Click="BtnValidationAutomatique_Click"
+                                                    Background="#17A2B8"
+                                                    Foreground="White"
+                                                    FontWeight="SemiBold"
+                                                    IsEnabled="False"
+                                                    Height="45"
+                                                    FontSize="14"
+                                                    Padding="30,0"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    Margin="0,0,15,0"/>
+                                            <Button Name="btnChargerClasse" 
+                                                    Content="📚 Charger Classe" 
+                                                    Click="BtnChargerClasse_Click"
+                                                    Background="#6F42C1"
+                                                    Foreground="White"
+                                                    FontWeight="SemiBold"
+                                                    Height="45"
+                                                    FontSize="14"
+                                                    Padding="30,0"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"/>
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -509,11 +565,55 @@
                                     <Grid Margin="15">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
 
+                                        <!-- Barre d'outils contextuelle -->
+                                        <Border Grid.Row="0" 
+                                                Background="#F8F9FA" 
+                                                BorderBrush="#E9ECEF" 
+                                                BorderThickness="0,0,0,1" 
+                                                Padding="10"
+                                                Margin="-15,-15,-15,10">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🔧 Outils Rapides:" 
+                                                           VerticalAlignment="Center" 
+                                                           FontWeight="SemiBold" 
+                                                           Margin="0,0,15,0"/>
+                                                <Button Name="btnRechargerDonnees" 
+                                                        Content="🔄 Actualiser" 
+                                                        Click="BtnRechargerDonnees_Click"
+                                                        Style="{StaticResource SecondaryButton}"
+                                                        Padding="12,6"
+                                                        FontSize="12"
+                                                        Margin="0,0,10,0"/>
+                                                <Button Name="btnViderTableau" 
+                                                        Content="🗑️ Vider" 
+                                                        Click="BtnViderTableau_Click"
+                                                        Background="#DC3545"
+                                                        Foreground="White"
+                                                        FontWeight="SemiBold"
+                                                        Padding="12,6"
+                                                        BorderThickness="0"
+                                                        Cursor="Hand"
+                                                        FontSize="12"
+                                                        Margin="0,0,10,0"/>
+                                                <Button Name="btnAideUtilisation" 
+                                                        Content="❓ Aide" 
+                                                        Click="BtnAideUtilisation_Click"
+                                                        Background="#17A2B8"
+                                                        Foreground="White"
+                                                        FontWeight="SemiBold"
+                                                        Padding="12,6"
+                                                        BorderThickness="0"
+                                                        Cursor="Hand"
+                                                        FontSize="12"/>
+                                            </StackPanel>
+                                        </Border>
+
                                         <!-- Barre de recherche en temps réel (Données Étudiants) -->
-                                        <Grid Grid.Row="0" Margin="0,0,0,15">
+                                        <Grid Grid.Row="1" Margin="0,0,0,15">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
@@ -562,7 +662,7 @@
                                         </Grid>
 
                                         <!-- DataGrid grand et spacieux (Hauteur fixe 420px, avec scrollbar verticale visible) -->
-                                        <DataGrid Grid.Row="1" 
+                                        <DataGrid Grid.Row="2" 
                                                   Name="dgDonnees" 
                                                   Visibility="Visible"
                                                   AutoGenerateColumns="False" 
@@ -578,6 +678,7 @@
                                                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
                                                   ScrollViewer.CanContentScroll="False"
                                                   PreviewMouseWheel="DataGrid_PreviewMouseWheel"
+                                                  MouseDoubleClick="DgDonnees_MouseDoubleClick"
                                                   RowHeight="36"
                                                   FontSize="13"
                                                   Background="White"
@@ -604,23 +705,51 @@
                                         Padding="20" 
                                         BorderBrush="#C8E6C9" 
                                         BorderThickness="1">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Background="#4CAF50" 
-                                                Width="20" Height="20" 
-                                                Margin="0,0,15,0">
-                                            <TextBlock Text="i" 
-                                                       Foreground="White"
-                                                       FontWeight="Bold"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center" 
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                            <Border Background="#4CAF50" 
+                                                    Width="20" Height="20" 
+                                                    Margin="0,0,15,0">
+                                                <TextBlock Text="i" 
+                                                           Foreground="White"
+                                                           FontWeight="Bold"
+                                                           FontSize="12"
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <TextBlock Name="txtStatutImport" 
+                                                       Text="🔄 En attente d'un fichier Excel..." 
+                                                       FontSize="14"
+                                                       Foreground="#2E7D32" 
                                                        VerticalAlignment="Center"/>
-                                        </Border>
-                                        <TextBlock Name="txtStatutImport" 
-                                                   Text="🔄 En attente d'un fichier Excel..." 
-                                                   FontSize="14"
-                                                   Foreground="#2E7D32" 
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Name="txtInfoSupplementaire" 
+                                                       Text="" 
+                                                       FontSize="12"
+                                                       Foreground="#388E3C" 
+                                                       FontWeight="SemiBold"
+                                                       Margin="0,0,15,0"/>
+                                            <Border Name="borderStatutDecisions" 
+                                                    Background="#FFF3E0" 
+                                                    BorderBrush="#FFB74D" 
+                                                    BorderThickness="1" 
+                                                    Padding="8,4"
+                                                    Visibility="Collapsed">
+                                                <TextBlock Name="txtStatutDecisions" 
+                                                           Text="⏳ Décisions en attente" 
+                                                           FontSize="11"
+                                                           Foreground="#E65100"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
                                 </Border>
                             </StackPanel>
                         </ScrollViewer>
@@ -671,16 +800,22 @@
                                                 <TextBlock Text="Date de Délibération" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
                                                 <DatePicker Name="dpDateDeliberation" Padding="10"
                                                             BorderBrush="#D8D8D8" BorderThickness="1" FontSize="12"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                                    <TextBlock Text="Puces :" FontSize="10" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                    <Button Content="Aujourd'hui" Click="BtnDateSuggestion_Click" Tag="Today" Style="{StaticResource SecondaryButton}" Padding="6,2" FontSize="10" Margin="0,0,3,0"/>
+                                                    <Button Content="Session Janvier" Click="BtnDateSuggestion_Click" Tag="Janvier" Style="{StaticResource SecondaryButton}" Padding="6,2" FontSize="10" Margin="0,0,3,0"/>
+                                                    <Button Content="Session Juin" Click="BtnDateSuggestion_Click" Tag="Juin" Style="{StaticResource SecondaryButton}" Padding="6,2" FontSize="10"/>
+                                                </StackPanel>
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
 
-                                <!-- Formulaire Composition Jury -->
+                                <!-- Formulaire Composition Jury avec Autocomplétion -->
                                 <Border Grid.Row="2" Background="#F8F9FA" Padding="20" Margin="0,0,0,20"
                                         BorderBrush="#DEE2E6" BorderThickness="1">
                                     <StackPanel>
-                                        <TextBlock Text="👨‍⚖️ Composition du Jury" FontWeight="SemiBold"
+                                        <TextBlock Text="👨‍⚖️ Composition du Jury (avec Mémorisation Intelligente)" FontWeight="SemiBold"
                                                    FontSize="16" Foreground="#2C3E50" Margin="0,0,0,15"/>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -691,29 +826,69 @@
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
+
+                                            <!-- Président du Jury -->
                                             <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,15,15">
                                                 <TextBlock Text="Président du Jury" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
-                                                <TextBox Name="txtPresidentJury" Padding="10"
-                                                         BorderBrush="#D8D8D8" BorderThickness="1" FontSize="13"
-                                                         ToolTip="Nom et prénom..."/>
+                                                <Grid>
+                                                    <TextBox Name="txtPresidentJury" Padding="10"
+                                                             BorderBrush="#D8D8D8" BorderThickness="1" FontSize="13"
+                                                             ToolTip="Tapez pour voir les suggestions..."
+                                                             KeyUp="TxtJury_KeyUp" GotFocus="TxtJury_GotFocus" LostFocus="TxtJury_LostFocus" Tag="President"/>
+                                                    <Popup Name="popPresidentJury" StaysOpen="False" PlacementTarget="{Binding ElementName=txtPresidentJury}" Placement="Bottom" Width="280">
+                                                        <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4" Padding="2">
+                                                            <ListBox Name="lstPresidentJury" SelectionChanged="LstJurySuggestion_SelectionChanged" BorderThickness="0" MaxHeight="140" Tag="txtPresidentJury"/>
+                                                        </Border>
+                                                    </Popup>
+                                                </Grid>
                                             </StackPanel>
+
+                                            <!-- Secrétaire -->
                                             <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,15">
                                                 <TextBlock Text="Secrétaire" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
-                                                <TextBox Name="txtSecretaire" Padding="10"
-                                                         BorderBrush="#D8D8D8" BorderThickness="1" FontSize="13"
-                                                         ToolTip="Nom et prénom..."/>
+                                                <Grid>
+                                                    <TextBox Name="txtSecretaire" Padding="10"
+                                                             BorderBrush="#D8D8D8" BorderThickness="1" FontSize="13"
+                                                             ToolTip="Tapez pour voir les suggestions..."
+                                                             KeyUp="TxtJury_KeyUp" GotFocus="TxtJury_GotFocus" LostFocus="TxtJury_LostFocus" Tag="Secretaire"/>
+                                                    <Popup Name="popSecretaire" StaysOpen="False" PlacementTarget="{Binding ElementName=txtSecretaire}" Placement="Bottom" Width="280">
+                                                        <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4" Padding="2">
+                                                            <ListBox Name="lstSecretaire" SelectionChanged="LstJurySuggestion_SelectionChanged" BorderThickness="0" MaxHeight="140" Tag="txtSecretaire"/>
+                                                        </Border>
+                                                    </Popup>
+                                                </Grid>
                                             </StackPanel>
+
+                                            <!-- Membre 1 -->
                                             <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,15,0">
                                                 <TextBlock Text="Membre du Jury 1" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
-                                                <TextBox Name="txtMembreJury1" Padding="10"
-                                                         BorderBrush="#D8D8D8" BorderThickness="1" FontSize="13"
-                                                         ToolTip="Nom et prénom (optionnel)..."/>
+                                                <Grid>
+                                                    <TextBox Name="txtMembreJury1" Padding="10"
+                                                             BorderBrush="#D8D8D8" BorderThickness="1" FontSize="13"
+                                                             ToolTip="Tapez pour voir les suggestions..."
+                                                             KeyUp="TxtJury_KeyUp" GotFocus="TxtJury_GotFocus" LostFocus="TxtJury_LostFocus" Tag="Membre"/>
+                                                    <Popup Name="popMembreJury1" StaysOpen="False" PlacementTarget="{Binding ElementName=txtMembreJury1}" Placement="Bottom" Width="280">
+                                                        <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4" Padding="2">
+                                                            <ListBox Name="lstMembreJury1" SelectionChanged="LstJurySuggestion_SelectionChanged" BorderThickness="0" MaxHeight="140" Tag="txtMembreJury1"/>
+                                                        </Border>
+                                                    </Popup>
+                                                </Grid>
                                             </StackPanel>
+
+                                            <!-- Membre 2 -->
                                             <StackPanel Grid.Row="1" Grid.Column="1">
                                                 <TextBlock Text="Membre du Jury 2" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
-                                                <TextBox Name="txtMembreJury2" Padding="10"
-                                                         BorderBrush="#D8D8D8" BorderThickness="1" FontSize="13"
-                                                         ToolTip="Nom et prénom (optionnel)..."/>
+                                                <Grid>
+                                                    <TextBox Name="txtMembreJury2" Padding="10"
+                                                             BorderBrush="#D8D8D8" BorderThickness="1" FontSize="13"
+                                                             ToolTip="Tapez pour voir les suggestions..."
+                                                             KeyUp="TxtJury_KeyUp" GotFocus="TxtJury_GotFocus" LostFocus="TxtJury_LostFocus" Tag="Membre"/>
+                                                    <Popup Name="popMembreJury2" StaysOpen="False" PlacementTarget="{Binding ElementName=txtMembreJury2}" Placement="Bottom" Width="280">
+                                                        <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4" Padding="2">
+                                                            <ListBox Name="lstMembreJury2" SelectionChanged="LstJurySuggestion_SelectionChanged" BorderThickness="0" MaxHeight="140" Tag="txtMembreJury2"/>
+                                                        </Border>
+                                                    </Popup>
+                                                </Grid>
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>
@@ -828,7 +1003,7 @@
                                     <DataGridTextColumn Header="Admis" Binding="{Binding NbAdmis}" SortMemberPath="NbAdmis" Width="70"/>
                                     <DataGridTextColumn Header="Ajournés" Binding="{Binding NbAjournes}" SortMemberPath="NbAjournes" Width="80"/>
                                     <DataGridTextColumn Header="Fichier" Binding="{Binding NomFichier}" SortMemberPath="NomFichier" Width="*"/>
-                                    <DataGridTemplateColumn Header="Actions" Width="150">
+                                    <DataGridTemplateColumn Header="Actions" Width="200">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
@@ -842,7 +1017,13 @@
                                                             Padding="8,4" 
                                                             Style="{StaticResource SecondaryButton}" 
                                                             FontSize="11"
+                                                            Margin="0,0,5,0"
                                                             Click="BtnOpenHistoriqueFolder_Click"/>
+                                                    <Button Content="🗑️ Supprimer" 
+                                                            Padding="8,4" 
+                                                            Style="{StaticResource DangerButton}" 
+                                                            FontSize="11"
+                                                            Click="BtnDeleteHistorique_Click"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -1095,6 +1276,78 @@
                 </TabItem>
 
             </TabControl>
+        </Grid>
+
+        <!-- VOLET LATÉRAL DE L'ASSISTANT IA (SLIDING CHATBOT OVERLAY) -->
+        <Grid Name="gridAiDrawerOverlay" Visibility="Collapsed" Panel.ZIndex="1000" Grid.RowSpan="4">
+            <!-- Arrière-plan semi-transparent -->
+            <Border Background="#80000000" MouseDown="GridAiDrawerOverlay_MouseDown"/>
+            
+            <!-- Panneau Chatbot à droite -->
+            <Border HorizontalAlignment="Right" Width="440" Background="#F8F9FA" 
+                    BorderBrush="#CBD5E1" BorderThickness="1,0,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- En-tête -->
+                        <RowDefinition Height="Auto"/> <!-- Puces de questions rapides -->
+                        <RowDefinition Height="*"/>    <!-- Messages -->
+                        <RowDefinition Height="Auto"/> <!-- Zone de saisie -->
+                    </Grid.RowDefinitions>
+
+                    <!-- En-tête du Chatbot -->
+                    <Border Grid.Row="0" Background="#8B3A3A" Padding="16,12">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="White" CornerRadius="16" Width="32" Height="32" Margin="0,0,10,0">
+                                    <TextBlock Text="🤖" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel>
+                                    <TextBlock Text="Assistant IA Délibération" Foreground="White" FontWeight="Bold" FontSize="15"/>
+                                    <TextBlock Text="Posez vos questions ou donnez vos consignes" Foreground="#E2E8F0" FontSize="11"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Content="✕" Click="BtnCloseAiDrawer_Click" HorizontalAlignment="Right" 
+                                    Background="Transparent" Foreground="White" FontSize="16" FontWeight="Bold" 
+                                    BorderThickness="0" Cursor="Hand" Padding="8,4"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Puces de questions rapides prédéfinies -->
+                    <Border Grid.Row="1" Background="#EDF2F7" Padding="10,8" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="🏆 Mentions Bien ?" Click="BtnQuickQuestion_Click" Tag="Combien d'étudiants ont eu une mention Bien ce semestre ?" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Padding="8,3" FontSize="11"/>
+                                <Button Content="📈 Taux de réussite ?" Click="BtnQuickQuestion_Click" Tag="Quel est le taux de réussite ?" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Padding="8,3" FontSize="11"/>
+                                <Button Content="📄 PV classe 3A40" Click="BtnQuickQuestion_Click" Tag="Génère-moi le PV de la classe 3A40" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Padding="8,3" FontSize="11"/>
+                                <Button Content="📊 Exporter Excel" Click="BtnQuickQuestion_Click" Tag="Exporte les admis en Excel" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Padding="8,3" FontSize="11"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Zone des messages du Chatbot -->
+                    <ScrollViewer Name="scrollAiChat" Grid.Row="2" Padding="14" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Name="panelAiMessages">
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Zone de saisie du message Chatbot -->
+                    <Border Grid.Row="3" Background="White" Padding="12" BorderBrush="#CBD5E1" BorderThickness="0,1,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Name="txtAiInput" Padding="10" FontSize="13"
+                                     BorderBrush="#CBD5E1" BorderThickness="1"
+                                     TextWrapping="Wrap" MaxHeight="80"
+                                     KeyDown="TxtAiInput_KeyDown"
+                                     ToolTip="Tapez votre question et appuyez sur Entrée..."/>
+                            <Button Grid.Column="1" Content="Envoyer ➔" Click="BtnSendAiMessage_Click" 
+                                    Style="{StaticResource PrimaryButton}" Margin="8,0,0,0" Padding="14,8"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
         </Grid>
 
     </Grid>
