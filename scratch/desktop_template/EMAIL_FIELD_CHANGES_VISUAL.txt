@@ -1,0 +1,396 @@
+═══════════════════════════════════════════════════════════════════════════════
+                 EMAIL FIELD CHANGES - VISUAL REPRESENTATION
+═══════════════════════════════════════════════════════════════════════════════
+
+───────────────────────────────────────────────────────────────────────────────
+1. ADD USER FORM - BEFORE
+───────────────────────────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ➕ Ajouter un nouvel utilisateur                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────┐  ┌──────────────────┐  ┌────────────┐  ┌────────┐ │
+│  │ Nom d'utilisateur   │  │ Nom complet      │  │ Rôle       │  │Ajouter │ │
+│  ├─────────────────────┤  ├──────────────────┤  ├────────────┤  └────────┘ │
+│  │ [TextBox]           │  │ [TextBox]        │  │ ▼          │            │
+│  │ jsmith              │  │ Jean Smith       │  │ Utilisateur│            │
+│  └─────────────────────┘  └──────────────────┘  └────────────┘            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+───────────────────────────────────────────────────────────────────────────────
+2. ADD USER FORM - AFTER (WITH EMAIL FIELD)
+───────────────────────────────────────────────────────────────────────────────
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  ➕ Ajouter un nouvel utilisateur                                           │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────────┐  ┌────────────────┐  ┌────────────────┐  ┌────────┐   │
+│  │Nom d'utilisateur │  │ Nom complet    │  │ Email          │  │ Rôle   │   │
+│  ├──────────────────┤  ├────────────────┤  ├────────────────┤  ├────────┤   │
+│  │ [TextBox]        │  │ [TextBox]      │  │ [TextBox]      │  │ ▼      │   │
+│  │ jsmith           │  │ Jean Smith     │  │ jean@exam...   │  │Utilisat│   │
+│  └──────────────────┘  └────────────────┘  └────────────────┘  └────────┘   │
+│                                                                    ┌────────┐ │
+│                                                                    │Ajouter│ │
+│                                                                    └────────┘ │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+KEY CHANGES:
+  ✓ Added Email field (3rd column)
+  ✓ Grid columns: 4 → 5
+  ✓ Columns repositioned for better fit
+  ✓ Button moved to align with email field bottom
+
+───────────────────────────────────────────────────────────────────────────────
+3. USERS LIST DATAGRID - BEFORE
+───────────────────────────────────────────────────────────────────────────────
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ Nom d'utilisateur │ Nom complet │ Rôle  │ Statut │ Actions          │
+├────────────────────────────────────────────────────────────────────────────┤
+│ jsmith            │ Jean Smith  │ User  │ Active │ [Modifier] [Supp]│
+│ adurand           │ Anne Durand │ Admin │ Active │ [Modifier] [Supp]│
+│ plegrand          │ Pierre Leg. │ User  │ Active │ [Modifier] [Supp]│
+└────────────────────────────────────────────────────────────────────────────┘
+
+───────────────────────────────────────────────────────────────────────────────
+4. USERS LIST DATAGRID - AFTER (WITH EMAIL COLUMN)
+───────────────────────────────────────────────────────────────────────────────
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Nom d'utilis. │ Nom complet    │ Email            │ Rôle  │ Stat │ Actions  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ jsmith        │ Jean Smith     │ jean@example.com │ User  │ ✓    │ [M][S]  │
+│ adurand       │ Anne Durand    │ anne@company.fr  │ Admin │ ✓    │ [M][S]  │
+│ plegrand      │ Pierre Legrand │ pierre@work.org  │ User  │ ✓    │ [M][S]  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+KEY CHANGES:
+  ✓ Added Email column (between FullName and Role)
+  ✓ Column order: Username | FullName | Email | Role | Status | Actions
+  ✓ Widths adjusted for better spacing
+  ✓ Column widths: 130 | 180 | 180 | 100 | 80 | 150 pixels
+
+───────────────────────────────────────────────────────────────────────────────
+5. VALIDATION FLOW - VISUAL DIAGRAM
+───────────────────────────────────────────────────────────────────────────────
+
+USER ACTION:
+  Fills form and clicks "Ajouter"
+         ↓
+    ┌─────────────────────────────────────────┐
+    │ Validate all fields not empty           │
+    │ (Username, FullName, Email, Role)       │
+    └─────────────────────────────────────────┘
+         ↓
+    ┌─────┴─────┐
+    │           │
+   YES          NO
+    │           │
+    ↓           ↓
+SUCCESS    ┌────────────────────────┐
+    │      │ ❌ VALIDATION ERROR:   │
+    │      │ "Veuillez remplir      │
+    │      │  tous les champs."     │
+    │      └────────────────────────┘
+    │           ↓
+    │      RETURN (abort)
+    │
+    ↓
+    ┌─────────────────────────────────────────┐
+    │ Validate email format                   │
+    │ (must contain @)                        │
+    └─────────────────────────────────────────┘
+         ↓
+    ┌─────┴─────┐
+    │           │
+   YES          NO
+    │           │
+    ↓           ↓
+SUCCESS    ┌──────────────────────────┐
+    │      │ ❌ VALIDATION ERROR:     │
+    │      │ "❌ L'adresse email      │
+    │      │  doit contenir un @."    │
+    │      │ • Focus email field      │
+    │      │ • Select all text        │
+    │      └──────────────────────────┘
+    │           ↓
+    │      RETURN (abort)
+    │
+    ↓
+    ┌─────────────────────────────────────────┐
+    │ Create User object                      │
+    │ with Email property                     │
+    └─────────────────────────────────────────┘
+         ↓
+    ┌─────────────────────────────────────────┐
+    │ Add/Update user in database             │
+    └─────────────────────────────────────────┘
+         ↓
+    ┌─────────────────────────────────────────┐
+    │ ✅ SUCCESS MESSAGE SHOWN                │
+    │ Refresh user list (show email)          │
+    │ Clear form (including email field)      │
+    └─────────────────────────────────────────┘
+
+───────────────────────────────────────────────────────────────────────────────
+6. ERROR MESSAGE SCENARIOS
+───────────────────────────────────────────────────────────────────────────────
+
+SCENARIO 1: Missing Email Field
+  ┌─────────────────────────────────┐
+  │          ⚠️ ERREUR             │
+  ├─────────────────────────────────┤
+  │                                 │
+  │ Veuillez remplir tous les      │
+  │ champs.                         │
+  │                                 │
+  │              [OK]               │
+  │                                 │
+  └─────────────────────────────────┘
+
+SCENARIO 2: Invalid Email (No @)
+  ┌─────────────────────────────────┐
+  │    ⚠️ ERREUR DE VALIDATION      │
+  ├─────────────────────────────────┤
+  │                                 │
+  │ ❌ L'adresse email doit         │
+  │ contenir un @.                  │
+  │                                 │
+  │              [OK]               │
+  │                                 │
+  └─────────────────────────────────┘
+  
+  After clicking OK:
+  • Cursor auto-focuses on email field
+  • All text auto-selected for easy correction
+
+SCENARIO 3: Success
+  ┌─────────────────────────────────┐
+  │         ✅ SUCCÈS              │
+  ├─────────────────────────────────┤
+  │                                 │
+  │ Utilisateur ajouté avec         │
+  │ succès.                         │
+  │                                 │
+  │              [OK]               │
+  │                                 │
+  └─────────────────────────────────┘
+  
+  After clicking OK:
+  • User list refreshed with email visible
+  • Form cleared (email field empty)
+  • Ready for next user entry
+
+───────────────────────────────────────────────────────────────────────────────
+7. CODE STRUCTURE - BEFORE vs AFTER
+───────────────────────────────────────────────────────────────────────────────
+
+BEFORE (4 input fields):
+  ┌─────────────────────────────┐
+  │ BtnAddUser_Click()          │
+  ├─────────────────────────────┤
+  │ Read inputs:                │
+  │ • txtNewUsername            │
+  │ • txtNewFullName            │
+  │ • cmbRole                   │
+  │                             │
+  │ Validate:                   │
+  │ • Check not empty           │
+  │                             │
+  │ Create User:                │
+  │ • Username                  │
+  │ • FullName                  │
+  │ • Role                      │
+  │ • Password                  │
+  │                             │
+  │ Add to database             │
+  │                             │
+  │ Reset:                      │
+  │ • txtNewUsername.Clear()    │
+  │ • txtNewFullName.Clear()    │
+  │ • cmbRole.SelectedIndex     │
+  └─────────────────────────────┘
+
+AFTER (5 input fields):
+  ┌──────────────────────────────┐
+  │ BtnAddUser_Click()           │
+  ├──────────────────────────────┤
+  │ Read inputs:                 │
+  │ • txtNewUsername             │
+  │ • txtNewFullName             │
+  │ • txtNewEmail         ← NEW  │
+  │ • cmbRole                    │
+  │                              │
+  │ Validate:                    │
+  │ • Check not empty            │
+  │ • Check email contains @     │ ← NEW
+  │                              │
+  │ Create User:                 │
+  │ • Username                   │
+  │ • FullName                   │
+  │ • Email               ← NEW  │
+  │ • Role                       │
+  │ • Password                   │
+  │                              │
+  │ Add to database              │
+  │                              │
+  │ Reset:                       │
+  │ • txtNewUsername.Clear()     │
+  │ • txtNewFullName.Clear()     │
+  │ • txtNewEmail.Clear()  ← NEW │
+  │ • cmbRole.SelectedIndex      │
+  └──────────────────────────────┘
+
+───────────────────────────────────────────────────────────────────────────────
+8. USER INTERACTION EXAMPLE
+───────────────────────────────────────────────────────────────────────────────
+
+TYPICAL USER WORKFLOW:
+
+Step 1: Navigate to Administration tab
+  [🔐 Administration Tab Selected]
+  
+Step 2: See the "Add User" form with NEW Email field
+  Nom d'utilisateur: [ ___________ ]
+  Nom complet: [ ___________ ]
+  Email: [ ___________ ]  ← NEW FIELD
+  Rôle: [ User ▼ ]
+  
+Step 3: User enters data
+  Nom d'utilisateur: [ marie_b ]
+  Nom complet: [ Marie Benoit ]
+  Email: [ marie.b@esprit.tn ]  ← NEW FIELD
+  Rôle: [ User ▼ ]
+  
+Step 4: Click "Ajouter" button
+  [Click Ajouter button]
+  
+Step 5: Validation checks pass
+  ✓ Username not empty
+  ✓ FullName not empty
+  ✓ Email not empty (NEW CHECK)
+  ✓ Email contains @ (NEW CHECK)
+  ✓ Role selected
+  
+Step 6: User added to database with email
+  INSERT INTO users VALUES (
+    'marie_b',
+    'Marie Benoit',
+    'marie.b@esprit.tn',  ← Email saved
+    'password123',
+    'User',
+    TRUE
+  )
+  
+Step 7: Success message shown
+  ✅ "Utilisateur ajouté avec succès."
+  
+Step 8: Form cleared, list updated
+  User list now shows:
+  ┌──────────┬────────────────┬─────────────────────┬──────┐
+  │ Username │ FullName       │ Email               │ Role │
+  ├──────────┼────────────────┼─────────────────────┼──────┤
+  │ marie_b  │ Marie Benoit   │ marie.b@esprit.tn   │ User │ ← NEW
+  └──────────┴────────────────┴─────────────────────┴──────┘
+
+Step 9: Form ready for next user
+  Nom d'utilisateur: [ ___________ ]  (cleared)
+  Nom complet: [ ___________ ]  (cleared)
+  Email: [ ___________ ]  (cleared, ready for input)
+  Rôle: [ User ▼ ]
+
+───────────────────────────────────────────────────────────────────────────────
+9. VALIDATION ERROR FLOW EXAMPLE
+───────────────────────────────────────────────────────────────────────────────
+
+SCENARIO: User forgets @ in email
+
+Step 1: User enters invalid email
+  Email: [ marie.b.esprit.tn ]  ← Missing @
+  
+Step 2: Click "Ajouter"
+  [Click Ajouter button]
+  
+Step 3: Validation fails
+  ❌ Email format check fails
+  ❌ email.Contains("@") returns false
+  
+Step 4: Error message displayed
+  ┌─────────────────────────────┐
+  │ ⚠️ ERREUR DE VALIDATION    │
+  ├─────────────────────────────┤
+  │                             │
+  │ ❌ L'adresse email doit     │
+  │ contenir un @.              │
+  │                             │
+  │              [OK]            │
+  │                             │
+  └─────────────────────────────┘
+  
+Step 5: User clicks OK
+  [Click OK]
+  
+Step 6: Auto-focus and select
+  • Cursor jumps to email field
+  • All text selected: "marie.b.esprit.tn"
+  
+Step 7: User types correction
+  Email: [ marie.b@esprit.tn ]  ← Corrected
+  
+Step 8: User clicks "Ajouter" again
+  [Click Ajouter button]
+  
+Step 9: Validation passes
+  ✓ All checks pass
+  ✓ User added successfully
+
+───────────────────────────────────────────────────────────────────────────────
+10. DATA PERSISTENCE - DATABASE CHANGES
+───────────────────────────────────────────────────────────────────────────────
+
+DATABASE TABLE BEFORE:
+  CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(200),
+    role ENUM('Admin', 'User') DEFAULT 'User',
+    is_active BOOLEAN DEFAULT TRUE
+  );
+
+DATABASE TABLE AFTER (No change needed if email column exists):
+  CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255),          ← Email already exists
+    full_name VARCHAR(200),
+    role ENUM('Admin', 'User') DEFAULT 'User',
+    is_active BOOLEAN DEFAULT TRUE
+  );
+
+SAMPLE DATA:
+  Before: ('marie_b', 'hashed_pwd', 'Marie Benoit', 'User', TRUE)
+  After:  ('marie_b', 'hashed_pwd', 'marie.b@esprit.tn', 'Marie Benoit', 'User', TRUE)
+          ↑            ↑             ↑ NEW VALUE
+
+═══════════════════════════════════════════════════════════════════════════════
+                            VISUAL SUMMARY
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Form now has Email field (3rd column)
+✅ Email column visible in users DataGrid
+✅ Email validation (must contain @)
+✅ Focus & select on validation error
+✅ Email saved to database
+✅ Email displayed in user list
+✅ Form reset includes email field
+
+All changes complete and ready for deployment.
+
+═══════════════════════════════════════════════════════════════════════════════

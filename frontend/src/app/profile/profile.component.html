@@ -1,0 +1,171 @@
+<div class="app-container" [attr.data-theme]="'light'">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="brand-text">
+                <span class="brand-title">PV-Delib</span>
+                <span class="brand-subtitle">{{ authService.isAdmin() ? 'Panneau Administration' : 'Système LMD Automatisé' }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- Sidebar for Admin -->
+            <ng-container *ngIf="authService.isAdmin()">
+                <button class="nav-item" [routerLink]="['/admin']" [queryParams]="{tab: 'users'}">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Utilisateurs & Accès</span>
+                </button>
+
+                <button class="nav-item" [routerLink]="['/admin']" [queryParams]="{tab: 'affectations'}">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Affectations (Matière & Classe)</span>
+                </button>
+
+                <button class="nav-item" [routerLink]="['/admin']" [queryParams]="{tab: 'classes'}">
+                    <i class="fa-solid fa-school"></i>
+                    <span>Classes & Étudiants</span>
+                </button>
+
+                <button class="nav-item" [routerLink]="['/wizard']" [queryParams]="{view: 'wizard'}">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Générateur & PV</span>
+                </button>
+
+                <button class="nav-item" [routerLink]="['/wizard']" [queryParams]="{view: 'ml-models'}">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Modèles IA & ML</span>
+                </button>
+            </ng-container>
+
+            <!-- Sidebar for Non-Admin (Enseignant) -->
+            <ng-container *ngIf="!authService.isAdmin()">
+                <button class="nav-item" [routerLink]="['/wizard']" [queryParams]="{view: 'mes-classes'}">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Mes Classes & Saisie des Notes</span>
+                </button>
+
+                <button class="nav-item" [routerLink]="['/wizard']" [queryParams]="{view: 'ml-models'}">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Modèles IA & ML</span>
+                </button>
+            </ng-container>
+
+            <button class="nav-item active" routerLink="/profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Mon Profil</span>
+            </button>
+
+            <button class="nav-item text-danger" (click)="logout()" style="margin-top: auto; color: var(--rose-text);">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Déconnexion</span>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="top-header">
+            <div class="header-title">
+                <h1>Mon Profil</h1>
+                <p>Gérez vos informations et votre sécurité</p>
+            </div>
+            
+            <div class="header-actions">
+                <div class="status-indicator">
+                    <span class="status-dot online"></span>
+                    <span *ngIf="authService.isAdmin()">Administrateur</span>
+                    <span *ngIf="!authService.isAdmin()">Utilisateur Standard</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Informations Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-circle-user text-blue mr-2"></i> Informations du Compte</h3>
+                </div>
+                <div class="card-body text-center py-4">
+                    <div class="mb-4">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #1E3A8A, #06B6D4); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+                            {{ user?.username?.charAt(0)?.toUpperCase() }}
+                        </div>
+                        <h2 style="font-size: 24px; margin-bottom: 5px;">{{ user?.username }}</h2>
+                        <span class="badge badge-blue mb-4" *ngIf="authService.isAdmin()">Administrateur</span>
+                        <span class="badge badge-emerald mb-4" *ngIf="!authService.isAdmin()">Approuvé</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Changement Mot de passe Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-lock text-emerald mr-2"></i> Changer le mot de passe</h3>
+                </div>
+                <div class="card-body">
+                    <form (ngSubmit)="changePassword()">
+                        <div *ngIf="successMessage" class="alert alert-success mb-3" style="background: var(--emerald-bg); color: var(--emerald-text); padding: 12px; border-radius: 6px;">
+                            <i class="fa-solid fa-circle-check"></i> {{ successMessage }}
+                        </div>
+                        <div *ngIf="errorMessage" class="alert alert-danger mb-3" style="background: var(--rose-bg); color: var(--rose-text); padding: 12px; border-radius: 6px;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMessage }}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">Ancien mot de passe</label>
+                            <input type="password" class="form-control" name="oldPassword" [(ngModel)]="pwdForm.oldPassword" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Nouveau mot de passe</label>
+                            <input type="password" class="form-control" name="newPassword" [(ngModel)]="pwdForm.newPassword" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label">Confirmer le mot de passe</label>
+                            <input type="password" class="form-control" name="confirmPassword" [(ngModel)]="pwdForm.confirmPassword" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Mettre à jour
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-clock-rotate-left text-blue mr-2"></i> Mes PVs Générés</h3>
+            </div>
+            <div class="card-body padding-0">
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Classe / Groupe</th>
+                                <th>Nom de Fichier</th>
+                                <th>Date &amp; Heure</th>
+                                <th>Effectif</th>
+                                <th>Taux Réussite</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="myHistory.length === 0">
+                                <td colspan="5" class="text-center text-muted py-4">Vous n'avez généré aucun PV pour le moment.</td>
+                            </tr>
+                            <tr *ngFor="let h of myHistory">
+                                <td><strong>{{h.nomClasse}}</strong></td>
+                                <td>{{h.filename}}</td>
+                                <td>{{h.dateGeneration | date:'dd/MM/yyyy HH:mm'}}</td>
+                                <td>{{h.totalEtudiants}}</td>
+                                <td><span class="badge badge-emerald">{{h.tauxReussite | number:'1.0-1'}}%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

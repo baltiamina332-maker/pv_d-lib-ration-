@@ -1,0 +1,114 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    VÉRIFICATION RAPIDE - EMAIL FONCTIONNEL
+═══════════════════════════════════════════════════════════════════════════════
+
+ÉTAPE 1: VÉRIFIER LA BASE DE DONNÉES
+═══════════════════════════════════════════════════════════════════════════════
+
+Exécutez cette requête SQL:
+
+  DESCRIBE users;
+
+Cherchez: Une colonne "email" de type VARCHAR(255)
+
+Si elle n'existe pas, exécutez:
+
+  ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL DEFAULT '';
+
+Status: ☐ Email column exists in database
+
+───────────────────────────────────────────────────────────────────────────────
+
+ÉTAPE 2: VÉRIFIER LE CODE XAML
+═══════════════════════════════════════════════════════════════════════════════
+
+Ouvrir: MainWindow.xaml
+
+Chercher: <TextBox Name="txtNewEmail"
+
+Si trouvé: ✅ Le champ Email est dans le formulaire
+Si absent: ❌ Le champ Email manque (voir guide complet)
+
+Status: ☐ txtNewEmail found in XAML
+
+───────────────────────────────────────────────────────────────────────────────
+
+ÉTAPE 3: VÉRIFIER LE CODE C#
+═══════════════════════════════════════════════════════════════════════════════
+
+Ouvrir: MainWindow.xaml.cs
+
+Chercher: BtnAddUser_Click
+
+Vérifier que le code contient:
+
+  ✓ string email = txtNewEmail.Text;
+  ✓ if (!email.Contains("@"))
+  ✓ Email = email,
+  ✓ txtNewEmail.Clear();
+
+Status: ☐ Email validation code found
+
+───────────────────────────────────────────────────────────────────────────────
+
+ÉTAPE 4: COMPILER
+═══════════════════════════════════════════════════════════════════════════════
+
+Dans Visual Studio:
+
+  1. Build → Clean Solution
+  2. Build → Rebuild Solution
+  3. Attendre...
+  4. Output: "Build succeeded"
+
+Status: ☐ Application compiled successfully
+
+───────────────────────────────────────────────────────────────────────────────
+
+ÉTAPE 5: TESTER
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Run DesktopApp.exe
+2. Login (admin / admin123)
+3. Go to Administration tab
+4. Try to add user with:
+   - Nom d'utilisateur: testuser
+   - Nom complet: Test User
+   - Email: test@example.com
+   - Rôle: Utilisateur
+5. Click "Ajouter"
+
+Expected Results:
+  ✅ Success message shown
+  ✅ User list updated
+  ✅ Email visible in list
+  ✅ Form cleared
+
+Status: ☐ Email feature working
+
+───────────────────────────────────────────────────────────────────────────────
+
+ÉTAPE 6: VÉRIFIER EN BASE DE DONNÉES
+═══════════════════════════════════════════════════════════════════════════════
+
+Exécutez:
+
+  SELECT nom_utilisateur, email FROM users WHERE nom_utilisateur = 'testuser';
+
+Résultat attendu:
+  
+  nom_utilisateur | email
+  ────────────────┼──────────────────
+  testuser        | test@example.com
+
+Status: ☐ Email saved in database
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ TOUS LES POINTS VÉRIFIÉS?
+
+Si OUI: La fonctionnalité Email est COMPLÈTEMENT OPÉRATIONNELLE! 🎉
+
+Si NON: Référez-vous au guide "FAIRE_FONCTIONNER_EMAIL.md" pour dépannage
+
+═══════════════════════════════════════════════════════════════════════════════

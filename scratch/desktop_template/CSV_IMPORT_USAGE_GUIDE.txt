@@ -1,0 +1,262 @@
+╔═══════════════════════════════════════════════════════════════════════╗
+║            CSV IMPORT FEATURE - USAGE GUIDE                           ║
+║            ✅ NOW FULLY IMPLEMENTED AND READY TO USE                 ║
+╚═══════════════════════════════════════════════════════════════════════╝
+
+WHAT'S NEW
+════════════════════════════════════════════════════════════════════════
+
+Previously: Only Excel files (.xlsx, .xls) were accepted
+Now:        Both Excel AND CSV files are accepted
+
+
+HOW TO USE
+════════════════════════════════════════════════════════════════════════
+
+Step 1: Click "Parcourir..." button
+        └─ File dialog opens
+
+Step 2: Select file type from dropdown
+        ├─ "Fichiers supportés (*.xlsx;*.xls;*.csv)" ← Select this to see both
+        ├─ "Fichiers Excel (*.xlsx;*.xls)"           ← Or select for Excel only
+        └─ "Fichiers CSV (*.csv)"                    ← Or select for CSV only
+
+Step 3: Choose your file (Excel or CSV)
+        ├─ If Excel: MyData.xlsx
+        └─ If CSV:   donnees_etudiants_import.csv
+
+Step 4: Click "Charger et valider le fichier" button
+        └─ Application imports and calculates decisions
+
+Step 5: View results in DataGrid
+        └─ All students with their decisions visible
+
+
+CSV FILE FORMAT
+════════════════════════════════════════════════════════════════════════
+
+Required columns (in order):
+1.  id_etudiant         - Student ID (number)
+2.  nom                 - Last name (text)
+3.  prenom              - First name (text)
+4.  matricule           - Registration number (text)
+5.  classe_groupe       - Class/Group (text)
+6.  id_session          - Session ID (number)
+7.  type_session        - Session type (text, e.g., "Principale")
+8.  annee_universitaire - Academic year (text, e.g., "2025-2026")
+9.  moyenne_generale    - Overall GPA (decimal, e.g., "12.43")
+
+Optional columns (will use defaults if missing):
+10. ects                - ECTS credits (number, default: 30)
+11. statut              - Status: "Ancien" or "Nouveau" (default: "Nouveau")
+12. moyenne_ue          - UE average (decimal, default: same as MG)
+
+
+EXAMPLE CSV CONTENT
+════════════════════════════════════════════════════════════════════════
+
+id_etudiant,nom,prenom,matricule,classe_groupe,id_session,type_session,annee_universitaire,moyenne_generale,ects,statut,moyenne_ue
+1,Balti,Amina,20231045,3A40,1,Principale,2025-2026,12.43,10,Ancien,8.5
+2,Smith,John,20231046,3A40,1,Principale,2025-2026,10.75,15,Nouveau,9.2
+3,Jones,Mary,20231047,3A40,1,Principale,2025-2026,14.20,20,Ancien,10.1
+
+
+KEY POINTS
+════════════════════════════════════════════════════════════════════════
+
+✓ MG values should be PRE-CALCULATED
+  → Application reads and uses these values directly
+  → Does NOT calculate MG from other columns
+
+✓ ECTS is IMPORTANT for decisions
+  → Example: MG ≥ 10 + ECTS ≤ 15 = "Admis"
+  → Example: MG ≥ 10 + 15 < ECTS ≤ 22 = "Décision Conseil"
+
+✓ Statut affects rescue conditions
+  → "Ancien": rescue at MG ≥ 9.7
+  → "Nouveau": rescue at MG ≥ 9.5
+
+✓ Decisions calculated automatically
+  → After import, application calculates decision for each student
+  → Results displayed in DataGrid with color coding
+
+
+FILE FORMAT NOTES
+════════════════════════════════════════════════════════════════════════
+
+Decimal separator:  Both comma (,) and period (.) are supported
+                   Examples: 12.43 or 12,43 both work
+
+Quoted fields:      If field contains comma, wrap in quotes
+                   Example: "Last, Jr",First,ID,...
+
+Empty file:        Must have at least header + 1 data row
+
+Column count:      Minimum 9 columns required
+                   Additional columns are optional with defaults
+
+
+TROUBLESHOOTING
+════════════════════════════════════════════════════════════════════════
+
+Error: "Extension 'csv' is not supported"
+→ Solution: Save file as .csv (not .txt or other format)
+
+Error: "Nombre de colonnes insuffisant"
+→ Solution: Ensure CSV has at least 9 columns (id_etudiant through moyenne_generale)
+
+Error: Row X contains non-numeric value in ECTS
+→ Solution: Check ECTS column - must be number or empty (not text)
+
+Error: File contains non-numeric value in moyenne_generale
+→ Solution: Check MG column - must be decimal number
+
+Empty DataGrid after import
+→ Solution: Check if CSV file has data rows (not just header)
+
+
+EXAMPLES
+════════════════════════════════════════════════════════════════════════
+
+Example 1: Minimal CSV (with only required columns)
+────────────────────────────────────────────────────
+id_etudiant,nom,prenom,matricule,classe_groupe,id_session,type_session,annee_universitaire,moyenne_generale
+1,Balti,Amina,20231045,3A40,1,Principale,2025-2026,12.43
+2,Smith,John,20231046,3A40,1,Principale,2025-2026,10.75
+
+Result: ECTS defaults to 30, Statut defaults to "Nouveau", MoyenneUE defaults to MG
+
+
+Example 2: Complete CSV (all columns)
+──────────────────────────────────────
+id_etudiant,nom,prenom,matricule,classe_groupe,id_session,type_session,annee_universitaire,moyenne_generale,ects,statut,moyenne_ue
+1,Balti,Amina,20231045,3A40,1,Principale,2025-2026,12.43,10,Ancien,8.5
+2,Smith,John,20231046,3A40,1,Principale,2025-2026,10.75,15,Nouveau,9.2
+3,Jones,Mary,20231047,3A40,1,Principale,2025-2026,9.8,20,Ancien,7.5
+
+Result: All values read from CSV, decisions calculated based on these values
+
+
+Example 3: With quoted fields (commas in names)
+────────────────────────────────────────────────
+id_etudiant,nom,prenom,matricule,classe_groupe,id_session,type_session,annee_universitaire,moyenne_generale
+1,"Balti, Jr",Amina,20231045,3A40,1,Principale,2025-2026,12.43
+2,"Smith, Sr",John,20231046,3A40,1,Principale,2025-2026,10.75
+
+Result: Names with commas are handled correctly
+
+
+WORKFLOW
+════════════════════════════════════════════════════════════════════════
+
+1. Prepare CSV file with student data
+   └─ Minimum: 9 columns (id through MG)
+   
+2. Open PV Délibération application
+
+3. Click "Parcourir..." button
+   └─ File dialog opens
+
+4. Select CSV file
+   └─ File path appears in text box
+
+5. Click "Charger et valider le fichier" button
+   └─ Application imports data
+   └─ Decisions calculated
+   └─ Results displayed
+
+6. Review decisions in DataGrid
+   ├─ Green = Admis (admitted)
+   ├─ Yellow = Conseil (requires council decision)
+   └─ Red = Redouble (repeat year)
+
+7. Export to Excel if needed
+   └─ Results saved with decisions and mentions
+
+
+DECISION LOGIC (Quick Reference)
+════════════════════════════════════════════════════════════════════════
+
+MG ≥ 10:
+├─ ECTS ≤ 15        → Admis
+├─ 15 < ECTS ≤ 22   → Décision Conseil
+└─ ECTS > 22        → Admis avec modération
+
+MG < 10:
+├─ ECTS > 22        → Redouble / Exclu
+├─ ECTS ≤ 22        → Conseil d'École
+│  └─ UNLESS:
+│     ├─ Ancien + MG ≥ 9.7        → Admis avec modération (Rachat)
+│     ├─ Nouveau + MG ≥ 9.5       → Admis avec modération (Rachat)
+│     └─ MoyenneUE ≥ 7 + MG ≥ 8.0 → Admis avec modération (Rachat UE)
+└─ Else             → Conseil d'École
+
+
+CSV EXPORT FROM EXCEL
+════════════════════════════════════════════════════════════════════════
+
+If you have Excel file with student data:
+
+1. Open in Excel
+2. Select all data (including header)
+3. Right-click → Copy
+4. Open text editor (Notepad)
+5. Paste data
+6. File → Save As → Save as type: "All Files (*.*)"
+7. Name: "students.csv"
+8. Save
+9. Open in PV Délibération application
+
+
+CSV CREATION IN PYTHON
+════════════════════════════════════════════════════════════════════════
+
+import pandas as pd
+
+data = {
+    'id_etudiant': [1, 2, 3],
+    'nom': ['Balti', 'Smith', 'Jones'],
+    'prenom': ['Amina', 'John', 'Mary'],
+    'matricule': ['20231045', '20231046', '20231047'],
+    'classe_groupe': ['3A40', '3A40', '3A40'],
+    'id_session': [1, 1, 1],
+    'type_session': ['Principale', 'Principale', 'Principale'],
+    'annee_universitaire': ['2025-2026', '2025-2026', '2025-2026'],
+    'moyenne_generale': [12.43, 10.75, 14.20],
+    'ects': [10, 15, 20],
+    'statut': ['Ancien', 'Nouveau', 'Ancien'],
+    'moyenne_ue': [8.5, 9.2, 10.1]
+}
+
+df = pd.DataFrame(data)
+df.to_csv('donnees_import.csv', index=False, encoding='utf-8')
+
+
+SUPPORT
+════════════════════════════════════════════════════════════════════════
+
+If you encounter issues:
+
+1. Check CSV file format
+   └─ Open with text editor to verify structure
+
+2. Verify column headers match exactly
+   └─ Case-sensitive: id_etudiant (not ID_ETUDIANT)
+
+3. Ensure decimal numbers use correct separator
+   └─ Both 12.43 and 12,43 are supported
+
+4. Check for extra spaces or hidden characters
+   └─ Use "Find and Replace" to clean data
+
+5. Verify file is actually .csv
+   └─ Not .txt, .xls, or other format
+
+
+═════════════════════════════════════════════════════════════════════════
+
+CSV Import is now ready to use! Try importing your CSV file now.
+
+For any questions, refer to the application help or documentation.
+
+═════════════════════════════════════════════════════════════════════════

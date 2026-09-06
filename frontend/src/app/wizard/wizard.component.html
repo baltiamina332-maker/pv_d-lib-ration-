@@ -1,0 +1,1291 @@
+<div id="app" class="app-container" [attr.data-theme]="theme">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="brand-text">
+                <span class="brand-title">PV-Delib</span>
+                <span class="brand-subtitle">{{ authService.isAdmin() ? 'Panneau Administration' : 'Système LMD Automatisé' }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- Sidebar for Admin -->
+            <ng-container *ngIf="authService.isAdmin()">
+                <button class="nav-item" [routerLink]="['/admin']" [queryParams]="{tab: 'users'}">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Utilisateurs & Accès</span>
+                </button>
+
+                <button class="nav-item" [routerLink]="['/admin']" [queryParams]="{tab: 'affectations'}">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Affectations (Matière & Classe)</span>
+                </button>
+
+                <button class="nav-item" [routerLink]="['/admin']" [queryParams]="{tab: 'classes'}">
+                    <i class="fa-solid fa-school"></i>
+                    <span>Classes & Étudiants</span>
+                </button>
+
+                <button class="nav-item" [class.active]="currentView === 'wizard' || currentView === 'dashboard' || currentView === 'rules' || currentView === 'history'" (click)="switchView('wizard')">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Générateur & PV</span>
+                </button>
+
+                <button class="nav-item" [class.active]="currentView === 'mes-classes'" (click)="switchView('mes-classes')">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Mes Classes & Saisie Notes</span>
+                </button>
+
+                <button class="nav-item" [class.active]="currentView === 'ml-models'" (click)="switchView('ml-models')">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Modèles IA & ML</span>
+                </button>
+            </ng-container>
+
+            <!-- Sidebar for Non-Admin (Enseignant) -->
+            <ng-container *ngIf="!authService.isAdmin()">
+                <button class="nav-item" [class.active]="currentView === 'mes-classes'" (click)="switchView('mes-classes')">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Mes Classes & Saisie des Notes</span>
+                </button>
+            </ng-container>
+
+            <button class="nav-item" routerLink="/profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Mon Profil</span>
+            </button>
+
+            <button class="nav-item text-danger" (click)="logout()" style="margin-top: auto; color: var(--rose-text);">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Déconnexion</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="template-card">
+                <i class="fa-solid fa-file-excel text-emerald"></i>
+                <div class="template-info">
+                    <span class="template-title">Modèle Excel</span>
+                    <span class="template-sub">Gabarit d'exemple .xlsx</span>
+                </div>
+                <button class="btn-icon" title="Télécharger le gabarit Excel" (click)="downloadTemplate()">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+            </div>
+            <div class="theme-toggle" (click)="toggleTheme()" title="Changer le thème">
+                <i class="fa-solid fa-sun icon-sun"></i>
+                <i class="fa-solid fa-moon icon-moon"></i>
+                <span class="theme-text">Mode Sombre</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Header Bar -->
+        <header class="top-header">
+            <div class="header-title">
+                <h1>{{ getPageTitle() }}</h1>
+                <p>{{ getPageSubtitle() }}</p>
+            </div>
+            
+            <!-- Quick Sub-Navigation for Admin in PV module -->
+            <div class="header-actions" *ngIf="authService.isAdmin() && currentView !== 'ml-models'">
+                <div style="display: flex; gap: 8px; background: rgba(0,0,0,0.04); padding: 4px; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <button class="btn btn-sm" [ngClass]="currentView === 'wizard' ? 'btn-primary' : 'btn-secondary'" (click)="switchView('wizard')" style="font-size: 0.85rem; padding: 6px 14px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Assistant PV
+                    </button>
+                    <button class="btn btn-sm" [ngClass]="currentView === 'dashboard' ? 'btn-primary' : 'btn-secondary'" (click)="switchView('dashboard')" style="font-size: 0.85rem; padding: 6px 14px;">
+                        <i class="fa-solid fa-chart-pie"></i> Tableau de Bord
+                    </button>
+                    <button class="btn btn-sm" [ngClass]="currentView === 'rules' ? 'btn-primary' : 'btn-secondary'" (click)="switchView('rules')" style="font-size: 0.85rem; padding: 6px 14px;">
+                        <i class="fa-solid fa-sliders"></i> Règles & Seuils
+                    </button>
+                    <button class="btn btn-sm" [ngClass]="currentView === 'history' ? 'btn-primary' : 'btn-secondary'" (click)="switchView('history')" style="font-size: 0.85rem; padding: 6px 14px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Historique
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Views Container -->
+        <div class="view-container">
+            <!-- VIEW 0: MES CLASSES & ETUDIANTS (AFFICHAGE AUTOMATIQUE) -->
+            <section *ngIf="currentView === 'mes-classes'" class="tab-view active">
+                <!-- Welcome Banner -->
+                <div class="card p-4 mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #ffffff;">
+                    <div class="space-between" style="align-items: center;">
+                        <div>
+                            <span class="badge badge-cyan mb-2" style="background: rgba(255,255,255,0.2); color: #ffffff;"><i class="fa-solid fa-id-badge"></i> Authentifié par Jeton JWT</span>
+                            <h2 style="margin: 0.25rem 0; color: #ffffff;"><i class="fa-solid fa-chalkboard-user"></i> Bienvenue, {{ mesClassesData?.enseignantUsername || authService.getCurrentUser()?.username || 'Enseignant' }} !</h2>
+                            <p style="margin: 0; opacity: 0.9;">Vos affectations de cours et la liste de vos étudiants sont transmises silencieusement par l'API Spring Boot.</p>
+                        </div>
+                        <div>
+                            <button class="btn btn-secondary" (click)="loadMesClasses()">
+                                <i class="fa-solid fa-rotate"></i> Actualiser
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div *ngIf="isLoadingMesClasses" class="text-center py-5">
+                    <i class="fa-solid fa-circle-notch fa-spin fa-2x text-blue mb-2"></i>
+                    <p class="text-muted">Récupération silencieuse de vos classes via <code>/api/mes-classes</code>...</p>
+                </div>
+
+                <!-- Content when loaded -->
+                <div *ngIf="!isLoadingMesClasses">
+                    <!-- If no affectations found -->
+                    <div *ngIf="!mesClassesData || !mesClassesData.classesAffectees || mesClassesData.classesAffectees.length === 0" class="card p-5 text-center">
+                        <i class="fa-solid fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h4>Aucune affectation trouvée pour l'instant</h4>
+                        <p class="text-muted">L'administration doit vous affecter une classe et une matière (ex: Enseignant "Foulen" -> Matière "Angular" -> Classe "4 SAE").</p>
+                        <div *ngIf="authService.isAdmin()" class="mt-3">
+                            <button class="btn btn-primary" routerLink="/admin">
+                                <i class="fa-solid fa-shield-halved"></i> Aller dans le panneau Admin pour ajouter une affectation
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- If affectations exist -->
+                    <div *ngIf="mesClassesData && mesClassesData.classesAffectees && mesClassesData.classesAffectees.length > 0">
+                        <!-- Affectation Cards List -->
+                        <div class="metrics-grid mb-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+                            <div *ngFor="let cls of mesClassesData.classesAffectees; let i = index" 
+                                 class="card p-3" 
+                                 [style.border-color]="selectedClasseIndex === i ? '#2563eb' : '#e2e8f0'"
+                                 [style.background]="selectedClasseIndex === i ? 'rgba(37, 99, 235, 0.05)' : '#ffffff'"
+                                 style="cursor: pointer; transition: all 0.2s ease;"
+                                 (click)="onClasseChange(i)">
+                                <div class="space-between mb-2">
+                                    <span class="badge badge-green" style="font-size: 0.9rem;">Classe: {{ cls.nomClasse }}</span>
+                                    <span class="badge badge-blue"><i class="fa-solid fa-calendar"></i> {{ cls.anneeUniversitaire }}</span>
+                                </div>
+                                <h3 style="margin: 0.5rem 0; font-size: 1.15rem;"><i class="fa-solid fa-book-bookmark text-blue"></i> {{ cls.matiere }}</h3>
+                                <div class="space-between text-muted" style="font-size: 0.85rem; margin-top: 0.75rem;">
+                                    <span>Niveau: {{ cls.niveau }}</span>
+                                    <span class="text-emerald font-weight-bold"><i class="fa-solid fa-users"></i> {{ cls.totalEtudiants }} Étudiants</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Widget Statistiques & Diagnostic Prof (API 1) -->
+                        <div *ngIf="enseignantStats" class="metrics-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                            <div class="card p-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff;">
+                                <span class="text-muted" style="color: #94a3b8 !important; font-size: 0.8rem; text-transform: uppercase;">Moyenne Classe</span>
+                                <div style="font-size: 1.8rem; font-weight: 700; color: #38bdf8; margin-top: 4px;">{{ enseignantStats.moyenneClasse }} / 20</div>
+                                <span style="font-size: 0.75rem; color: #cbd5e1;">Moyenne de la matière</span>
+                            </div>
+
+                            <div class="card p-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff;">
+                                <span class="text-muted" style="color: #94a3b8 !important; font-size: 0.8rem; text-transform: uppercase;">Min & Max</span>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #f43f5e; margin-top: 4px;">{{ enseignantStats.noteMin }} ➔ <span style="color: #10b981;">{{ enseignantStats.noteMax }}</span></div>
+                                <span style="font-size: 0.75rem; color: #cbd5e1;">Notes extrême</span>
+                            </div>
+
+                            <div class="card p-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff;">
+                                <span class="text-muted" style="color: #94a3b8 !important; font-size: 0.8rem; text-transform: uppercase;">Taux de Réussite</span>
+                                <div style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 4px;">{{ enseignantStats.tauxReussite }}%</div>
+                                <span style="font-size: 0.75rem; color: #cbd5e1;">Étudiants avec note ≥ 10</span>
+                            </div>
+
+                            <div class="card p-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff;">
+                                <span class="text-muted" style="color: #94a3b8 !important; font-size: 0.8rem; text-transform: uppercase;">Répartition des Notes</span>
+                                <div style="display: flex; gap: 4px; margin-top: 8px;">
+                                    <span class="badge" style="background: #f43f5e; color: #fff;" title="Moins de 8/20">&lt;8: {{ enseignantStats.countMoins8 }}</span>
+                                    <span class="badge" style="background: #f59e0b; color: #fff;" title="8 à 10/20">8-10: {{ enseignantStats.count8A10 }}</span>
+                                    <span class="badge" style="background: #3b82f6; color: #fff;" title="10 à 14/20">10-14: {{ enseignantStats.count10A14 }}</span>
+                                    <span class="badge" style="background: #10b981; color: #fff;" title="Plus de 14/20">&gt;14: {{ enseignantStats.countPlus14 }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tableau de Saisie des Notes (Interface Enseignant style Excel) -->
+                        <div class="card" *ngIf="currentSelectedClasse">
+                            <div class="card-header space-between" style="align-items: center;">
+                                <div>
+                                    <h3><i class="fa-solid fa-pen-to-square text-blue"></i> Saisie des Notes - Classe: <strong>{{ currentSelectedClasse.nomClasse }}</strong></h3>
+                                    <span class="text-muted">Matière affectée: <strong>{{ currentSelectedClasse.matiere }}</strong></span>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-emerald" (click)="exportNotesExcel()" [disabled]="isExportingExcel" style="background: #10b981; color: #fff;">
+                                        <i class="fa-solid fa-file-excel"></i> {{ isExportingExcel ? 'Génération...' : 'Exporter Relevé (.xlsx)' }}
+                                    </button>
+                                    <div *ngIf="authService.isAdmin()">
+                                        <button class="btn btn-sm btn-secondary" (click)="switchView('wizard'); currentStep = 1">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i> Lancer la Génération de PV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notifications de sauvegarde -->
+                            <div *ngIf="gradeSaveSuccessMessage" class="alert alert-success m-3">
+                                <i class="fa-solid fa-circle-check"></i> {{ gradeSaveSuccessMessage }}
+                            </div>
+                            <div *ngIf="gradeSaveErrorMessage" class="alert alert-danger m-3">
+                                <i class="fa-solid fa-triangle-exclamation"></i> {{ gradeSaveErrorMessage }}
+                            </div>
+
+                            <div class="card-body padding-0">
+                                <div class="table-responsive">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Étudiant (Nom & Prénom)</th>
+                                                <th style="width: 140px;">Note CC (/20)</th>
+                                                <th style="width: 140px;">Note TP (/20)</th>
+                                                <th style="width: 140px;">Note Examen (/20)</th>
+                                                <th>Remarque / Observation Enseignant</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let row of studentGradeRows">
+                                                <td><strong>#{{ row.idEtudiant }}</strong></td>
+                                                <td><strong>{{ row.nom }} {{ row.prenom }}</strong></td>
+                                                <td>
+                                                    <input type="number" step="0.25" min="0" max="20" class="form-control form-control-sm" [(ngModel)]="row.noteCc" placeholder="ex: 15.0">
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.25" min="0" max="20" class="form-control form-control-sm" [(ngModel)]="row.noteTp" placeholder="ex: 14.5">
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.25" min="0" max="20" class="form-control form-control-sm" [(ngModel)]="row.noteExam" placeholder="ex: 16.0">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control form-control-sm" [(ngModel)]="row.remarque" (change)="onSaveStudentRemarque(row)" placeholder="Observation pour le jury (ex: assidu...)">
+                                                </td>
+                                            </tr>
+                                            <tr *ngIf="studentGradeRows.length === 0">
+                                                <td colspan="6" class="text-center text-muted py-4">Aucun étudiant dans cette classe.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Bouton Unique de Sauvegarde Général -->
+                            <div class="card-footer p-3 text-right" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                                <button class="btn btn-success btn-lg" (click)="onSaveGrades()" [disabled]="isSavingNotes" style="min-width: 240px;">
+                                    <i class="fa-solid fa-floppy-disk"></i> {{ isSavingNotes ? 'Enregistrement en cours...' : 'Enregistrer les Notes' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 1: DASHBOARD -->
+            <section *ngIf="currentView === 'dashboard'" class="tab-view active">
+                <!-- Metric Cards -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon blue">
+                            <i class="fa-solid fa-file-contract"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-value">{{ statTotalPv }}</span>
+                            <span class="metric-label">PVs Générés</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon emerald">
+                            <i class="fa-solid fa-user-graduate"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-value">{{ statAvgSuccess | number:'1.0-1' }}%</span>
+                            <span class="metric-label">Taux Moyen de Réussite</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon purple">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-value">{{ statTotalClasses }}</span>
+                            <span class="metric-label">Classes Traitées</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon amber">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-value">Règles LMD</span>
+                            <span class="metric-label">Système Conforme</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Hub & Rules Banner -->
+                <div class="dashboard-grid">
+                    <div class="card wizard-launch-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-rocket"></i> Génération Rapide de PV</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Importez votre fichier Excel (.xlsx) contenant les moyennes et crédits ECTS pour générer automatiquement les PVs Word (.docx) prêts à être signés.</p>
+                            <div class="wizard-features">
+                                <div class="feature-item"><i class="fa-solid fa-check text-emerald"></i> Conforme au Cahier des Charges</div>
+                                <div class="feature-item"><i class="fa-solid fa-check text-emerald"></i> Support Multi-Classes & Export ZIP</div>
+                                <div class="feature-item"><i class="fa-solid fa-check text-emerald"></i> Calcul des Rachats & Conseil d'École</div>
+                            </div>
+                            <button class="btn btn-primary btn-lg mt-4" (click)="switchView('wizard')">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Démarrer l'Assistant
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card rules-summary-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-gavel"></i> Règles de Décision Académique</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="rule-box green">
+                                <strong>MG ≥ 10 :</strong> Admis (ECTS ≤ 15) | Admis sous réserve ECTS (15 &lt; ECTS ≤ 22)
+                            </div>
+                            <div class="rule-box blue">
+                                <strong>Rachats :</strong> MG ≥ 9.7 (Ancien) | MG ≥ 9.5 (Nouveau) | Moy. UE ≥ 7
+                            </div>
+                            <div class="rule-box amber">
+                                <strong>MG &lt; 10 &amp; ECTS &lt; 22 :</strong> Conseil École
+                            </div>
+                            <div class="rule-box red">
+                                <strong>MG &lt; 10 &amp; ECTS &gt; 22 :</strong> Redouble / Exclu
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Table -->
+                <div class="card mt-4">
+                    <div class="card-header space-between">
+                        <h3><i class="fa-solid fa-history"></i> Derniers PVs Générés</h3>
+                        <button class="btn btn-sm btn-secondary" (click)="switchView('history')">Voir Tout</button>
+                    </div>
+                    <div class="card-body padding-0">
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Classe / Groupe</th>
+                                        <th>Nom de Fichier</th>
+                                        <th *ngIf="authService.isAdmin()">Créé par</th>
+                                        <th>Date de Génération</th>
+                                        <th>Effectif Total</th>
+                                        <th>Taux de Réussite</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngIf="recentHistory.length === 0">
+                                        <td [attr.colspan]="authService.isAdmin() ? 7 : 6" class="text-center text-muted">Aucun PV généré pour le moment. Lancez l'assistant pour créer votre premier document.</td>
+                                    </tr>
+                                    <tr *ngFor="let h of recentHistory">
+                                        <td><strong>{{h.nomClasse}}</strong></td>
+                                        <td><i class="fa-solid fa-file-word text-blue mr-2"></i> {{h.filename}}</td>
+                                        <td *ngIf="authService.isAdmin()"><span class="badge badge-blue">{{h.createdBy || 'Système'}}</span></td>
+                                        <td>{{h.dateGeneration | date:'dd/MM/yyyy HH:mm'}}</td>
+                                        <td>{{h.totalEtudiants}}</td>
+                                        <td>{{h.tauxReussite | number:'1.0-1'}}%</td>
+                                        <td><span class="badge badge-green">Terminé</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 2: WIZARD -->
+            <section *ngIf="currentView === 'wizard'" class="tab-view active">
+                <!-- Wizard Steps Indicator -->
+                <div class="wizard-steps-bar">
+                    <div class="step-item" [class.active]="currentStep >= 1" (click)="currentStep = 1">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Import Excel</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item" [class.active]="currentStep >= 2" (click)="currentStep >= 2 ? currentStep = 2 : null">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Prévisualisation &amp; Métier</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item" [class.active]="currentStep >= 3" (click)="currentStep >= 3 ? currentStep = 3 : null">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">Session &amp; Jury</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item" [class.active]="currentStep >= 4">
+                        <div class="step-circle">4</div>
+                        <div class="step-label">Génération Word &amp; ZIP</div>
+                    </div>
+                </div>
+
+                <!-- STEP 1: FILE UPLOAD -->
+                <div *ngIf="currentStep === 1" class="wizard-step-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Étape 1 : Importer le Fichier Excel de Délibération</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="upload-dropzone" (click)="fileInput.click()">
+                                <input type="file" #fileInput accept=".xlsx, .xls" hidden (change)="onFileSelected($event)">
+                                <div class="dropzone-icon">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <h4>Glissez-déposez votre fichier Excel ici</h4>
+                                <p class="text-muted">ou parcourez vos fichiers pour sélectionner un fichier <strong>.xlsx</strong></p>
+                                <button class="btn btn-outline" (click)="fileInput.click(); $event.stopPropagation()">
+                                    <i class="fa-solid fa-folder-open"></i> Parcourir Fichiers
+                                </button>
+
+                            </div>
+
+                            <div class="mode-selection mt-4">
+                                <label class="form-label">Mode de Traitement des Décisions :</label>
+                                <div class="radio-group">
+                                    <label class="radio-card" [class.active]="modeCalcul === 'AUTO'">
+                                        <input type="radio" name="modeCalcul" value="AUTO" [(ngModel)]="modeCalcul">
+                                        <div class="radio-content">
+                                            <strong>Calcul Automatique (Mode Conforme LMD)</strong>
+                                            <small>Applique les règles de décision (MG ≥ 10, Rachats, etc.)</small>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="file-info-badge" *ngIf="selectedFile">
+                                <i class="fa-solid fa-file-excel"></i>
+                                <span>{{ selectedFile.name }}</span>
+                                <span class="text-muted">({{ (selectedFile.size / 1024).toFixed(1) }} KB)</span>
+                                <button class="btn-icon text-danger" (click)="removeFile()" title="Supprimer"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+
+                            <!-- Error/Warning Messages -->
+                            <div *ngIf="uploadErrors.length > 0" class="mt-4" style="color: var(--rose-text); background: var(--rose-bg); padding: 12px; border-radius: 6px;">
+                                <strong>Erreurs :</strong>
+                                <ul><li *ngFor="let err of uploadErrors">{{err}}</li></ul>
+                            </div>
+                            <div *ngIf="uploadWarnings.length > 0" class="mt-4" style="color: var(--amber-text); background: var(--amber-bg); padding: 12px; border-radius: 6px;">
+                                <strong>Avertissements :</strong>
+                                <ul><li *ngFor="let warn of uploadWarnings">{{warn}}</li></ul>
+                            </div>
+
+                            <div class="wizard-actions text-right mt-4">
+                                <button class="btn btn-primary" [disabled]="!selectedFile || isUploading" (click)="uploadAndAnalyze()">
+                                    {{ isUploading ? 'Analyse en cours...' : 'Analyser et Continuer' }} <i class="fa-solid fa-arrow-right" *ngIf="!isUploading"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: PREVIEW & VALIDATION -->
+                <div *ngIf="currentStep === 2" class="wizard-step-content active">
+                    <div class="card">
+                        <div class="card-header space-between">
+                            <h3>Étape 2 : Prévisualisation des Classes et Contrôle Qualité</h3>
+                            <div class="class-selector">
+                                <label>Classe à afficher : </label>
+                                <select class="form-control inline-select" [(ngModel)]="selectedClassIndex" (change)="updatePreviewStats()">
+                                    <option *ngFor="let c of parsedClasses; let i = index" [value]="i">{{c.nomClasse}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body" *ngIf="currentPreviewClass">
+                            <!-- Class Summary Statistics Bar -->
+                            <div class="preview-stats-bar">
+                                <div class="p-stat-box">
+                                    <span class="p-label">Effectif Total</span>
+                                    <span class="p-val">{{currentPreviewClass.totalEtudiants}}</span>
+                                </div>
+                                <div class="p-stat-box green">
+                                    <span class="p-label">Admis</span>
+                                    <span class="p-val">{{currentPreviewClass.nbAdmis}}</span>
+                                </div>
+                                <div class="p-stat-box blue">
+                                    <span class="p-label">Admis ECTS / Rachat</span>
+                                    <span class="p-val">{{currentPreviewClass.nbRachats + currentPreviewClass.nbAdmisEcts}}</span>
+                                </div>
+                                <div class="p-stat-box amber">
+                                    <span class="p-label">Conseil École</span>
+                                    <span class="p-val">{{currentPreviewClass.nbConseilEcole}}</span>
+                                </div>
+                                <div class="p-stat-box red">
+                                    <span class="p-label">Redouble / Exclu</span>
+                                    <span class="p-val">{{currentPreviewClass.nbAjournes}}</span>
+                                </div>
+                                <div class="p-stat-box purple">
+                                    <span class="p-label">Taux Réussite</span>
+                                    <span class="p-val">{{currentPreviewClass.tauxReussite | number:'1.0-1'}}%</span>
+                                </div>
+                            </div>
+
+                            <!-- Student Table Preview -->
+                            <div class="table-responsive mt-3">
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>N°</th>
+                                            <th>Nom et Prénom</th>
+                                            <th>Matricule / CIN</th>
+                                            <th>Moyenne Gen.</th>
+                                            <th>ECTS Non Validés</th>
+                                            <th>Statut</th>
+                                            <th>Moy. UE</th>
+                                            <th>Décision Calculée</th>
+                                            <th>Mention / Obs.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let e of currentPreviewClass.etudiants">
+                                            <td>{{e.numOrder}}</td>
+                                            <td><strong>{{e.nomPrenom}}</strong></td>
+                                            <td>{{e.matriculeCin}}</td>
+                                            <td><strong class="text-blue">{{e.moyenneGenerale | number:'1.2-2'}}</strong></td>
+                                            <td>{{e.ectsNonValides}}</td>
+                                            <td><span class="badge" [ngClass]="{'badge-amber': e.statutEtudiant === 'ancien', 'badge-cyan': e.statutEtudiant !== 'ancien'}">{{e.statutEtudiant || 'nouveau'}}</span></td>
+                                            <td>{{e.moyenneUe != null ? (e.moyenneUe | number:'1.2-2') : '-'}}</td>
+                                            <td [innerHTML]="getDecisionBadgeHtml(e.decision)"></td>
+                                            <td>{{e.mention}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="wizard-actions space-between mt-4">
+                                <button class="btn btn-secondary" (click)="currentStep = 1">
+                                    <i class="fa-solid fa-arrow-left"></i> Retour
+                                </button>
+                                <button class="btn btn-primary" (click)="currentStep = 3">
+                                    Configurer le Jury <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: SESSION & JURY SETUP -->
+                <div *ngIf="currentStep === 3" class="wizard-step-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Étape 3 : Informations de Session &amp; Composition du Jury</h3>
+                        </div>
+                        <div class="card-body">
+                            <form class="grid-form">
+                                <div class="form-group col-6">
+                                    <label class="form-label">Nom de l'Établissement :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.etablissement" name="etab">
+                                </div>
+
+                                <div class="form-group col-6">
+                                    <label class="form-label">Faculté / Département :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.departement" name="dep">
+                                </div>
+
+                                <div class="form-group col-4">
+                                    <label class="form-label">Année Universitaire :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.anneeUniversitaire" name="annee">
+                                </div>
+
+                                <div class="form-group col-4">
+                                    <label class="form-label">Date de Délibération :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.dateDeliberation" name="date">
+                                </div>
+
+                                <div class="form-group col-4">
+                                    <label class="form-label">Type de Session :</label>
+                                    <select class="form-control" [(ngModel)]="sessionInfo.typeSession" name="type">
+                                        <option value="Principale">Session Principale</option>
+                                        <option value="Rattrapage">Session de Rattrapage</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-6">
+                                    <label class="form-label">Lieu de Délibération :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.lieu" name="lieu">
+                                </div>
+
+                                <div class="form-group col-6">
+                                    <label class="form-label">Président du Jury :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.presidentJury" name="pres">
+                                </div>
+                            </form>
+
+                            <hr class="my-4">
+
+                            <div class="jury-section">
+                                <div class="space-between mb-2">
+                                    <h4><i class="fa-solid fa-users"></i> Membres du Jury</h4>
+                                    <button class="btn btn-sm btn-outline" (click)="addJuryMember()">
+                                        <i class="fa-solid fa-plus"></i> Ajouter un membre
+                                    </button>
+                                </div>
+
+                                <div class="jury-list">
+                                    <div class="grid-form" *ngFor="let member of sessionInfo.membresJury; let i = index" style="margin-bottom: 10px; align-items: center;">
+                                        <div class="form-group col-5">
+                                            <input type="text" class="form-control" [(ngModel)]="member.nom" [name]="'mem_nom_'+i" placeholder="Nom du membre">
+                                        </div>
+                                        <div class="form-group col-5">
+                                            <input type="text" class="form-control" [(ngModel)]="member.fonction" [name]="'mem_fnc_'+i" placeholder="Fonction (ex: Examinateur)">
+                                        </div>
+                                        <div class="form-group col-2 text-right">
+                                            <button class="btn-icon text-danger" (click)="removeJuryMember(i)"><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wizard-actions space-between mt-4">
+                                <button class="btn btn-secondary" (click)="currentStep = 2">
+                                    <i class="fa-solid fa-arrow-left"></i> Retour
+                                </button>
+                                <button class="btn btn-primary" (click)="currentStep = 4">
+                                    Accéder à la Génération <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: GENERATE & EXPORT WORD / ZIP -->
+                <div *ngIf="currentStep === 4" class="wizard-step-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Étape 4 : Génération des Documents Word (.docx) &amp; Exportation</h3>
+                        </div>
+                        <div class="card-body text-center py-4">
+                            <div class="generation-hero">
+                                <div class="hero-icon-stack">
+                                    <i class="fa-solid fa-file-word icon-word" style="font-size:40px; color:#1E3A8A; margin-right:-10px;"></i>
+                                    <i class="fa-solid fa-file-zipper icon-zip" style="font-size:30px; color:#10B981;"></i>
+                                </div>
+                                <h2 class="mt-3">Vos Procès-Verbaux sont prêts à être générés !</h2>
+                                <p class="text-muted max-w-600 mx-auto" style="max-width: 600px; margin-bottom: 20px;">
+                                    Le système va créer les documents Word (.docx) conformes avec en-têtes institutionnels, couleurs de statut, statistiques de synthèse et espaces de signature.
+                                </p>
+                            </div>
+
+                            <div class="export-options-grid mt-4">
+                                <div class="export-card">
+                                    <i class="fa-solid fa-file-word icon-lg text-blue" style="font-size: 32px; margin-bottom: 10px;"></i>
+                                    <h4>Télécharger 1 Seule Classe (.docx)</h4>
+                                    <div class="form-group my-2">
+                                        <select class="form-control" [(ngModel)]="downloadClassIndex">
+                                            <option *ngFor="let c of parsedClasses; let i = index" [value]="i">{{c.nomClasse}}</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary btn-block" (click)="generateSingle()">
+                                        <i class="fa-solid fa-download"></i> Télécharger le PV Word
+                                    </button>
+                                </div>
+
+                                <div class="export-card featured">
+                                    <div class="badge-featured">Recommandé</div>
+                                    <i class="fa-solid fa-file-zipper icon-lg text-emerald" style="font-size: 32px; margin-bottom: 10px;"></i>
+                                    <h4>Génération en Masse (.ZIP)</h4>
+                                    <p class="text-muted small">Téléchargez les PVs Word de <strong>toutes les classes</strong> en 1 seule archive ZIP compressée.</p>
+                                    <button class="btn btn-success btn-block btn-lg mt-3" (click)="generateBatch()">
+                                        <i class="fa-solid fa-file-zipper"></i> Générer l'Archive ZIP Complète
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="wizard-actions space-between mt-5">
+                                <button class="btn btn-secondary" (click)="currentStep = 3">
+                                    <i class="fa-solid fa-arrow-left"></i> Retour
+                                </button>
+                                <button class="btn btn-outline" (click)="currentStep = 1; selectedFile = null; parsedClasses = []">
+                                    <i class="fa-solid fa-rotate-right"></i> Nouveau Traitement
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: MACHINE LEARNING MODELS -->
+            <section *ngIf="currentView === 'ml-models'" class="tab-view active">
+                <!-- Banner Header -->
+                <!-- Banner Header -->
+                <div class="card p-4 mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #ffffff;">
+                    <div class="space-between" style="align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <span class="badge mb-2" style="background: rgba(255,255,255,0.25); color: #ffffff;"><i class="fa-solid fa-microchip"></i> Moteur IA &amp; Apprentissage Automatique</span>
+                            <h2 style="margin: 0.25rem 0; color: #ffffff;"><i class="fa-solid fa-brain"></i> Prédiction de Réussite &amp; Diagnostic IA par Classe</h2>
+                            <p style="margin: 0; opacity: 0.9;">Exécutez simultanément les 3 algorithmes de Machine Learning (Arbre de Décision, KNN, Random Forest) sur vos classes réelles.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Switcher: Mode Classe vs Mode Simulateur -->
+                <div class="d-flex gap-3 mb-4 flex-wrap" style="background: #f1f5f9; padding: 6px; border-radius: 12px; border: 1px solid #e2e8f0; width: fit-content;">
+                    <button class="btn btn-sm" [ngClass]="mlMode === 'CLASS' ? 'btn-primary' : 'btn-secondary'" (click)="setMlMode('CLASS')" style="border-radius: 8px; font-weight: 600; padding: 8px 18px;">
+                        <i class="fa-solid fa-users-viewfinder"></i> 1. Diagnostic IA par Classe Réelle (BDD MySQL)
+                    </button>
+                    <button class="btn btn-sm" [ngClass]="mlMode === 'SIMULATION' ? 'btn-primary' : 'btn-secondary'" (click)="setMlMode('SIMULATION')" style="border-radius: 8px; font-weight: 600; padding: 8px 18px;">
+                        <i class="fa-solid fa-sliders"></i> 2. Simulateur Unitaire Interactif (3 Modèles)
+                    </button>
+                </div>
+
+                <!-- ================= MODE 1 : DIAGNOSTIC DE CLASSE ================= -->
+                <div *ngIf="mlMode === 'CLASS'">
+                    <!-- Class Selection Bar -->
+                    <div class="card p-3 mb-4" style="background: #ffffff; border: 1px solid #e2e8f0;">
+                        <div class="space-between" style="align-items: center; flex-wrap: wrap; gap: 15px;">
+                            <div class="d-flex align-items-center gap-3 flex-wrap" style="flex: 1;">
+                                <label style="font-weight: 600; color: #1e293b; margin: 0; min-width: 140px;">
+                                    <i class="fa-solid fa-school text-blue"></i> Choisir une Classe :
+                                </label>
+                                <select class="form-control" style="max-width: 320px;" [(ngModel)]="selectedMlClasseId" (change)="onSelectMlClass(selectedMlClasseId)">
+                                    <option *ngIf="mlClasses.length === 0" [ngValue]="null">Chargement des classes...</option>
+                                    <option *ngFor="let c of mlClasses" [value]="c.id">
+                                        {{ c.nomClasse }} ({{ c.niveau }} - {{ c.anneeUniversitaire }})
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" (click)="runClassMlPrediction()" [disabled]="isLoadingClassMl || !selectedMlClasseId">
+                                    <i class="fa-solid" [ngClass]="isLoadingClassMl ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'"></i>
+                                    {{ isLoadingClassMl ? 'Diagnostic IA en cours...' : 'Exécuter le Diagnostic IA (3 Modèles)' }}
+                                </button>
+                                <button class="btn btn-outline" (click)="printClassMlReport()" [disabled]="!mlClassSummary">
+                                    <i class="fa-solid fa-print"></i> Imprimer / Exporter le Diagnostic IA
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div *ngIf="isLoadingClassMl" class="card p-5 text-center mb-4">
+                        <i class="fa-solid fa-circle-notch fa-spin fa-3x text-blue mb-3"></i>
+                        <h4>Analyse prédictive en cours par les 3 modèles IA...</h4>
+                        <p class="text-muted">Calcul des vecteurs euclidiens (KNN), traversée d'arbres décisionnels et vote d'ensemble (Random Forest)...</p>
+                    </div>
+
+                    <!-- Results Summary when Loaded -->
+                    <div *ngIf="!isLoadingClassMl && mlClassSummary">
+                        <!-- KPI Cards Grid -->
+                        <div class="metrics-grid mb-4">
+                            <div class="card p-3">
+                                <div class="space-between mb-1">
+                                    <span class="text-muted small font-weight-bold">EFFECTIF CLASSE</span>
+                                    <i class="fa-solid fa-users text-blue"></i>
+                                </div>
+                                <h2 style="margin: 0; color: #1e293b;">{{ mlClassSummary.totalStudents }}</h2>
+                                <span class="text-muted small">Étudiants évalués</span>
+                            </div>
+
+                            <div class="card p-3" style="border-left: 4px solid #10b981;">
+                                <div class="space-between mb-1">
+                                    <span class="text-muted small font-weight-bold">TAUX RÉUSSITE IA</span>
+                                    <i class="fa-solid fa-chart-line text-emerald"></i>
+                                </div>
+                                <h2 style="margin: 0; color: #10b981;">{{ mlClassSummary.predictedSuccessRate }}%</h2>
+                                <span class="badge badge-emerald" style="font-size: 0.75rem;">{{ mlClassSummary.admisCount }} Admis prévus</span>
+                            </div>
+
+                            <div class="card p-3" style="border-left: 4px solid #f59e0b;">
+                                <div class="space-between mb-1">
+                                    <span class="text-muted small font-weight-bold">RACHATS ÉLIGIBLES</span>
+                                    <i class="fa-solid fa-scale-balanced text-amber"></i>
+                                </div>
+                                <h2 style="margin: 0; color: #f59e0b;">{{ mlClassSummary.rachatCount }}</h2>
+                                <span class="text-muted small">Candidats au rachat</span>
+                            </div>
+
+                            <div class="card p-3" style="border-left: 4px solid #ef4444;">
+                                <div class="space-between mb-1">
+                                    <span class="text-muted small font-weight-bold">RISQUE D'ÉCHEC</span>
+                                    <i class="fa-solid fa-triangle-exclamation text-rose"></i>
+                                </div>
+                                <h2 style="margin: 0; color: #ef4444;">{{ mlClassSummary.ajourneCount }}</h2>
+                                <span class="text-muted small">Ajournés / Rattrapage</span>
+                            </div>
+
+                            <div class="card p-3" style="border-left: 4px solid #2563eb;">
+                                <div class="space-between mb-1">
+                                    <span class="text-muted small font-weight-bold">CONFIANCE IA</span>
+                                    <i class="fa-solid fa-robot text-blue"></i>
+                                </div>
+                                <h2 style="margin: 0; color: #2563eb;">{{ mlClassSummary.averageConfidence }}%</h2>
+                                <span class="badge badge-cyan" style="font-size: 0.75rem;">Consensus 3 modèles</span>
+                            </div>
+                        </div>
+
+                        <!-- Filter Chips & Action Bar -->
+                        <div class="card mb-4">
+                            <div class="card-header space-between" style="flex-wrap: wrap; gap: 10px;">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span style="font-weight: 600; font-size: 0.95rem;">
+                                        <i class="fa-solid fa-table-list text-blue"></i> Prédictions Individuelles - Classe : <strong>{{ mlClassSummary.classeName }}</strong>
+                                    </span>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-sm" [ngClass]="mlStudentFilter === 'ALL' ? 'btn-primary' : 'btn-outline'" (click)="setMlStudentFilter('ALL')">
+                                        Tous ({{ mlClassSummary.totalStudents }})
+                                    </button>
+                                    <button class="btn btn-sm" [ngClass]="mlStudentFilter === 'ADMIS' ? 'btn-primary' : 'btn-outline'" (click)="setMlStudentFilter('ADMIS')">
+                                        <i class="fa-solid fa-circle-check text-emerald"></i> Admis Direct ({{ mlClassSummary.admisCount - mlClassSummary.rachatCount }})
+                                    </button>
+                                    <button class="btn btn-sm" [ngClass]="mlStudentFilter === 'RACHAT' ? 'btn-primary' : 'btn-outline'" (click)="setMlStudentFilter('RACHAT')">
+                                        <i class="fa-solid fa-scale-balanced text-amber"></i> Rachats ({{ mlClassSummary.rachatCount }})
+                                    </button>
+                                    <button class="btn btn-sm" [ngClass]="mlStudentFilter === 'RISK' ? 'btn-primary' : 'btn-outline'" (click)="setMlStudentFilter('RISK')">
+                                        <i class="fa-solid fa-triangle-exclamation text-rose"></i> À Risque / Ajournés ({{ mlClassSummary.ajourneCount }})
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="card-body padding-0">
+                                <div class="table-responsive">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th># CIN</th>
+                                                <th>Étudiant</th>
+                                                <th>Moy. Générale</th>
+                                                <th>ECTS Non Val.</th>
+                                                <th>🌳 Arbre Décision</th>
+                                                <th>🎯 KNN (k=3)</th>
+                                                <th>🌲 Random Forest</th>
+                                                <th>🤖 Consensus IA</th>
+                                                <th>Confiance</th>
+                                                <th>Diagnostic &amp; Recommandation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngIf="getFilteredMlStudents().length === 0">
+                                                <td colspan="10" class="text-center text-muted py-4">Aucun étudiant ne correspond à ce filtre.</td>
+                                            </tr>
+                                            <tr *ngFor="let s of getFilteredMlStudents()">
+                                                <td><code>{{ s.matriculeCin }}</code></td>
+                                                <td><strong>{{ s.nomPrenom }}</strong></td>
+                                                <td>
+                                                    <span class="badge" [ngClass]="s.moyenneGenerale >= 10.0 ? 'badge-emerald' : (s.moyenneGenerale >= 9.0 ? 'badge-amber' : 'badge-rose')">
+                                                        {{ s.moyenneGenerale | number:'1.2-2' }} / 20
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge" [ngClass]="s.ectsNonValides <= 15 ? 'badge-cyan' : 'badge-amber'">
+                                                        {{ s.ectsNonValides }} ECTS
+                                                    </span>
+                                                </td>
+                                                <td><span class="badge badge-outline-blue" style="font-size: 0.8rem;">{{ s.decisionTreeDecision }}</span></td>
+                                                <td><span class="badge badge-outline-purple" style="font-size: 0.8rem;">{{ s.knnDecision }}</span></td>
+                                                <td><span class="badge badge-outline-cyan" style="font-size: 0.8rem; font-weight: 600;">{{ s.randomForestDecision }}</span></td>
+                                                <td>
+                                                    <strong [style.color]="s.riskLevel === 'FAIBLE' ? '#10b981' : (s.riskLevel === 'MOYEN' ? '#f59e0b' : '#ef4444')">
+                                                        {{ s.consensusDecision }}
+                                                    </strong>
+                                                </td>
+                                                <td>
+                                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                                        <div style="width: 50px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                                            <div [style.width.%]="s.confidence" style="height: 100%; background: #2563eb;"></div>
+                                                        </div>
+                                                        <span style="font-size: 0.8rem; font-weight: 600;">{{ s.confidence }}%</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge" [ngClass]="s.riskLevel === 'FAIBLE' ? 'badge-emerald' : (s.riskLevel === 'MOYEN' ? 'badge-amber' : 'badge-rose')">
+                                                        <i class="fa-solid" [ngClass]="s.riskLevel === 'FAIBLE' ? 'fa-circle-check' : (s.riskLevel === 'MOYEN' ? 'fa-scale-balanced' : 'fa-triangle-exclamation')"></i>
+                                                        {{ s.recommendation }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= MODE 2 : SIMULATEUR UNITAIRE (3 MODÈLES) ================= -->
+                <div *ngIf="mlMode === 'SIMULATION'">
+                    <!-- Cas Prédéfinis Rapides (Presets de Démonstration) -->
+                    <div class="card p-3 mb-4" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+                        <div class="space-between" style="align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge badge-blue"><i class="fa-solid fa-bolt"></i> Scénarios Rapides :</span>
+                                <span class="text-muted small">Cliquez pour tester immédiatement un cas type d'étudiant :</span>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-sm btn-outline" (click)="loadMlPreset('EXCELLENT')">
+                                    🌟 Excellent (MG: 16.5)
+                                </button>
+                                <button class="btn btn-sm btn-outline" (click)="loadMlPreset('RACHAT_MG')">
+                                    ⚖️ Rachat par MG (MG: 9.6)
+                                </button>
+                                <button class="btn btn-sm btn-outline" (click)="loadMlPreset('RACHAT_UE')">
+                                    📘 Rachat par UE (MG: 9.2, UE: 8.5)
+                                </button>
+                                <button class="btn btn-sm btn-outline" (click)="loadMlPreset('CONSEIL')">
+                                    ⚠️ Conseil École (MG: 8.4)
+                                </button>
+                                <button class="btn btn-sm btn-outline" (click)="loadMlPreset('AJOURNE')">
+                                    ❌ Ajourné (MG: 5.2)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Model Selector Grid -->
+                <div class="metrics-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <!-- Model 1: Decision Tree -->
+                    <div class="card p-3" 
+                         [style.border-color]="selectedMlModel === 'DT' ? '#2563eb' : '#e2e8f0'"
+                         [style.background]="selectedMlModel === 'DT' ? 'rgba(37, 99, 235, 0.06)' : '#ffffff'"
+                         style="cursor: pointer; transition: all 0.2s ease;"
+                         (click)="selectedMlModel = 'DT'; runMlPrediction()">
+                        <div class="space-between mb-2">
+                            <span class="badge badge-green">Modèle 1</span>
+                            <i class="fa-solid fa-diagram-project text-emerald" style="font-size: 1.3rem;"></i>
+                        </div>
+                        <h4 style="margin: 0.25rem 0;">Arbre de Décision</h4>
+                        <p class="text-muted small" style="margin: 0;">Découpage hiérarchique explicable par règles d'entropie &amp; seuils.</p>
+                        <div class="mt-2"><span class="badge badge-cyan" style="font-size: 0.75rem;">Précision : 96.2%</span></div>
+                    </div>
+
+                    <!-- Model 2: KNN -->
+                    <div class="card p-3" 
+                         [style.border-color]="selectedMlModel === 'KNN' ? '#2563eb' : '#e2e8f0'"
+                         [style.background]="selectedMlModel === 'KNN' ? 'rgba(37, 99, 235, 0.06)' : '#ffffff'"
+                         style="cursor: pointer; transition: all 0.2s ease;"
+                         (click)="selectedMlModel = 'KNN'; runMlPrediction()">
+                        <div class="space-between mb-2">
+                            <span class="badge badge-blue">Modèle 2</span>
+                            <i class="fa-solid fa-crosshairs text-blue" style="font-size: 1.3rem;"></i>
+                        </div>
+                        <h4 style="margin: 0.25rem 0;">K-Plus Proches Voisins (KNN)</h4>
+                        <p class="text-muted small" style="margin: 0;">Distance euclidienne vectorielle avec profil des étudiants historiques.</p>
+                        <div class="mt-2"><span class="badge badge-blue" style="font-size: 0.75rem;">Précision : 94.8%</span></div>
+                    </div>
+
+                    <!-- Model 3: Random Forest -->
+                    <div class="card p-3" 
+                         [style.border-color]="selectedMlModel === 'RF' ? '#2563eb' : '#e2e8f0'"
+                         [style.background]="selectedMlModel === 'RF' ? 'rgba(37, 99, 235, 0.06)' : '#ffffff'"
+                         style="cursor: pointer; transition: all 0.2s ease;"
+                         (click)="selectedMlModel = 'RF'; runMlPrediction()">
+                        <div class="space-between mb-2">
+                            <span class="badge badge-cyan">Modèle 3</span>
+                            <i class="fa-solid fa-tree text-cyan" style="font-size: 1.3rem;"></i>
+                        </div>
+                        <h4 style="margin: 0.25rem 0;">La Forêt Aléatoire</h4>
+                        <p class="text-muted small" style="margin: 0;">Ensemble de 10 arbres de décision avec vote majoritaire pondéré.</p>
+                        <div class="mt-2"><span class="badge badge-green" style="font-size: 0.75rem;">Précision : 98.7% ⭐</span></div>
+                    </div>
+
+                    <!-- Compare All -->
+                    <div class="card p-3" 
+                         [style.border-color]="selectedMlModel === 'COMPARE' ? '#2563eb' : '#e2e8f0'"
+                         [style.background]="selectedMlModel === 'COMPARE' ? 'rgba(37, 99, 235, 0.06)' : '#ffffff'"
+                         style="cursor: pointer; transition: all 0.2s ease;"
+                         (click)="selectedMlModel = 'COMPARE'; runMlPrediction()">
+                        <div class="space-between mb-2">
+                            <span class="badge badge-amber">Benchmarking</span>
+                            <i class="fa-solid fa-scale-balanced text-amber" style="font-size: 1.3rem;"></i>
+                        </div>
+                        <h4 style="margin: 0.25rem 0;">Comparaison des 3 Modèles</h4>
+                        <p class="text-muted small" style="margin: 0;">Consensus global, scores de confiance et métriques comparatives.</p>
+                        <div class="mt-2"><span class="badge badge-amber" style="font-size: 0.75rem;">Tournoi IA Triple</span></div>
+                    </div>
+                </div>
+
+                <!-- Simulation & Output Grid -->
+                <div class="grid-layout mb-4">
+                    <!-- Formulaire Simulateur de Paramètres Étudiant -->
+                    <div class="card card-form">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-sliders text-blue"></i> Profil Étudiant à Évaluer</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <div class="space-between mb-1">
+                                    <label class="form-label">Moyenne Générale (MG) :</label>
+                                    <span class="badge badge-blue" style="font-size: 0.95rem;">{{ mlFeatures.moyenneGenerale }} / 20</span>
+                                </div>
+                                <input type="range" min="0" max="20" step="0.25" class="form-range w-100" [(ngModel)]="mlFeatures.moyenneGenerale" (input)="runMlPrediction()">
+                                <input type="number" step="0.1" min="0" max="20" class="form-control mt-1" [(ngModel)]="mlFeatures.moyenneGenerale" (change)="runMlPrediction()">
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="space-between mb-1">
+                                    <label class="form-label">Crédits ECTS Non Validés :</label>
+                                    <span class="badge" [ngClass]="mlFeatures.ectsNonValides <= 15 ? 'badge-green' : (mlFeatures.ectsNonValides <= 22 ? 'badge-amber' : 'badge-red')">{{ mlFeatures.ectsNonValides }} ECTS</span>
+                                </div>
+                                <input type="range" min="0" max="60" step="1" class="form-range w-100" [(ngModel)]="mlFeatures.ectsNonValides" (input)="runMlPrediction()">
+                                <input type="number" min="0" max="60" class="form-control mt-1" [(ngModel)]="mlFeatures.ectsNonValides" (change)="runMlPrediction()">
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="form-label">Statut de l'Étudiant :</label>
+                                <select class="form-control" [(ngModel)]="mlFeatures.statutEtudiant" (change)="runMlPrediction()">
+                                    <option value="nouveau">Nouveau (Rachat MG ≥ 9.5 ou UE ≥ 7.0)</option>
+                                    <option value="ancien">Ancien / Redoublant (Rachat MG ≥ 9.7 ou MG ≥ 10.0)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="space-between mb-1">
+                                    <label class="form-label">Moyenne UE Spécifique :</label>
+                                    <span class="badge badge-cyan">{{ mlFeatures.moyenneUe }} / 20</span>
+                                </div>
+                                <input type="range" min="0" max="20" step="0.25" class="form-range w-100" [(ngModel)]="mlFeatures.moyenneUe" (input)="runMlPrediction()">
+                            </div>
+
+                            <div *ngIf="selectedMlModel === 'KNN'" class="form-group mb-3 p-2 bg-light rounded">
+                                <label class="form-label">Nombre de Voisins (k) :</label>
+                                <select class="form-control form-control-sm" [(ngModel)]="knnK" (change)="runMlPrediction()">
+                                    <option [value]="3">k = 3 voisins</option>
+                                    <option [value]="5">k = 5 voisins</option>
+                                    <option [value]="7">k = 7 voisins</option>
+                                </select>
+                            </div>
+
+                            <button class="btn btn-primary w-100 mt-3" (click)="runMlPrediction()" [disabled]="isLoadingMl">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Recalculer la Prédiction IA
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Panneau de Résultats IA -->
+                    <div class="card card-table">
+                        <div class="card-header space-between" style="align-items: center;">
+                            <h3><i class="fa-solid fa-chart-line text-emerald"></i> Résultat du Modèle Prédictif</h3>
+                            <span *ngIf="!isLoadingMl" class="badge badge-blue">Modèle : {{ selectedMlModel === 'COMPARE' ? 'Comparatif Triple' : (selectedMlModel === 'DT' ? 'Decision Tree' : (selectedMlModel === 'KNN' ? 'KNN' : 'Random Forest')) }}</span>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- Single Model View Result -->
+                            <div *ngIf="selectedMlModel !== 'COMPARE' && mlPredictionResult">
+                                <div class="text-center p-4 mb-4" style="border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc;">
+                                    <span class="text-muted">Décision Prédite par IA :</span>
+                                    <div class="my-2">
+                                        <span class="badge" [ngClass]="mlPredictionResult.decisionPredite.includes('Admis') ? 'badge-green' : (mlPredictionResult.decisionPredite.includes('Conseil') ? 'badge-amber' : 'badge-red')" style="font-size: 1.5rem; padding: 10px 20px;">
+                                            {{ mlPredictionResult.decisionPredite }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-center gap-3 mt-3">
+                                        <span class="badge badge-blue" style="font-size: 0.95rem;"><i class="fa-solid fa-award"></i> Mention : {{ mlPredictionResult.mentionPredite }}</span>
+                                        <span class="badge badge-cyan" style="font-size: 0.95rem;"><i class="fa-solid fa-bullseye"></i> Confiance : {{ mlPredictionResult.confidenceScore }}%</span>
+                                    </div>
+                                    <p class="text-muted mt-3 mb-0" style="font-style: italic;">"{{ mlPredictionResult.explicationRegle }}"</p>
+                                </div>
+
+                                <!-- Decision Tree Path -->
+                                <div *ngIf="selectedMlModel === 'DT' && mlPredictionResult.decisionPath" class="mb-4">
+                                    <h4 class="mb-2"><i class="fa-solid fa-sitemap text-emerald"></i> Cheminement dans l'Arbre de Décision :</h4>
+                                    <div class="p-3 bg-light rounded" style="border-left: 4px solid #10b981;">
+                                        <div *ngFor="let step of mlPredictionResult.decisionPath; let idx = index" class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="badge badge-green">Nœud {{ idx + 1 }}</span>
+                                            <span style="font-family: monospace; font-size: 0.9rem;">{{ step }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- KNN Neighbors List -->
+                                <div *ngIf="selectedMlModel === 'KNN' && mlPredictionResult.kNearestNeighbors" class="mb-4">
+                                    <h4 class="mb-2"><i class="fa-solid fa-users text-blue"></i> Profils des {{ knnK }} Voisins les Plus Proches :</h4>
+                                    <ul class="list-group">
+                                        <li *ngFor="let n of mlPredictionResult.kNearestNeighbors" class="list-group-item d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+                                            <i class="fa-solid fa-user-tag text-blue"></i> {{ n }}
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Random Forest Feature Importance -->
+                                <div *ngIf="selectedMlModel === 'RF' && mlPredictionResult.featureImportances" class="mb-4">
+                                    <h4 class="mb-2"><i class="fa-solid fa-chart-pie text-cyan"></i> Importance des Variables (Feature Importance) :</h4>
+                                    <div *ngFor="let item of mlPredictionResult.featureImportances | keyvalue" class="mb-2">
+                                        <div class="space-between small mb-1">
+                                            <span><strong>{{ item.key }}</strong></span>
+                                            <span class="text-muted">{{ item.value }}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                                            <div class="progress-bar bg-primary" [style.width.%]="item.value"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Compare All Models View Result -->
+                            <div *ngIf="selectedMlModel === 'COMPARE' && mlComparisonResult">
+                                <div class="text-center p-3 mb-4" style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px;">
+                                    <h3 class="text-emerald" style="margin: 0.25rem 0;">
+                                        <i class="fa-solid fa-circle-check"></i> Décision de Consensus : <strong>{{ mlComparisonResult.consensusDecision }}</strong>
+                                    </h3>
+                                    <span class="text-muted">Taux d'Accord entre les 3 modèles : <strong>{{ mlComparisonResult.globalAgreementPercentage }}%</strong></span>
+                                </div>
+
+                                <!-- Table Comparative des 3 Modèles -->
+                                <div class="table-responsive mb-4">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Algorithme</th>
+                                                <th>Décision Prédite</th>
+                                                <th>Mention</th>
+                                                <th>Confiance</th>
+                                                <th>Précision Globale (F1)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong><i class="fa-solid fa-diagram-project text-emerald"></i> Arbre de Décision</strong></td>
+                                                <td><span class="badge badge-green">{{ mlComparisonResult.decisionTreeResult?.decisionPredite }}</span></td>
+                                                <td>{{ mlComparisonResult.decisionTreeResult?.mentionPredite }}</td>
+                                                <td><strong>{{ mlComparisonResult.decisionTreeResult?.confidenceScore }}%</strong></td>
+                                                <td><span class="badge badge-blue">95.7%</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong><i class="fa-solid fa-crosshairs text-blue"></i> K-Plus Proches Voisins (KNN)</strong></td>
+                                                <td><span class="badge badge-blue">{{ mlComparisonResult.knnResult?.decisionPredite }}</span></td>
+                                                <td>{{ mlComparisonResult.knnResult?.mentionPredite }}</td>
+                                                <td><strong>{{ mlComparisonResult.knnResult?.confidenceScore }}%</strong></td>
+                                                <td><span class="badge badge-blue">93.9%</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong><i class="fa-solid fa-tree text-cyan"></i> La Forêt Aléatoire (Random Forest)</strong></td>
+                                                <td><span class="badge badge-cyan">{{ mlComparisonResult.randomForestResult?.decisionPredite }}</span></td>
+                                                <td>{{ mlComparisonResult.randomForestResult?.mentionPredite }}</td>
+                                                <td><strong>{{ mlComparisonResult.randomForestResult?.confidenceScore }}%</strong></td>
+                                                <td><span class="badge badge-green" style="font-weight:bold;">98.3% ⭐</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </section>
+
+            <!-- VIEW 3: RULES -->
+            <section *ngIf="currentView === 'rules'" class="tab-view active">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Paramétrage des Règles Métier &amp; Seuils de Décision (LMD)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="rules-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="rule-group-card" style="border:1px solid #E2E8F0; border-radius: 8px; overflow: hidden;">
+                                <div class="rg-header bg-emerald" style="background:#10B981; color:white; padding:10px 15px; font-weight:bold;">
+                                    <i class="fa-solid fa-circle-check"></i> Cas 1 : Admissibilité (MG ≥ 10.0)
+                                </div>
+                                <div class="rg-body" style="padding: 15px;">
+                                    <div class="rule-item" style="margin-bottom:10px;">
+                                        <span class="r-title">ECTS non validés ≤ 15 :</span>
+                                        <span class="badge badge-green">Admis</span>
+                                    </div>
+                                    <div class="rule-item">
+                                        <span class="r-title">ECTS non validés entre 15 et 22 :</span>
+                                        <span class="badge badge-cyan">Admis avec nbr ECTS non validés</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rule-group-card" style="border:1px solid #E2E8F0; border-radius: 8px; overflow: hidden;">
+                                <div class="rg-header bg-blue" style="background:#3B82F6; color:white; padding:10px 15px; font-weight:bold;">
+                                    <i class="fa-solid fa-handshake"></i> Cas 3 : Procédures de Rachat
+                                </div>
+                                <div class="rg-body" style="padding: 15px;">
+                                    <div class="rule-item" style="margin-bottom:10px;">
+                                        <span class="r-title">MG ≥ 9.7 &amp; Statut = Ancien :</span>
+                                        <span class="badge badge-blue">Admis (Rachat Ancien)</span>
+                                    </div>
+                                    <div class="rule-item" style="margin-bottom:10px;">
+                                        <span class="r-title">MG ≥ 9.5 (Nouveau) :</span>
+                                        <span class="badge badge-blue">Admis (Rachat Nouveau)</span>
+                                    </div>
+                                    <div class="rule-item">
+                                        <span class="r-title">Moyenne UE ≥ 7.0 (Nouveau) :</span>
+                                        <span class="badge badge-blue">Admis (Rachat UE)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rule-group-card" style="border:1px solid #E2E8F0; border-radius: 8px; overflow: hidden; grid-column: span 2;">
+                                <div class="rg-header bg-amber" style="background:#F59E0B; color:white; padding:10px 15px; font-weight:bold;">
+                                    <i class="fa-solid fa-graduation-cap"></i> Cas 2 : MG &lt; 10.0 (Hors Rachat)
+                                </div>
+                                <div class="rg-body" style="padding: 15px;">
+                                    <div class="rule-item" style="margin-bottom:10px;">
+                                        <span class="r-title">ECTS non validés &lt; 22 :</span>
+                                        <span class="badge badge-amber">Conseil École</span>
+                                    </div>
+                                    <div class="rule-item">
+                                        <span class="r-title">ECTS non validés &gt; 22 :</span>
+                                        <span class="badge badge-red">Redouble / Exclu</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 4: HISTORY -->
+            <section *ngIf="currentView === 'history'" class="tab-view active">
+                <div class="card">
+                    <div class="card-header space-between">
+                        <h3>Historique Général des Générations</h3>
+                        <button class="btn btn-sm btn-outline" (click)="loadHistory()">
+                            <i class="fa-solid fa-rotate"></i> Actualiser
+                        </button>
+                    </div>
+                    <div class="card-body padding-0">
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th># ID</th>
+                                        <th>Classe / Groupe</th>
+                                        <th>Nom de Fichier</th>
+                                        <th>Date &amp; Heure</th>
+                                        <th *ngIf="authService.isAdmin()">Créé par</th>
+                                        <th>Effectif</th>
+                                        <th>Admis</th>
+                                        <th>Rachats / ECTS</th>
+                                        <th>Ajournés</th>
+                                        <th>Taux Réussite</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngIf="allHistory.length === 0">
+                                        <td [attr.colspan]="authService.isAdmin() ? 10 : 9" class="text-center text-muted py-4">Aucun historique disponible.</td>
+                                    </tr>
+                                    <tr *ngFor="let h of allHistory">
+                                        <td>{{h.id}}</td>
+                                        <td><strong>{{h.nomClasse}}</strong></td>
+                                        <td>{{h.filename}}</td>
+                                        <td>{{h.dateGeneration | date:'dd/MM/yyyy HH:mm'}}</td>
+                                        <td *ngIf="authService.isAdmin()"><span class="badge badge-blue">{{h.createdBy || 'Système'}}</span></td>
+                                        <td>{{h.totalEtudiants}}</td>
+                                        <td><span class="text-emerald font-weight-bold">{{h.nbAdmis}}</span></td>
+                                        <td><span class="text-blue">{{h.nbRachats}}</span></td>
+                                        <td><span class="text-danger">{{h.nbAjournes}}</span></td>
+                                        <td>{{h.tauxReussite | number:'1.0-1'}}%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>

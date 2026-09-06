@@ -1,0 +1,205 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║               📋 CLARIFICATION: RÈGLES DE DÉCISION COMPLEXES                  ║
+║                                                                               ║
+║       J'ai compris vos nouvelles règles. Veuillez confirmer SVP.              ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ CE QUE J'AI COMPRIS:
+
+Vous remplacez les règles SIMPLES (MG ≥ 12 = Admis, etc.)
+par des règles COMPLEXES basées sur:
+  - MG (Moyenne Générale)
+  - ECTS (Crédits validés)
+  - Statut (Ancien/Nouveau)
+  - Moyenne_UE (Moyenne par Unité d'Enseignement)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 RÈGLES DÉTAILLÉES (COMME JE LES AI COMPRISES):
+
+CAS 1: MG ≥ 10
+═════════════════
+
+Sous-cas 1a: MG ≥ 10 ET ECTS ≤ 15
+  Décision: ✅ ADMIS
+
+Sous-cas 1b: MG ≥ 10 ET 15 < ECTS ≤ 22
+  Décision: ✅ ADMIS AVEC ECTS NON VALIDÉS
+
+Sous-cas 1c: MG ≥ 10 ET ECTS > 22
+  Décision: ✅ ADMIS AVEC MODÉRATION
+
+
+CAS 2: MG < 10 (HORS RACHAT)
+══════════════════════════════
+
+Sous-cas 2a: MG < 10 ET ECTS > 22
+  Décision: 🔴 REDOUBLE/EXCLU
+
+Sous-cas 2b: MG < 10 ET ECTS < 22
+  Décision: 🟡 CONSEIL D'ÉCOLE
+
+
+CAS 3: RACHAT (CONDITIONS SPÉCIALES)
+═════════════════════════════════════
+
+Sous-cas 3a: ANCIEN ÉTUDIANT
+  Condition: MG ≥ 9.7 AND Statut = 'Ancien'
+  Décision: ✅ ADMIS (avec rachat)
+
+Sous-cas 3b: NOUVEL ÉTUDIANT
+  Condition: MG ≥ 9.5
+  Décision: ✅ ADMIS (avec rachat)
+
+Sous-cas 3c: AVEC UE (Unité d'Enseignement)
+  Conditions:
+    - Ancien: MG ≥ 10 ET Moyenne_UE ≥ 7
+    - Nouveau: MG ≥ 10 ET Moyenne_UE ≥ 7
+  Décision: ✅ ADMIS (avec rachat UE)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ QUESTIONS DE CLARIFICATION:
+
+Pour bien implémenter ces règles, j'ai besoin de confirmer:
+
+1️⃣ DONNÉES EXCEL
+   Quelles colonnes doivent être dans le fichier Excel d'entrée?
+   
+   Actuellement attendu:
+   ☐ N° (numéro)
+   ☐ Nom et Prénom
+   ☐ Matricule
+   ☐ Classe
+   ☐ Année
+   ☐ MG (Moyenne Générale) - pré-calculée ou à calculer?
+   ☐ ECTS (ECTS validés) - d'où vient cette colonne?
+   ☐ Statut (Ancien/Nouveau) - où est-elle?
+   ☐ Moyenne_UE (Moyenne par UE) - comment est calculée?
+   
+   ✏️ Veuillez confirmer les colonnes exactes SVP.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+2️⃣ PRIORITÉS ENTRE RÈGLES
+   Quelle est la priorité si plusieurs règles s'appliquent?
+   
+   Exemple: Étudiant avec MG = 9.8, ECTS = 18, Statut = Ancien
+   
+   Option A: Appliquer le CAS 3a (Rachat Ancien) → ✅ ADMIS
+   Option B: Appliquer le CAS 2b (Conseil d'École) puis vérifier rachat
+   
+   ✏️ Quelle est la priorité correcte?
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3️⃣ FICHIER WORD (PV)
+   Vous demandez un fichier Word avec le PV (Procès-Verbal).
+   
+   Que doit contenir ce fichier?
+   ☐ En-têtes (institution, date, participants)?
+   ☐ Tableau de résultats (tous les étudiants)?
+   ☐ Statistiques (nombre Admis, Refusés, etc.)?
+   ☐ Signatures (Président, Jury)?
+   ☐ Format spécifique?
+   
+   ✏️ Veuillez décrire le contenu et format SVP.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4️⃣ MOYENNE_UE (Unité d'Enseignement)
+   D'où vient cette valeur?
+   
+   ☐ Elle est dans le fichier Excel d'entrée?
+   ☐ Elle est calculée par l'application?
+   ☐ Elle est dans la base de données?
+   
+   Si calculée, comment? (Moyenne de tous les modules? Première UE?)
+   
+   ✏️ Veuillez clarifier SVP.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5️⃣ STATUT (Ancien/Nouveau)
+   Comment est défini le statut "Ancien" vs "Nouveau"?
+   
+   ☐ C'est dans le fichier Excel?
+   ☐ C'est dans la base de données?
+   ☐ C'est calculé basé sur l'année universitaire?
+   
+   ✏️ Veuillez clarifier SVP.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6️⃣ FORMAT EXCEL DE SORTIE
+   L'Excel produit doit-il avoir:
+   ☐ Les mêmes colonnes que l'entrée + Décision?
+   ☐ Colonnes supplémentaires (Mention, Raison)?
+   ☐ Mise en couleur (Admis=vert, Refusé=rouge)?
+   
+   ✏️ Veuillez décrire SVP.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+7️⃣ EXEMPLE COMPLET
+   Pouvez-vous donner un exemple concret?
+   
+   Exemple: Un étudiant avec
+   - MG = 9.8
+   - ECTS = 18
+   - Statut = Ancien
+   - Moyenne_UE = 7.5
+   
+   Quel devrait être la décision? Et pourquoi?
+   
+   ✏️ Veuillez confirmer SVP.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 RÉSUMÉ CE QUE JE VAIS FAIRE
+
+Une fois confirmé, je vais:
+
+1. ✅ Créer classe ReglesDecisionComplexes avec la logique
+2. ✅ Mettre à jour le modèle Etudiant (ajouter Statut, Moyenne_UE)
+3. ✅ Mettre à jour ExcelImportService (lire colonnes supplémentaires)
+4. ✅ Mettre à jour DataGrid (afficher colonnes appropriées)
+5. ✅ Créer ExcelExportService (exporter avec résultats)
+6. ✅ Créer WordExportService (générer PV Word)
+7. ✅ Tester toutes les combinaisons de règles
+8. ✅ Créer fichier Excel exemple
+9. ✅ Créer fichier Word exemple
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 PROCHAINE ÉTAPE
+
+Veuillez répondre à ces 7 questions pour que je puisse:
+1. Bien comprendre vos besoins exacts
+2. Implémenter les règles correctement
+3. Générer les fichiers dans le bon format
+
+Je suis prêt à commencer dès que vous confirmez!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 FICHIERS DE RÉFÉRENCE
+
+J'ai créé:
+  - REGLES_DECISION_COMPLEXES.md (Détails complets)
+  - CLARIFICATION_REGLES_DECISION.txt (Ce fichier)
+
+Veuillez confirmer vos réponses et je peux commencer l'implémentation!
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║                  ⏳ EN ATTENTE DE VOS CONFIRMATIONS ⏳                        ║
+║                                                                               ║
+║              Veuillez répondre aux 7 questions ci-dessus SVP.                ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+

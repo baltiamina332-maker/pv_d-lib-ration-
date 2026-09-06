@@ -1,0 +1,313 @@
+════════════════════════════════════════════════════════════════════════════════
+                        DECISION WORKFLOW DIAGRAM
+════════════════════════════════════════════════════════════════════════════════
+
+USER CLICKS "GÉNÉRER DÉCISIONS" BUTTON
+        ↓
+        ↓
+    ┌───────────────────────────────────────┐
+    │  DecisionService.GetStudentsWithDecisions()
+    │  ───────────────────────────────────  │
+    │  1. Query: SELECT * FROM etudiant    │
+    │  2. Load all students from database   │
+    └───────────────────────────────────────┘
+        ↓
+        ↓
+    FOR EACH STUDENT:
+    ┌───────────────────────────────────────┐
+    │  CalculateMoyenne(student)            │
+    │  ───────────────────────────────────  │
+    │  Query: SELECT AVG(note)             │
+    │         FROM notes                    │
+    │         WHERE id_etudiant = ?        │
+    │  → student.MoyenneGenerale = average │
+    └───────────────────────────────────────┘
+        ↓
+        ↓
+    FOR EACH STUDENT:
+    ┌──────────────────────────────────────────┐
+    │  DetermineDecision(student)              │
+    │  ──────────────────────────────────────  │
+    │  IF moyenne >= 12.0                     │
+    │     → Decision = "Admis" ✅             │
+    │  ELSE IF moyenne >= 10.0                │
+    │     → Decision = "Rattrapage" ⚠️        │
+    │  ELSE                                   │
+    │     → Decision = "Refusé" ❌            │
+    └──────────────────────────────────────────┘
+        ↓
+        ↓
+    ┌─────────────────────────────────────────┐
+    │  GetDecisionStats(students)             │
+    │  ─────────────────────────────────────  │
+    │  Count by decision:                     │
+    │  → stats["Admis"] = count               │
+    │  → stats["Rattrapage"] = count          │
+    │  → stats["Refusé"] = count              │
+    └─────────────────────────────────────────┘
+        ↓
+        ↓
+    ┌──────────────────────────────────────────┐
+    │  SHOW STATISTICS POPUP                   │
+    │  ──────────────────────────────────────  │
+    │  ✅ Admis: 25                           │
+    │  ⚠️  Rattrapage: 15                      │
+    │  ❌ Refusé: 10                          │
+    │  Total: 50                              │
+    │                                         │
+    │  [Cancel]  [Export to Excel]           │
+    └──────────────────────────────────────────┘
+        ↓
+    IF USER CLICKS "EXPORT":
+        ↓
+    ┌──────────────────────────────────────────┐
+    │  ExcelDecisionExportService              │
+    │  .ExporterDecisions(students, folder)    │
+    └──────────────────────────────────────────┘
+        ↓
+        ├─→ CREATE WORKBOOK
+        │
+        ├─→ SHEET 1: "Décisions"
+        │   ┌──────────────────────────────────┐
+        │   │ # │Nom     │Prénom │Matric│...│ │
+        │   ├──────────────────────────────────┤
+        │   │1 │Dupont  │Jean   │MAT001│...│ │ → 🟢 GREEN (Admis)
+        │   │2 │Martin  │Marie  │MAT002│...│ │ → 🟡 YELLOW (Rattrapage)
+        │   │3 │Bernard │Pierre │MAT003│...│ │ → 🔴 RED (Refusé)
+        │   └──────────────────────────────────┘
+        │
+        ├─→ SHEET 2: "Statistiques"
+        │   ┌──────────────────────────────────┐
+        │   │ Décision   │ Nombre │ %         │
+        │   ├──────────────────────────────────┤
+        │   │ Admis      │ 25     │ 50.00%   │
+        │   │ Rattrapage │ 15     │ 30.00%   │
+        │   │ Refusé     │ 10     │ 20.00%   │
+        │   │ TOTAL      │ 50     │ 100.00%  │
+        │   └──────────────────────────────────┘
+        │
+        └─→ SHEET 3: "Résumé"
+            ┌──────────────────────────────────┐
+            │ Date: 27/07/2024 14:30:45       │
+            │ Total Étudiants: 50             │
+            │                                 │
+            │ Résultats:                     │
+            │   Admis: 25                    │
+            │   Rattrapage: 15               │
+            │   Refusé: 10                   │
+            │                                 │
+            │ Moyennes par catégorie:        │
+            │   Admis: 13.42                 │
+            │   Rattrapage: 10.85            │
+            │   Refusé: 8.92                 │
+            └──────────────────────────────────┘
+        ↓
+        ↓
+    ┌──────────────────────────────────────────┐
+    │  SAVE FILE                               │
+    │  ──────────────────────────────────────  │
+    │  Location: Documents/Decisions_Admission/
+    │  Filename: Decisions_Admission_          │
+    │           YYYY-MM-DD_HHMMSS.xlsx        │
+    │  Size: ~50-150 KB                       │
+    └──────────────────────────────────────────┘
+        ↓
+        ↓
+    ┌──────────────────────────────────────────┐
+    │  SUCCESS MESSAGE + FOLDER OPEN OPTION    │
+    │  ──────────────────────────────────────  │
+    │  ✅ Excel file generated!               │
+    │                                         │
+    │  Location: Documents/Decisions_Admission/
+    │                                         │
+    │  File contains:                         │
+    │   • Detailed decisions                  │
+    │   • Statistics                          │
+    │   • Deliberation summary                │
+    │                                         │
+    │  [Cancel]  [Open Folder]               │
+    └──────────────────────────────────────────┘
+        ↓
+    IF USER CLICKS "OPEN FOLDER":
+        ↓
+    ┌──────────────────────────────────────────┐
+    │  Windows Explorer opens to:              │
+    │  Documents/Decisions_Admission/          │
+    │                                         │
+    │  Shows:                                 │
+    │  📄 Decisions_Admission_2024-07-27_...xlsx
+    │                                         │
+    │  User can:                              │
+    │  ✅ Open in Excel                      │
+    │  ✅ Print it                           │
+    │  ✅ Share with others                  │
+    │  ✅ Use for generating PV              │
+    │  ✅ Generate reports                   │
+    └──────────────────────────────────────────┘
+        ↓
+        ↓
+    ✅ WORKFLOW COMPLETE
+
+════════════════════════════════════════════════════════════════════════════════
+
+DATABASE STRUCTURE
+════════════════════════════════════════════════════════════════════════════════
+
+TABLE: etudiant
+┌──────────────┬──────────┬─────────────────────────┐
+│ Column       │ Type     │ Description             │
+├──────────────┼──────────┼─────────────────────────┤
+│ id_etudiant  │ INT      │ Unique identifier       │
+│ nom          │ VARCHAR  │ Last name               │
+│ prenom       │ VARCHAR  │ First name              │
+│ matricule    │ VARCHAR  │ Student ID number       │
+│ classe_groupe│ VARCHAR  │ Class/Group             │
+│ statut       │ VARCHAR  │ Status (Active/Inactive)│
+└──────────────┴──────────┴─────────────────────────┘
+
+TABLE: notes
+┌──────────────┬──────────┬──────────────────────────┐
+│ Column       │ Type     │ Description              │
+├──────────────┼──────────┼──────────────────────────┤
+│ id_etudiant  │ INT      │ Student reference       │
+│ note         │ DECIMAL  │ Grade (0-20)            │
+│ (other cols) │ (other)  │ Subject, date, etc.     │
+└──────────────┴──────────┴──────────────────────────┘
+
+DECISION LOGIC
+════════════════════════════════════════════════════════════════════════════════
+
+                        AVERAGE CALCULATION
+                        ┌──────────────────┐
+                        │ SELECT AVG(note) │
+                        │ FROM notes       │
+                        │ WHERE id = ?     │
+                        └──────────────────┘
+                               ↓
+    ┌──────────────────────────┼──────────────────────────┐
+    ↓                          ↓                          ↓
+    
+≥ 12.0                   10.0 - 11.99              < 10.0
+  │                          │                       │
+  └─────────→ 🟢 ADMIS      ├─→ 🟡 RATTRAPAGE      └─→ 🔴 REFUSÉ
+             Admitted        Makeup Exam              Rejected
+
+EXAMPLES:
+─────────────────────────────────────────────────────────────────
+
+Student: Dupont Jean
+ Notes: [15, 16, 18, 13, 14]
+ Average: 15.2 ≥ 12.0 → 🟢 ADMIS
+
+Student: Martin Marie
+ Notes: [11, 10, 12, 11, 10]
+ Average: 10.8 (10.0-12.0) → 🟡 RATTRAPAGE
+
+Student: Bernard Pierre
+ Notes: [8, 9, 7, 10, 8]
+ Average: 8.4 < 10.0 → 🔴 REFUSÉ
+
+════════════════════════════════════════════════════════════════════════════════
+
+FILE STRUCTURE (CODE ORGANIZATION)
+════════════════════════════════════════════════════════════════════════════════
+
+Services/
+├── DecisionService.cs
+│   ├── GetStudentsWithDecisions()
+│   ├── CalculateMoyenne()
+│   ├── DetermineDecision()
+│   ├── GetDecisionStats()
+│   └── GetThresholds()
+│
+└── ExcelDecisionExportService.cs
+    ├── ExporterDecisions()
+    ├── AjouterStatistiques()
+    └── AjouterResume()
+
+Models/
+└── Etudiant.cs
+    ├── Id, Nom, Prenom, Statut (added)
+    ├── MoyenneGenerale
+    ├── Decision
+    └── (other existing properties)
+
+MainWindow.xaml.cs
+├── BtnGenererDecisions_Click()  (to add)
+├── ExporterDecisionsEnExcel()   (to add)
+└── (existing code)
+
+MainWindow.xaml
+└── <Button Name="btnGenererDecisions".../>  (to add)
+
+════════════════════════════════════════════════════════════════════════════════
+
+INTEGRATION STEPS
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: ADD SERVICES TO MAINWINDOW CONSTRUCTOR
+  ↓
+STEP 2: ADD BUTTON CLICK HANDLER
+  ↓
+STEP 3: ADD BUTTON TO XAML
+  ↓
+STEP 4: BUILD PROJECT (resolve XAML issues)
+  ↓
+STEP 5: TEST WITH SAMPLE DATA
+  ↓
+STEP 6: VERIFY EXCEL OUTPUT
+  ↓
+STEP 7: DEPLOY
+
+════════════════════════════════════════════════════════════════════════════════
+
+EXCEL OUTPUT PREVIEW
+════════════════════════════════════════════════════════════════════════════════
+
+┌─ SHEET 1: Décisions ──────────────────────────────────────────────────┐
+│                                                                        │
+│  ┌──┬──────────┬──────────┬──────────┬───────┬────────┬────────────┐ │
+│  │N°│Nom       │Prénom    │Matricule │Classe │Moyenne │Décision   │ │
+│  ├──┼──────────┼──────────┼──────────┼───────┼────────┼────────────┤ │
+│  │1 │DUPONT    │Jean      │MAT-2024-1│L1-A   │ 14.50  │🟢 ADMIS    │ │
+│  │2 │MARTIN    │Marie     │MAT-2024-2│L1-A   │ 11.20  │🟡 RATTRA...│ │
+│  │3 │BERNARD   │Pierre    │MAT-2024-3│L1-A   │  9.50  │🔴 REFUSÉ   │ │
+│  │..│..        │..        │..        │...    │...     │...         │ │
+│  └──┴──────────┴──────────┴──────────┴───────┴────────┴────────────┘ │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
+
+┌─ SHEET 2: Statistiques ───────────────────────────────────────────────┐
+│                                                                        │
+│  ┌──────────────┬────────┬──────────────┐                             │
+│  │Décision      │Nombre  │Pourcentage   │                             │
+│  ├──────────────┼────────┼──────────────┤                             │
+│  │🟢 ADMIS      │  25    │   50.00%     │                             │
+│  │🟡 RATTRAPAGE │  15    │   30.00%     │                             │
+│  │🔴 REFUSÉ     │  10    │   20.00%     │                             │
+│  ├──────────────┼────────┼──────────────┤                             │
+│  │TOTAL         │  50    │  100.00%     │                             │
+│  └──────────────┴────────┴──────────────┘                             │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
+
+┌─ SHEET 3: Résumé ─────────────────────────────────────────────────────┐
+│                                                                        │
+│  Date de délibération: 27/07/2024 14:30:45                          │
+│  Nombre total d'étudiants: 50                                        │
+│                                                                        │
+│  Résultats:                                                          │
+│    🟢 Admis:       25                                                │
+│    🟡 Rattrapage:  15                                                │
+│    🔴 Refusé:      10                                                │
+│                                                                        │
+│  Moyennes par résultat:                                              │
+│    Moyenne des Admis:       13.42                                    │
+│    Moyenne des Rattrapage:  10.85                                    │
+│    Moyenne des Refusés:      8.92                                    │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════
+
+END OF WORKFLOW DIAGRAM

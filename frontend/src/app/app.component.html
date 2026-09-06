@@ -1,0 +1,614 @@
+<div id="app" class="app-container" [attr.data-theme]="theme">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-file-word"></i>
+            </div>
+            <div class="brand-text">
+                <span class="brand-title">PV-Delib</span>
+                <span class="brand-subtitle">Système LMD Automatisé</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item" [class.active]="currentView === 'dashboard'" (click)="switchView('dashboard')">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Tableau de Bord</span>
+            </button>
+            <button class="nav-item" [class.active]="currentView === 'wizard'" (click)="switchView('wizard')">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Assistant PV</span>
+            </button>
+            <button class="nav-item" [class.active]="currentView === 'rules'" (click)="switchView('rules')">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Règles & Seuils</span>
+            </button>
+            <button class="nav-item" [class.active]="currentView === 'history'" (click)="switchView('history')">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Historique</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="template-card">
+                <i class="fa-solid fa-file-excel text-emerald"></i>
+                <div class="template-info">
+                    <span class="template-title">Modèle Excel</span>
+                    <span class="template-sub">Gabarit d'exemple .xlsx</span>
+                </div>
+                <button class="btn-icon" title="Télécharger le gabarit Excel" (click)="downloadTemplate()">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+            </div>
+            <div class="theme-toggle" (click)="toggleTheme()" title="Changer le thème">
+                <i class="fa-solid fa-sun icon-sun"></i>
+                <i class="fa-solid fa-moon icon-moon"></i>
+                <span class="theme-text">Mode Sombre</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Header Bar -->
+        <header class="top-header">
+            <div class="header-title">
+                <h1>{{ getPageTitle() }}</h1>
+                <p>{{ getPageSubtitle() }}</p>
+            </div>
+        </header>
+
+        <!-- Dynamic Views Container -->
+        <div class="view-container">
+            <!-- VIEW 1: DASHBOARD -->
+            <section *ngIf="currentView === 'dashboard'" class="tab-view active">
+                <!-- Metric Cards -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon blue">
+                            <i class="fa-solid fa-file-contract"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-value">{{ statTotalPv }}</span>
+                            <span class="metric-label">PVs Générés</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon emerald">
+                            <i class="fa-solid fa-user-graduate"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-value">{{ statAvgSuccess | number:'1.0-1' }}%</span>
+                            <span class="metric-label">Taux Moyen de Réussite</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon purple">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-value">{{ statTotalClasses }}</span>
+                            <span class="metric-label">Classes Traitées</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon amber">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-value">Règles LMD</span>
+                            <span class="metric-label">Système Conforme</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Hub & Rules Banner -->
+                <div class="dashboard-grid">
+                    <div class="card wizard-launch-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-rocket"></i> Génération Rapide de PV</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Importez votre fichier Excel (.xlsx) contenant les moyennes et crédits ECTS pour générer automatiquement les PVs Word (.docx) prêts à être signés.</p>
+                            <div class="wizard-features">
+                                <div class="feature-item"><i class="fa-solid fa-check text-emerald"></i> Conforme au Cahier des Charges</div>
+                                <div class="feature-item"><i class="fa-solid fa-check text-emerald"></i> Support Multi-Classes & Export ZIP</div>
+                                <div class="feature-item"><i class="fa-solid fa-check text-emerald"></i> Calcul des Rachats & Conseil d'École</div>
+                            </div>
+                            <button class="btn btn-primary btn-lg mt-4" (click)="switchView('wizard')">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Démarrer l'Assistant
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card rules-summary-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-gavel"></i> Règles de Décision Académique</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="rule-box green">
+                                <strong>MG ≥ 10 :</strong> Admis (ECTS ≤ 15) | Admis sous réserve ECTS (15 &lt; ECTS ≤ 22)
+                            </div>
+                            <div class="rule-box blue">
+                                <strong>Rachats :</strong> MG ≥ 9.7 (Ancien) | MG ≥ 9.5 (Nouveau) | Moy. UE ≥ 7
+                            </div>
+                            <div class="rule-box amber">
+                                <strong>MG &lt; 10 &amp; ECTS &lt; 22 :</strong> Conseil École
+                            </div>
+                            <div class="rule-box red">
+                                <strong>MG &lt; 10 &amp; ECTS &gt; 22 :</strong> Redouble / Exclu
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Table -->
+                <div class="card mt-4">
+                    <div class="card-header space-between">
+                        <h3><i class="fa-solid fa-history"></i> Derniers PVs Générés</h3>
+                        <button class="btn btn-sm btn-secondary" (click)="switchView('history')">Voir Tout</button>
+                    </div>
+                    <div class="card-body padding-0">
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Classe / Groupe</th>
+                                        <th>Nom de Fichier</th>
+                                        <th>Date de Génération</th>
+                                        <th>Effectif Total</th>
+                                        <th>Taux de Réussite</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngIf="recentHistory.length === 0">
+                                        <td colspan="6" class="text-center text-muted">Aucun PV généré pour le moment. Lancez l'assistant pour créer votre premier document.</td>
+                                    </tr>
+                                    <tr *ngFor="let h of recentHistory">
+                                        <td><strong>{{h.nomClasse}}</strong></td>
+                                        <td><i class="fa-solid fa-file-word text-blue mr-2"></i> {{h.filename}}</td>
+                                        <td>{{h.dateGeneration | date:'dd/MM/yyyy HH:mm'}}</td>
+                                        <td>{{h.totalEtudiants}}</td>
+                                        <td>{{h.tauxReussite | number:'1.0-1'}}%</td>
+                                        <td><span class="badge badge-green">Terminé</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 2: WIZARD -->
+            <section *ngIf="currentView === 'wizard'" class="tab-view active">
+                <!-- Wizard Steps Indicator -->
+                <div class="wizard-steps-bar">
+                    <div class="step-item" [class.active]="currentStep >= 1" (click)="currentStep = 1">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Import Excel</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item" [class.active]="currentStep >= 2" (click)="currentStep >= 2 ? currentStep = 2 : null">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Prévisualisation &amp; Métier</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item" [class.active]="currentStep >= 3" (click)="currentStep >= 3 ? currentStep = 3 : null">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">Session &amp; Jury</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item" [class.active]="currentStep >= 4">
+                        <div class="step-circle">4</div>
+                        <div class="step-label">Génération Word &amp; ZIP</div>
+                    </div>
+                </div>
+
+                <!-- STEP 1: FILE UPLOAD -->
+                <div *ngIf="currentStep === 1" class="wizard-step-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Étape 1 : Importer le Fichier Excel de Délibération</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="upload-dropzone" (click)="fileInput.click()">
+                                <input type="file" #fileInput accept=".xlsx, .xls" hidden (change)="onFileSelected($event)">
+                                <div class="dropzone-icon">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <h4>Glissez-déposez votre fichier Excel ici</h4>
+                                <p class="text-muted">ou parcourez vos fichiers pour sélectionner un fichier <strong>.xlsx</strong></p>
+                                <button class="btn btn-outline" (click)="fileInput.click(); $event.stopPropagation()">
+                                    <i class="fa-solid fa-folder-open"></i> Parcourir Fichiers
+                                </button>
+                            </div>
+
+                            <div class="mode-selection mt-4">
+                                <label class="form-label">Mode de Traitement des Décisions :</label>
+                                <div class="radio-group">
+                                    <label class="radio-card" [class.active]="modeCalcul === 'AUTO'">
+                                        <input type="radio" name="modeCalcul" value="AUTO" [(ngModel)]="modeCalcul">
+                                        <div class="radio-content">
+                                            <strong>Calcul Automatique (Mode Conforme LMD)</strong>
+                                            <small>Applique les règles de décision (MG ≥ 10, Rachats, etc.)</small>
+                                        </div>
+                                    </label>
+                                    <label class="radio-card" [class.active]="modeCalcul === 'PRECALC'">
+                                        <input type="radio" name="modeCalcul" value="PRECALC" [(ngModel)]="modeCalcul">
+                                        <div class="radio-content">
+                                            <strong>Données Excel Brutes</strong>
+                                            <small>Utilise directement les décisions telles que saisies dans le fichier Excel</small>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="file-info-badge" *ngIf="selectedFile">
+                                <i class="fa-solid fa-file-excel"></i>
+                                <span>{{ selectedFile.name }}</span>
+                                <span class="text-muted">({{ (selectedFile.size / 1024).toFixed(1) }} KB)</span>
+                                <button class="btn-icon text-danger" (click)="removeFile()" title="Supprimer"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+
+                            <!-- Error/Warning Messages -->
+                            <div *ngIf="uploadErrors.length > 0" class="mt-4" style="color: var(--rose-text); background: var(--rose-bg); padding: 12px; border-radius: 6px;">
+                                <strong>Erreurs :</strong>
+                                <ul><li *ngFor="let err of uploadErrors">{{err}}</li></ul>
+                            </div>
+                            <div *ngIf="uploadWarnings.length > 0" class="mt-4" style="color: var(--amber-text); background: var(--amber-bg); padding: 12px; border-radius: 6px;">
+                                <strong>Avertissements :</strong>
+                                <ul><li *ngFor="let warn of uploadWarnings">{{warn}}</li></ul>
+                            </div>
+
+                            <div class="wizard-actions text-right mt-4">
+                                <button class="btn btn-primary" [disabled]="!selectedFile || isUploading" (click)="uploadAndAnalyze()">
+                                    {{ isUploading ? 'Analyse en cours...' : 'Analyser et Continuer' }} <i class="fa-solid fa-arrow-right" *ngIf="!isUploading"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: PREVIEW & VALIDATION -->
+                <div *ngIf="currentStep === 2" class="wizard-step-content active">
+                    <div class="card">
+                        <div class="card-header space-between">
+                            <h3>Étape 2 : Prévisualisation des Classes et Contrôle Qualité</h3>
+                            <div class="class-selector">
+                                <label>Classe à afficher : </label>
+                                <select class="form-control inline-select" [(ngModel)]="selectedClassIndex" (change)="updatePreviewStats()">
+                                    <option *ngFor="let c of parsedClasses; let i = index" [value]="i">{{c.nomClasse}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body" *ngIf="currentPreviewClass">
+                            <!-- Class Summary Statistics Bar -->
+                            <div class="preview-stats-bar">
+                                <div class="p-stat-box">
+                                    <span class="p-label">Effectif Total</span>
+                                    <span class="p-val">{{currentPreviewClass.totalEtudiants}}</span>
+                                </div>
+                                <div class="p-stat-box green">
+                                    <span class="p-label">Admis</span>
+                                    <span class="p-val">{{currentPreviewClass.nbAdmis}}</span>
+                                </div>
+                                <div class="p-stat-box blue">
+                                    <span class="p-label">Admis ECTS / Rachat</span>
+                                    <span class="p-val">{{currentPreviewClass.nbRachats + currentPreviewClass.nbAdmisEcts}}</span>
+                                </div>
+                                <div class="p-stat-box amber">
+                                    <span class="p-label">Conseil École</span>
+                                    <span class="p-val">{{currentPreviewClass.nbConseilEcole}}</span>
+                                </div>
+                                <div class="p-stat-box red">
+                                    <span class="p-label">Redouble / Exclu</span>
+                                    <span class="p-val">{{currentPreviewClass.nbAjournes}}</span>
+                                </div>
+                                <div class="p-stat-box purple">
+                                    <span class="p-label">Taux Réussite</span>
+                                    <span class="p-val">{{currentPreviewClass.tauxReussite | number:'1.0-1'}}%</span>
+                                </div>
+                            </div>
+
+                            <!-- Student Table Preview -->
+                            <div class="table-responsive mt-3">
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>N°</th>
+                                            <th>Nom et Prénom</th>
+                                            <th>Matricule / CIN</th>
+                                            <th>Moyenne Gen.</th>
+                                            <th>ECTS Non Validés</th>
+                                            <th>Statut</th>
+                                            <th>Moy. UE</th>
+                                            <th>Décision Calculée</th>
+                                            <th>Mention / Obs.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let e of currentPreviewClass.etudiants">
+                                            <td>{{e.numOrder}}</td>
+                                            <td><strong>{{e.nomPrenom}}</strong></td>
+                                            <td>{{e.matriculeCin}}</td>
+                                            <td><strong class="text-blue">{{e.moyenneGenerale | number:'1.2-2'}}</strong></td>
+                                            <td>{{e.ectsNonValides}}</td>
+                                            <td><span class="badge" [ngClass]="{'badge-amber': e.statutEtudiant === 'ancien', 'badge-cyan': e.statutEtudiant !== 'ancien'}">{{e.statutEtudiant || 'nouveau'}}</span></td>
+                                            <td>{{e.moyenneUe != null ? (e.moyenneUe | number:'1.2-2') : '-'}}</td>
+                                            <td [innerHTML]="getDecisionBadgeHtml(e.decision)"></td>
+                                            <td>{{e.mention}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="wizard-actions space-between mt-4">
+                                <button class="btn btn-secondary" (click)="currentStep = 1">
+                                    <i class="fa-solid fa-arrow-left"></i> Retour
+                                </button>
+                                <button class="btn btn-primary" (click)="currentStep = 3">
+                                    Configurer le Jury <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: SESSION & JURY SETUP -->
+                <div *ngIf="currentStep === 3" class="wizard-step-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Étape 3 : Informations de Session &amp; Composition du Jury</h3>
+                        </div>
+                        <div class="card-body">
+                            <form class="grid-form">
+                                <div class="form-group col-6">
+                                    <label class="form-label">Nom de l'Établissement :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.etablissement" name="etab">
+                                </div>
+
+                                <div class="form-group col-6">
+                                    <label class="form-label">Faculté / Département :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.departement" name="dep">
+                                </div>
+
+                                <div class="form-group col-4">
+                                    <label class="form-label">Année Universitaire :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.anneeUniversitaire" name="annee">
+                                </div>
+
+                                <div class="form-group col-4">
+                                    <label class="form-label">Date de Délibération :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.dateDeliberation" name="date">
+                                </div>
+
+                                <div class="form-group col-4">
+                                    <label class="form-label">Type de Session :</label>
+                                    <select class="form-control" [(ngModel)]="sessionInfo.typeSession" name="type">
+                                        <option value="Principale">Session Principale</option>
+                                        <option value="Rattrapage">Session de Rattrapage</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-6">
+                                    <label class="form-label">Lieu de Délibération :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.lieu" name="lieu">
+                                </div>
+
+                                <div class="form-group col-6">
+                                    <label class="form-label">Président du Jury :</label>
+                                    <input type="text" class="form-control" [(ngModel)]="sessionInfo.presidentJury" name="pres">
+                                </div>
+                            </form>
+
+                            <hr class="my-4">
+
+                            <div class="jury-section">
+                                <div class="space-between mb-2">
+                                    <h4><i class="fa-solid fa-users"></i> Membres du Jury</h4>
+                                    <button class="btn btn-sm btn-outline" (click)="addJuryMember()">
+                                        <i class="fa-solid fa-plus"></i> Ajouter un membre
+                                    </button>
+                                </div>
+
+                                <div class="jury-list">
+                                    <div class="grid-form" *ngFor="let member of sessionInfo.membresJury; let i = index" style="margin-bottom: 10px; align-items: center;">
+                                        <div class="form-group col-5">
+                                            <input type="text" class="form-control" [(ngModel)]="member.nom" [name]="'mem_nom_'+i" placeholder="Nom du membre">
+                                        </div>
+                                        <div class="form-group col-5">
+                                            <input type="text" class="form-control" [(ngModel)]="member.fonction" [name]="'mem_fnc_'+i" placeholder="Fonction (ex: Examinateur)">
+                                        </div>
+                                        <div class="form-group col-2 text-right">
+                                            <button class="btn-icon text-danger" (click)="removeJuryMember(i)"><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wizard-actions space-between mt-4">
+                                <button class="btn btn-secondary" (click)="currentStep = 2">
+                                    <i class="fa-solid fa-arrow-left"></i> Retour
+                                </button>
+                                <button class="btn btn-primary" (click)="currentStep = 4">
+                                    Accéder à la Génération <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: GENERATE & EXPORT WORD / ZIP -->
+                <div *ngIf="currentStep === 4" class="wizard-step-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Étape 4 : Génération des Documents Word (.docx) &amp; Exportation</h3>
+                        </div>
+                        <div class="card-body text-center py-4">
+                            <div class="generation-hero">
+                                <div class="hero-icon-stack">
+                                    <i class="fa-solid fa-file-word icon-word" style="font-size:40px; color:#1E3A8A; margin-right:-10px;"></i>
+                                    <i class="fa-solid fa-file-zipper icon-zip" style="font-size:30px; color:#10B981;"></i>
+                                </div>
+                                <h2 class="mt-3">Vos Procès-Verbaux sont prêts à être générés !</h2>
+                                <p class="text-muted max-w-600 mx-auto" style="max-width: 600px; margin-bottom: 20px;">
+                                    Le système va créer les documents Word (.docx) conformes avec en-têtes institutionnels, couleurs de statut, statistiques de synthèse et espaces de signature.
+                                </p>
+                            </div>
+
+                            <div class="export-options-grid mt-4">
+                                <div class="export-card">
+                                    <i class="fa-solid fa-file-word icon-lg text-blue" style="font-size: 32px; margin-bottom: 10px;"></i>
+                                    <h4>Télécharger 1 Seule Classe (.docx)</h4>
+                                    <div class="form-group my-2">
+                                        <select class="form-control" [(ngModel)]="downloadClassIndex">
+                                            <option *ngFor="let c of parsedClasses; let i = index" [value]="i">{{c.nomClasse}}</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary btn-block" (click)="generateSingle()">
+                                        <i class="fa-solid fa-download"></i> Télécharger le PV Word
+                                    </button>
+                                </div>
+
+                                <div class="export-card featured">
+                                    <div class="badge-featured">Recommandé</div>
+                                    <i class="fa-solid fa-file-zipper icon-lg text-emerald" style="font-size: 32px; margin-bottom: 10px;"></i>
+                                    <h4>Génération en Masse (.ZIP)</h4>
+                                    <p class="text-muted small">Téléchargez les PVs Word de <strong>toutes les classes</strong> en 1 seule archive ZIP compressée.</p>
+                                    <button class="btn btn-success btn-block btn-lg mt-3" (click)="generateBatch()">
+                                        <i class="fa-solid fa-file-zipper"></i> Générer l'Archive ZIP Complète
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="wizard-actions space-between mt-5">
+                                <button class="btn btn-secondary" (click)="currentStep = 3">
+                                    <i class="fa-solid fa-arrow-left"></i> Retour
+                                </button>
+                                <button class="btn btn-outline" (click)="currentStep = 1; selectedFile = null; parsedClasses = []">
+                                    <i class="fa-solid fa-rotate-right"></i> Nouveau Traitement
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 3: RULES -->
+            <section *ngIf="currentView === 'rules'" class="tab-view active">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Paramétrage des Règles Métier &amp; Seuils de Décision (LMD)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="rules-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="rule-group-card" style="border:1px solid #E2E8F0; border-radius: 8px; overflow: hidden;">
+                                <div class="rg-header bg-emerald" style="background:#10B981; color:white; padding:10px 15px; font-weight:bold;">
+                                    <i class="fa-solid fa-circle-check"></i> Cas 1 : Admissibilité (MG ≥ 10.0)
+                                </div>
+                                <div class="rg-body" style="padding: 15px;">
+                                    <div class="rule-item" style="margin-bottom:10px;">
+                                        <span class="r-title">ECTS non validés ≤ 15 :</span>
+                                        <span class="badge badge-green">Admis</span>
+                                    </div>
+                                    <div class="rule-item">
+                                        <span class="r-title">ECTS non validés entre 15 et 22 :</span>
+                                        <span class="badge badge-cyan">Admis avec nbr ECTS non validés</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rule-group-card" style="border:1px solid #E2E8F0; border-radius: 8px; overflow: hidden;">
+                                <div class="rg-header bg-blue" style="background:#3B82F6; color:white; padding:10px 15px; font-weight:bold;">
+                                    <i class="fa-solid fa-handshake"></i> Cas 3 : Procédures de Rachat
+                                </div>
+                                <div class="rg-body" style="padding: 15px;">
+                                    <div class="rule-item" style="margin-bottom:10px;">
+                                        <span class="r-title">MG ≥ 9.7 &amp; Statut = Ancien :</span>
+                                        <span class="badge badge-blue">Admis (Rachat Ancien)</span>
+                                    </div>
+                                    <div class="rule-item" style="margin-bottom:10px;">
+                                        <span class="r-title">MG ≥ 9.5 (Nouveau) :</span>
+                                        <span class="badge badge-blue">Admis (Rachat Nouveau)</span>
+                                    </div>
+                                    <div class="rule-item">
+                                        <span class="r-title">Moyenne UE ≥ 7.0 (Nouveau) :</span>
+                                        <span class="badge badge-blue">Admis (Rachat UE)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rule-group-card" style="border:1px solid #E2E8F0; border-radius: 8px; overflow: hidden; grid-column: span 2;">
+                                <div class="rg-header bg-amber" style="background:#F59E0B; color:white; padding:10px 15px; font-weight:bold;">
+                                    <i class="fa-solid fa-graduation-cap"></i> Cas 2 : MG &lt; 10.0 (Hors Rachat)
+                                </div>
+                                <div class="rg-body" style="padding: 15px;">
+                                    <div class="rule-item" style="margin-bottom:10px;">
+                                        <span class="r-title">ECTS non validés &lt; 22 :</span>
+                                        <span class="badge badge-amber">Conseil École</span>
+                                    </div>
+                                    <div class="rule-item">
+                                        <span class="r-title">ECTS non validés &gt; 22 :</span>
+                                        <span class="badge badge-red">Redouble / Exclu</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 4: HISTORY -->
+            <section *ngIf="currentView === 'history'" class="tab-view active">
+                <div class="card">
+                    <div class="card-header space-between">
+                        <h3>Historique Général des Générations</h3>
+                        <button class="btn btn-sm btn-outline" (click)="loadHistory()">
+                            <i class="fa-solid fa-rotate"></i> Actualiser
+                        </button>
+                    </div>
+                    <div class="card-body padding-0">
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th># ID</th>
+                                        <th>Classe / Groupe</th>
+                                        <th>Nom de Fichier</th>
+                                        <th>Date &amp; Heure</th>
+                                        <th>Effectif</th>
+                                        <th>Admis</th>
+                                        <th>Rachats / ECTS</th>
+                                        <th>Ajournés</th>
+                                        <th>Taux Réussite</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngIf="allHistory.length === 0">
+                                        <td colspan="9" class="text-center text-muted py-4">Aucun historique disponible.</td>
+                                    </tr>
+                                    <tr *ngFor="let h of allHistory">
+                                        <td>{{h.id}}</td>
+                                        <td><strong>{{h.nomClasse}}</strong></td>
+                                        <td>{{h.filename}}</td>
+                                        <td>{{h.dateGeneration | date:'dd/MM/yyyy HH:mm'}}</td>
+                                        <td>{{h.totalEtudiants}}</td>
+                                        <td><span class="text-emerald font-weight-bold">{{h.nbAdmis}}</span></td>
+                                        <td><span class="text-blue">{{h.nbRachats}}</span></td>
+                                        <td><span class="text-danger">{{h.nbAjournes}}</span></td>
+                                        <td>{{h.tauxReussite | number:'1.0-1'}}%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>

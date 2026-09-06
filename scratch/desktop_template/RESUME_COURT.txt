@@ -1,0 +1,41 @@
+═══════════════════════════════════════════════════════════════════════════════
+               FAIRE FONCTIONNER EMAIL - RÉSUMÉ SUPER COURT
+═══════════════════════════════════════════════════════════════════════════════
+
+3 CHOSES À FAIRE:
+
+1️⃣  BASE DE DONNÉES
+   Exécuter dans MySQL:
+   
+   ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL DEFAULT '';
+
+2️⃣  COMPILER
+   Visual Studio: Build → Rebuild Solution
+
+3️⃣  TESTER
+   Run DesktopApp.exe → Admin tab → Ajouter utilisateur avec email
+
+C'EST TOUT! 🎉
+
+═══════════════════════════════════════════════════════════════════════════════
+
+DÉTAILS:
+
+✅ Le code Email est déjà dans MainWindow.xaml.cs
+✅ Le TextBox txtNewEmail est déjà dans MainWindow.xaml
+✅ L'AuthenticationService gère déjà l'email
+✅ Le User model a déjà la propriété Email
+
+IL FAUT JUSTE:
+✓ Ajouter la colonne email à la BD (SQL ci-dessus)
+✓ Recompiler
+✓ C'est opérationnel!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+POUR PLUS DE DÉTAILS:
+→ Lire: INSTRUCTIONS_POUR_FAIRE_MARCHER.txt (pas à pas complet)
+→ Lire: FAIRE_FONCTIONNER_EMAIL.md (avec dépannage)
+→ Lire: VERIFICATION_RAPIDE.txt (checklist)
+
+═══════════════════════════════════════════════════════════════════════════════

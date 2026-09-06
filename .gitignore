@@ -1,0 +1,40 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### Angular Frontend ###
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+.angular/
+
+### C# WPF Desktop App ###
+bin/
+obj/
+*.user
+*.suo
+.vs/
+pv_desktop_app/bin/
+pv_desktop_app/obj/
+packages/
+
+### OS / Temp ###
+.DS_Store
+Thumbs.db

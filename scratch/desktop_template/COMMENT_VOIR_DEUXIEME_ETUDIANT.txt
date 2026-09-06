@@ -1,0 +1,193 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║   COMMENT VOIR LE DEUXIÈME ÉTUDIANT (Trabelsi Yasmine)                ║
+║                                                                        ║
+║   Les problèmes d'affichage ont été RÉSOLUS ✅                        ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+
+TROIS SOLUTIONS RAPIDES
+═══════════════════════════════════════════════════════════════════════════
+
+Solution 1: DÉFILEMENT VERS LE BAS (Scrolling)
+──────────────────────────────────────────────
+1. Cliquez sur le tableau après l'import
+2. Utilisez la MOLETTE SOURIS pour défiler vers le bas
+   OU
+   Utilisez la FLÈCHE BAS du clavier
+   OU
+   Utilisez la BARRE VERTICALE (scrollbar) sur le côté droit
+
+Result: Vous devriez voir la deuxième ligne avec "Trabelsi Yasmine"
+
+
+Solution 2: AGRANDIR LA FENÊTRE
+───────────────────────────────
+1. Cliquez sur le bouton AGRANDIR en haut à droite
+   (ou double-cliquez sur la barre de titre)
+   OU
+   Drag the window edge to make it larger
+
+2. Augmentez la HAUTEUR de la fenêtre
+3. La deuxième ligne devrait devenir visible
+
+Result: Plus d'espace = tableau plus grand = deuxième ligne visible
+
+
+Solution 3: MAXIMISER LA FENÊTRE
+────────────────────────────────
+1. Double-cliquez sur la BARRE DE TITRE
+   (ou cliquez sur le bouton Maximize/Agrandir)
+
+2. La fenêtre occupe tout l'écran
+3. Le tableau s'agrandit automatiquement
+4. Vous voyez maintenant toutes les lignes
+
+Result: Affichage maximal = tous les étudiants visibles
+
+
+CE QUE VOUS VERREZ
+═══════════════════════════════════════════════════════════════════════════
+
+AVANT (avec scroll):
+──────────────────────
+┌────────────────────────────────────────────┐
+│ N° │ Nom et Prénom      │ Classe │ Décision│
+├────┼────────────────────┼────────┼─────────┤
+│ 1  │ Balti Amina        │ 3A40   │ Admis …│ ← Visible
+│ ↓ (scroll ici pour voir la suite)          │
+└────────────────────────────────────────────┘
+
+
+APRÈS SCROLL (défilement):
+──────────────────────────
+┌────────────────────────────────────────────┐
+│ N° │ Nom et Prénom      │ Classe │ Décision│
+├────┼────────────────────┼────────┼─────────┤
+│ 1  │ Balti Amina        │ 3A40   │ Admis …│
+│ 2  │ Trabelsi Yasmine   │ 3A40   │ Conseil│ ← Visible maintenant!
+└────────────────────────────────────────────┘
+
+
+VÉRIFICATION
+═══════════════════════════════════════════════════════════════════════════
+
+Après avoir vu les deux étudiants, vérifiez:
+
+✓ Première ligne:
+  - N°: 1
+  - Nom: Balti Amina
+  - Classe: 3A40
+  - Moyenne: 12.43
+  - Décision: "Admis avec modération"
+
+✓ Deuxième ligne:
+  - N°: 2
+  - Nom: Trabelsi Yasmine
+  - Classe: 3A40
+  - Moyenne: 10.75 (ou autre valeur)
+  - Décision: "Décision Conseil" (ou autre décision)
+
+✓ Statistiques (en bas):
+  - "2 étudiant(s) importé(s) avec succès"
+  - "Total: 2"
+
+
+POURQUOI LE DEUXIÈME ÉTUDIANT N'ÉTAIT PAS VISIBLE?
+═══════════════════════════════════════════════════════════════════════════
+
+Trois raisons possibles (MAINTENANT RÉSOLUES):
+
+1. PROBLÈME D'AFFICHAGE
+   ├─ Le tableau était trop petit
+   ├─ La deuxième ligne était en dehors de la zone visible
+   └─ ✅ FIX: ScrollViewer ajouté pour permettre le défilement
+
+2. PROBLÈME DE TRI
+   ├─ L'en-tête "Statut" avait une petite flèche ▲
+   ├─ Cela signifiait que le tableau était trié
+   ├─ Si les deux étudiants avaient des décisions différentes,
+   │  l'un était peut-être triée plus bas
+   └─ ✅ FIX: Tri désactivé → affichage dans l'ordre d'import
+
+3. PROBLÈME DE TRAITEMENT
+   ├─ Possible que le deuxième étudiant ne soit pas traité
+   ├─ Mais le message "Total: 2" confirme que NON, c'était juste l'affichage
+   └─ ✅ FIX: Confirmer que les deux sont traités
+
+
+ACTIONS À FAIRE MAINTENANT
+═══════════════════════════════════════════════════════════════════════════
+
+1. Fermez et RÉOUVREZ l'application
+   
+2. IMPORTEZ à nouveau votre fichier Excel
+
+3. Regardez le tableau
+
+4. DÉFILEZ VERS LE BAS
+   └─ Utilisez la molette souris, la flèche bas, ou la barre scrollbar
+
+5. Vérifiez que vous voyez les deux étudiants:
+   ├─ Ligne 1: Balti Amina
+   └─ Ligne 2: Trabelsi Yasmine (ou autre nom du 2ème étudiant)
+
+6. Si vous les voyez TOUS LES DEUX: ✅ SUCCESS!
+
+
+INFORMATION TECHNIQUE
+═══════════════════════════════════════════════════════════════════════════
+
+Changements appliqués:
+
+1. Fichier: MainWindow.xaml
+   ├─ Ajout: <ScrollViewer> autour du DataGrid
+   ├─ Changement: CanUserSortColumns="True" → "False"
+   └─ Résultat: Tableau scrollable + affichage dans l'ordre
+
+2. Fichier: Services/ExcelImportService.cs
+   ├─ Ajout: Support CSV (mais cela ne change pas l'affichage)
+   └─ Résultat: Vous pouvez importer Excel ou CSV
+
+Pas de changements au code de traitement (TraiterEtudiants)
+Les deux étudiants SONT traités, ils n'étaient juste pas VISIBLES.
+
+
+SI VOUS AVEZ TOUJOURS UN PROBLÈME
+═══════════════════════════════════════════════════════════════════════════
+
+1. Vérifiez que votre Excel a au moins 2 lignes de données:
+   ├─ Ligne 1: En-têtes (id_etudiant, nom, prenom, ...)
+   └─ Ligne 2 & 3: Données des 2 étudiants
+
+2. Vérifiez le message "2 étudiant(s) importé(s) avec succès"
+   └─ Si vous voyez "Total: 2", les deux sont IMPORTÉS
+
+3. Essayez EXPORTATION EN EXCEL
+   ├─ Bouton: "Exporter en Excel"
+   └─ Ouvrez le fichier exporté
+   └─ Vérifiez que les deux lignes y sont
+
+4. Consultez la CONSOLE (si vous lancez depuis Visual Studio)
+   ├─ Cherchez "[IMPORT] Ligne 2:"
+   ├─ Cherchez "[IMPORT] Ligne 3:"
+   └─ Vous devriez voir les deux étudiants listés
+
+
+RÉSUMÉ
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Les deux étudiants SONT importés
+✅ Les deux étudiants SONT traités  
+✅ Le problème était juste l'AFFICHAGE (ils n'étaient pas visibles)
+✅ Les FIXES ont été appliqués:
+   ├─ ScrollViewer pour le défilement
+   └─ Tri désactivé pour affichage dans l'ordre
+
+ACTION: DÉFILEZ VERS LE BAS dans le tableau pour voir le deuxième étudiant!
+
+
+═════════════════════════════════════════════════════════════════════════════
+
+Essayez maintenant et dites-moi si vous voyez les deux étudiants! 🎉
+
+═════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,290 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                          STRUCTURE DU CODE IMPLÉMENTÉ                         ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+PROJET STRUCTURE:
+─────────────────
+
+DesktopApp/
+├── Models/
+│   └── Etudiant.cs ✏️ MODIFIÉ
+│       ├── Properties: EctsValides, EctsTotal, EstAncienEtudiant, MoyenneUE
+│       ├── Methods:
+│       │   ├── CalculerDecisionEtMention() 
+│       │   ├── VerifierRachat()
+│       │   └── ObtenirMention()
+│       └── Total: ~130 lignes
+│
+├── Services/
+│   ├── WordGenerationService.cs ✨ CRÉÉ
+│   │   ├── GenererPV() - Document Word professionnel
+│   │   ├── AjouterEntetePV() - En-tête formatée
+│   │   ├── AjouterTableauEtudiants() - Tableau avec données
+│   │   ├── CellulePV() - Formatage cellule
+│   │   ├── AjouterResume() - Statistiques
+│   │   ├── AjouterSignatures() - Section signatures
+│   │   └── Total: 249 lignes
+│   │
+│   ├── ArchiveService.cs ✨ CRÉÉ
+│   │   ├── ArchiverPV() - Archive + enregistrement BD
+│   │   ├── EnregistrerDansBaseDeDonnees() - INSERT deliberations
+│   │   ├── ObtenirPVArchives() - Liste des PV
+│   │   ├── OuvrirPVArchive() - Ouvrir document
+│   │   ├── ExporterPV() - Export personnalisé
+│   │   ├── ObtenirCheminArchivage() - Chemin d'archive
+│   │   └── Total: 171 lignes
+│   │
+│   ├── ExcelImportService.cs (existant)
+│   ├── AuthenticationService.cs (existant)
+│   └── AuthService.cs (existant)
+│
+├── MainWindow.xaml ✏️ MODIFIÉ (UI déjà présente)
+│   └── Boutons: "Générer PV", "Ouvrir Archive"
+│
+├── MainWindow.xaml.cs ✏️ MODIFIÉ
+│   ├── Properties:
+│   │   ├── wordService: WordGenerationService
+│   │   ├── archiveService: ArchiveService
+│   │   └── etudiatsActuels: List<Etudiant>
+│   ├── Methods:
+│   │   ├── InitializeApplication() - Initialise services
+│   │   ├── GenererPVWord() - Logique génération
+│   │   └── OuvrirArchivePV() - Ouvre archives
+│   ├── Event Handlers:
+│   │   ├── BtnGenererPVWord_Click()
+│   │   └── BtnOuvrirArchive_Click()
+│   └── Total: ~560 lignes
+│
+├── App.xaml.cs (existant)
+│   └── OnStartup() → LoginWindow
+│
+├── LoginWindow.xaml/xaml.cs (existant)
+├── DatabaseConnection.cs (existant)
+├── DatabaseHelper.cs (existant)
+│
+├── DesktopApp.csproj ✏️ MODIFIÉ
+│   ├── <UseWPF>true</UseWPF>
+│   └── Compile Include: WordGenerationService.cs, ArchiveService.cs
+│
+├── App.config (existant)
+└── packages.config (existant)
+
+
+FLUX DE DONNÉES:
+────────────────
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  IMPORT EXCEL                                                                │
+│                                                                              │
+│  User selects file                                                          │
+│       ↓                                                                      │
+│  ExcelImportService.ImportData()                                            │
+│       ↓                                                                      │
+│  List<Etudiant> etudiatsActuels (stored in MainWindow)                      │
+│       ↓                                                                      │
+│  Display in DataGrid with 9 columns                                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  CALCUL AUTOMATIQUE (pour chaque étudiant)                                   │
+│                                                                              │
+│  For each Etudiant in etudiatsActuels:                                      │
+│      etudiant.CalculerDecisionEtMention()                                   │
+│      {                                                                       │
+│          if (MG >= 10)                                                       │
+│              if (ECTS <= 15)        Decision = "Admis"                      │
+│              else if (ECTS <= 22)   Decision = "Décision Conseil"           │
+│              else                   Decision = "Admis avec modération"      │
+│          else                                                                │
+│              if (ECTS > 22)         Decision = "Redouble/Exclu"             │
+│              else                   Decision = "Conseil d'École"             │
+│              {                                                               │
+│                  if (VerifierRachat())                                       │
+│                      Decision = "Admis avec modération"                     │
+│              }                                                               │
+│          Mention = ObtenirMention()                                          │
+│      }                                                                       │
+│                                                                              │
+│  DataGrid updates with Decision and Mention columns                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  GÉNÉRER PV WORD (BtnGenererPVWord_Click)                                    │
+│                                                                              │
+│  MainWindow.GenererPVWord()                                                 │
+│      ↓                                                                       │
+│  wordService.GenererPV(etudiatsActuels, folder, filename, classeGroupe)    │
+│      ↓                                                                       │
+│  WordGenerationService.cs:                                                  │
+│      1. Create FileStream                                                   │
+│      2. Create WordprocessingDocument                                       │
+│      3. AjouterEntetePV() - Logo, titre, infos                              │
+│      4. AjouterTableauEtudiants() - Tous les étudiants                       │
+│      5. AjouterResume() - Statistiques                                       │
+│      6. AjouterSignatures() - Lignes signatures                              │
+│      7. Save document                                                       │
+│      ↓                                                                       │
+│  Return path to generated file                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  ARCHIVAGE ET DATABASE                                                      │
+│                                                                              │
+│  archiveService.ArchiverPV(filePath, classe, etudiants, session)            │
+│      ↓                                                                       │
+│  1. Copy to Documents\PV_Archives\PV_ClasseGroupe_DateTime.docx              │
+│      ↓                                                                       │
+│  2. EnregistrerDansBaseDeDonnees()                                           │
+│      {                                                                       │
+│          nb_admis = count(Decision contains "Admis")                        │
+│          nb_ajournes = count(Decision contains "Ajourné" or "Redouble")    │
+│          INSERT INTO deliberations                                          │
+│          (date_deliberation, nb_etudiants, nb_admis, nb_ajournes,           │
+│           fichier_pv, utilisateur_id)                                        │
+│      }                                                                       │
+│      ↓                                                                       │
+│  Display success message with file path                                     │
+│      ↓                                                                       │
+│  Option to open file in Word                                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+CLASSE HIÉRARCHIE:
+──────────────────
+
+Etudiant (Model)
+├── Properties: NumeroOrdre, NomPrenom, Matricule, ClasseGroupe, 
+│               AnneeUniversitaire, MoyenneGenerale, EctsValides,
+│               EctsTotal, EstAncienEtudiant, MoyenneUE, Decision, Mention
+└── Methods: CalculerDecisionEtMention(), VerifierRachat(), ObtenirMention()
+
+MainWindow : Window
+├── wordService: WordGenerationService
+├── archiveService: ArchiveService
+├── etudiatsActuels: List<Etudiant>
+├── GenererPVWord()
+└── OuvrirArchivePV()
+
+WordGenerationService
+├── GenererPV()
+├── AjouterEntetePV()
+├── AjouterTableauEtudiants()
+├── CellulePV()
+├── AjouterResume()
+└── AjouterSignatures()
+
+ArchiveService
+├── ArchiverPV()
+├── EnregistrerDansBaseDeDonnees()
+├── ObtenirPVArchives()
+├── OuvrirPVArchive()
+├── ExporterPV()
+└── ObtenirCheminArchivage()
+
+
+DÉPENDANCES NuGet:
+──────────────────
+
+DocumentFormat.OpenXml 3.1.1
+├── WordprocessingDocument
+├── Paragraph, Run, Table, TableCell, TableRow
+├── RunProperties, Bold, FontSize, Color
+└── Justification
+
+MySql.Data 9.7.0
+├── MySqlConnection
+├── MySqlCommand
+└── Database operations
+
+ClosedXML 0.105.0 (existant)
+└── Excel import
+
+System libraries
+├── System.Collections.Generic (List<T>)
+├── System.IO (File, Directory, FileStream)
+├── System.Linq (Where, Count)
+└── System.Diagnostics (Process.Start)
+
+
+CONFIGURATION XML:
+──────────────────
+
+DesktopApp.csproj modifications:
+
+<PropertyGroup>
+    <UseWPF>true</UseWPF>  ← Added
+</PropertyGroup>
+
+<ItemGroup>
+    <Compile Include="Services\WordGenerationService.cs" />  ← Added
+    <Compile Include="Services\ArchiveService.cs" />         ← Added
+    ...
+</ItemGroup>
+
+
+API UTILISÉE:
+─────────────
+
+DocumentFormat.OpenXml.Packaging:
+├── WordprocessingDocument.Create(Stream)
+└── MainDocumentPart.Document
+
+DocumentFormat.OpenXml.Wordprocessing:
+├── Paragraph / Run / Text
+├── Table / TableRow / TableCell
+├── RunProperties (Bold, FontSize, Color)
+├── TableProperties (Borders, Shading)
+└── Justification
+
+MySql.Data.MySqlClient:
+├── MySqlConnection
+├── MySqlCommand
+└── ExecuteNonQuery()
+
+System.Diagnostics:
+└── Process.Start(filePath)
+
+System.IO:
+├── File.Create() / File.Copy()
+├── Directory.CreateDirectory()
+└── FileStream
+
+
+POINTS CLÉS DE SÉCURITÉ:
+────────────────────────
+
+✓ Utilisation MySqlCommand avec paramètres (pas de concaténation)
+✓ Try/Catch pour toutes les opérations I/O
+✓ Vérification répertoires avant création
+✓ Validation données d'entrée (null checks)
+✓ Utilisation FileStream pour gestion ressources
+✓ Fermeture automatique connexions BD
+
+
+POINTS CLÉS DE PERFORMANCE:
+──────────────────────────
+
+✓ Calcul une seule fois par import
+✓ List<T> pour collection efficace
+✓ LINQ Where/Count optimisé
+✓ FileStream pour traitement gros fichiers
+✓ Cursor Wait pendant traitement long
+✓ Pas de requêtes répétées à la BD
+
+
+POINTS CLÉS DE MAINTENABILITÉ:
+──────────────────────────────
+
+✓ Séparation concerns (Services vs UI)
+✓ Méthodes courtes et spécialisées
+✓ Commentaires XML pour documentation
+✓ Noms variables explicites
+✓ Gestion exceptions centralisée
+✓ Configuration externalisée (DatabaseConnection)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Statut: ✅ COMPLET - PRÊT À COMPILER ET DÉPLOYER
+
+═══════════════════════════════════════════════════════════════════════════════

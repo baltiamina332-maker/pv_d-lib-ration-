@@ -1,0 +1,212 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                ║
+║              CE QUE VOUS VERREZ QUAND VOUS IMPORTEZ UN FICHIER                ║
+║                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+
+SCENARIO: Vous créez un Excel avec 3 étudiants et leurs moyennes
+
+═══════════════════════════════════════════════════════════════════════════════
+
+VOTRE FICHIER EXCEL (fichier_test.xlsx):
+
+N°    Nom Prénom        Matricule    Classe    Année      MG      ECTS
+1     Jean Dupont       MAT001       L1 Info   2025/26    13.5    28
+2     Marie Martin      MAT002       L1 Info   2025/26    11.2    25
+3     Pierre Dubois     MAT003       L1 Info   2025/26    9.8     20
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ÉTAPES DANS L'APPLICATION:
+
+Étape 1 - Lancer l'Application
+────────────────────────────────
+[Vous voir l'écran d'accueil de l'application]
+[Allez dans l'onglet "📥 Import Excel"]
+
+
+Étape 2 - Cliquer "Parcourir"
+────────────────────────────
+Écran avant:
+┌──────────────────────────────────────────────────────────────┐
+│ 📥 Import de fichier Excel                                   │
+│                                                              │
+│ 📁 Sélectionner le fichier Excel source                    │
+│ ┌──────────────────────────────────────────────┐           │
+│ │                          │  [Parcourir...]   │           │
+│ └──────────────────────────────────────────────┘           │
+│                                                              │
+│ [✅ Charger et valider...]   [💾 Exporter...]             │
+│                                                              │
+│ [Tableau vide - "Aucune donnée"]                           │
+└──────────────────────────────────────────────────────────────┘
+
+[Vous sélectionnez votre fichier Excel]
+
+
+Étape 3 - Fichier Sélectionné
+──────────────────────────────
+Écran après:
+┌──────────────────────────────────────────────────────────────┐
+│ 📥 Import de fichier Excel                                   │
+│                                                              │
+│ 📁 Sélectionner le fichier Excel source                    │
+│ ┌──────────────────────────────────────────────┐           │
+│ │ C:\Users\Vous\fichier_test.xlsx │  [Parcourir...]
+│ └──────────────────────────────────────────────┘           │
+│                                                              │
+│ [✅ Charger et valider...]  [💾 Exporter...]              │
+│                                                              │
+│ [Tableau vide - "Aucune donnée"]                           │
+└──────────────────────────────────────────────────────────────┘
+
+[Vous cliquez "Charger et valider"]
+
+
+Étape 4 - Chargement en Cours
+──────────────────────────────
+Message en bas: "⏳ Chargement et validation en cours..."
+
+[Attendre 2-3 secondes]
+
+
+Étape 5 - RÉSULTATS AFFICHÉS! 
+──────────────────────────────
+
+Écran après import réussi:
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 📥 Import de fichier Excel                                                   │
+│                                                                              │
+│ 📁 Sélectionner le fichier Excel source                                    │
+│ ┌────────────────────────────────────────────────────┐                    │
+│ │ C:\Users\Vous\fichier_test.xlsx │ [Parcourir...] │                    │
+│ └────────────────────────────────────────────────────┘                    │
+│                                                                              │
+│ [✅ Charger et valider...]  [💾 Exporter...]  (MAINTENANT ACTIVÉ!)        │
+│                                                                              │
+│ ┌──────────────────────────────────────────────────────────────────────────┐
+│ │ N° │ Nom et Prénom  │ Matricule │ Classe │ Année  │ MG   │ ECTS │ Décision
+│ ├──────────────────────────────────────────────────────────────────────────┤
+│ │ 1  │ Jean Dupont    │ MAT001    │ L1     │ 2025/26│ 13.50│ 28   │ Admis
+│ │    │                │           │        │        │      │      │ (🟢 VERT)
+│ ├──────────────────────────────────────────────────────────────────────────┤
+│ │ 2  │ Marie Martin   │ MAT002    │ L1     │ 2025/26│ 11.20│ 25   │ Rattrapage
+│ │    │                │           │        │        │      │      │ (🟡 JAUNE)
+│ ├──────────────────────────────────────────────────────────────────────────┤
+│ │ 3  │ Pierre Dubois  │ MAT003    │ L1     │ 2025/26│  9.80│ 20   │ Refusé
+│ │    │                │           │        │        │      │      │ (🔴 ROUGE)
+│ └──────────────────────────────────────────────────────────────────────────┘
+│                                                                              │
+│ ┌──────────────────────────────────────────────────────────────────────────┐
+│ │ ✅ Import réussi!                                                        │
+│ │ 🟢 Admis: 1 (33.3%)                                                      │
+│ │ 🟡 Rattrapage: 1 (33.3%)                                                 │
+│ │ 🔴 Refusé: 1 (33.3%)                                                     │
+│ │ Total: 3 étudiants                                                        │
+│ └──────────────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CE QUE VOUS VOYEZ:
+
+✅ TABLEAU REMPLI avec les 3 étudiants
+
+✅ COLONNE "MG" affiche vos moyennes:
+   - 13.50 pour Jean
+   - 11.20 pour Marie
+   - 9.80 pour Pierre
+
+✅ COLONNE "Décision" affiche les calculs (AUTOMATIQUES):
+   - Jean (13.50) → Admis (car 13.50 ≥ 12.0)
+   - Marie (11.20) → Rattrapage (car 10.0 ≤ 11.20 < 12.0)
+   - Pierre (9.80) → Refusé (car 9.80 < 10.0)
+
+✅ COULEURS:
+   - Admis = VERT 🟢
+   - Rattrapage = JAUNE 🟡
+   - Refusé = ROUGE 🔴
+
+✅ MESSAGE EN BAS:
+   "✅ Import réussi!"
+   Avec statistiques:
+   - 1 Admis (33%)
+   - 1 Rattrapage (33%)
+   - 1 Refusé (33%)
+
+✅ BOUTON "Exporter" est maintenant ACTIVÉ (vous pouvez l'utiliser)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CE QUE L'APPLICATION A FAIT AUTOMATIQUEMENT:
+
+1. ✅ LU votre fichier Excel
+2. ✅ EXTRAIT la colonne MG (vos moyennes)
+3. ✅ RÉCUPÉRÉ vos 3 étudiants
+4. ✅ CALCULÉ la décision pour chacun:
+   - Comparé MG avec 12.0 et 10.0
+   - Déterminé: Admis / Rattrapage / Refusé
+5. ✅ AFFICHAGE le tout dans le tableau
+6. ✅ COLORIÉ les rangées (Vert/Jaune/Rouge)
+7. ✅ CALCULÉ les statistiques
+8. ✅ ACTIVÉ le bouton Export
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PROCHAINES OPTIONS:
+
+Option 1: Exporter les Résultats
+──────────────────────────────────
+Cliquer "💾 Exporter en Excel"
+↓
+Choisir un dossier
+↓
+L'application crée un fichier Excel avec:
+   - Tous les étudiants
+   - La colonne MG (vos moyennes)
+   - La colonne Décision (Admis/Rattrapage/Refusé)
+   - COULEURS (Vert/Jaune/Rouge)
+
+
+Option 2: Générer un Document Word
+───────────────────────────────────
+Aller dans l'onglet "📄 Génération PV"
+↓
+Cliquer "📄 Générer PV (Document Word)"
+↓
+L'application crée un document Word formaté avec:
+   - En-tête avec logo
+   - Liste des étudiants et décisions
+   - Statistiques
+   - Signature
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+RÉSUMÉ VISUEL:
+
+Vous:                          Application:              Vous voyez:
+─────────────────────────────────────────────────────────────────────
+Excel avec MG     →   Lit       →   Tableau avec:
+                      Calcule       - MG affichée
+                      Affiche       - Décisions calculées
+                      Colorie       - Couleurs (V/J/R)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+VOILÀ! C'est exactement ce que vous allez voir! 
+
+LA MOYENNE EST:
+✅ LUES du fichier Excel (colonne F)
+✅ AFFICHÉE dans le tableau (colonne "MG")
+✅ UTILISÉE pour calculer la décision automatiquement
+✅ EXPORTABLE en Excel avec les résultats
+
+═══════════════════════════════════════════════════════════════════════════════

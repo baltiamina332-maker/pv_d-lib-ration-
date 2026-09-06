@@ -1,0 +1,7 @@
+id_etudiant	nom	prenom	matricule	classe_groupe	id_session	type_session	annee_universitaire	moyenne_generale	ects	statut	moyenne_ue
+1	Balti	Amina	20231045	3A40	1	Principale	2025-2026	12.43	10	Ancien	8.5
+2	Trabelsi	Yasmine	20231046	3A40	1	Principale	2025-2026	11.9	18	Nouveau	7.5
+3	Test	Ancien	20231047	3A40	1	Principale	2025-2026	9.8	15	Ancien	7.0
+4	Test	Nouveau	20231048	3A40	1	Principale	2025-2026	9.6	12	Nouveau	6.5
+5	Test	Exclusion	20231049	3A40	1	Principale	2025-2026	9.0	25	Nouveau	5.0
+6	Test	Admis	20231050	3A40	1	Principale	2025-2026	14.5	30	Ancien	8.0

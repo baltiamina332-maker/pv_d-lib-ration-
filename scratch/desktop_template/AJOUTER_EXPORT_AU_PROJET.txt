@@ -1,0 +1,83 @@
+════════════════════════════════════════════════════════════════════════════════
+  ✅ AJOUTER EXPORT EXCEL AU PROJET
+════════════════════════════════════════════════════════════════════════════════
+
+NOUVELLE FONCTIONNALITÉ:
+  Exporter les données des étudiants en fichier Excel après import
+
+FICHIERS CRÉÉS:
+  ✅ Services/ExcelExportService.cs
+  ✅ Bouton dans MainWindow.xaml
+  ✅ Handler dans MainWindow.xaml.cs
+
+RESTE À FAIRE:
+  ⏳ Ajouter la référence au .csproj
+
+════════════════════════════════════════════════════════════════════════════════
+  ÉTAPE 1: OUVRIR DesktopApp.csproj
+════════════════════════════════════════════════════════════════════════════════
+
+1. Visual Studio
+2. Solution Explorer
+3. Clique droit sur DesktopApp.csproj
+4. Clique sur "Edit Project File"
+   OU
+   Double-cliquer sur DesktopApp.csproj
+
+════════════════════════════════════════════════════════════════════════════════
+  ÉTAPE 2: CHERCHER LA SECTION <ItemGroup> AVEC LES COMPILE INCLUDES
+════════════════════════════════════════════════════════════════════════════════
+
+Cherche cette section (utilise Ctrl+F):
+
+<ItemGroup>
+    <Compile Include="Services\ExcelImportService.cs" />
+    <Compile Include="Services\AuthenticationService.cs" />
+    <Compile Include="Services\AuthService.cs" />
+    <Compile Include="Services\WordGenerationService.cs" />
+    <Compile Include="Services\ArchiveService.cs" />
+    <Compile Include="Services\HistoriqueService.cs" />
+    ...
+</ItemGroup>
+
+════════════════════════════════════════════════════════════════════════════════
+  ÉTAPE 3: AJOUTER LA NOUVELLE LIGNE
+════════════════════════════════════════════════════════════════════════════════
+
+AJOUTER CETTE LIGNE (à côté des autres Services):
+
+<Compile Include="Services\ExcelExportService.cs" />
+
+AVANT (si besoin):
+    <Compile Include="Services\HistoriqueService.cs" />
+
+APRÈS:
+    <Compile Include="Services\HistoriqueService.cs" />
+    <Compile Include="Services\ExcelExportService.cs" />
+
+════════════════════════════════════════════════════════════════════════════════
+  ÉTAPE 4: SAUVEGARDER ET FERMER
+════════════════════════════════════════════════════════════════════════════════
+
+1. Ctrl+S pour sauvegarder
+2. Fermer le fichier .csproj
+3. Visual Studio reload le projet automatiquement
+
+════════════════════════════════════════════════════════════════════════════════
+  ÉTAPE 5: RECOMPILER
+════════════════════════════════════════════════════════════════════════════════
+
+Build → Rebuild Solution
+(Attendre 0 erreurs)
+
+════════════════════════════════════════════════════════════════════════════════
+  ÉTAPE 6: TEST
+════════════════════════════════════════════════════════════════════════════════
+
+1. F5 pour lancer
+2. Import Excel → Charger un fichier
+3. Vérifier que le bouton "Exporter en Excel" s'active (devient bordeaux)
+4. Cliquer "Exporter en Excel"
+5. ✓ Un fichier Excel est créé dans Mes Documents/Exports_Étudiants/
+
+════════════════════════════════════════════════════════════════════════════════

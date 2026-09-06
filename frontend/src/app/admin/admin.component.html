@@ -1,0 +1,516 @@
+<div id="admin-app" class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="brand-text">
+                <span class="brand-title">PV-Delib</span>
+                <span class="brand-subtitle">Panneau Administration</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item" [class.active]="activeTab === 'users'" (click)="setTab('users')">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>Utilisateurs & Accès</span>
+            </button>
+
+            <button class="nav-item" [class.active]="activeTab === 'affectations'" (click)="setTab('affectations')">
+                <i class="fa-solid fa-link"></i>
+                <span>Affectations (Matière & Classe)</span>
+            </button>
+
+            <button class="nav-item" [class.active]="activeTab === 'classes'" (click)="setTab('classes')">
+                <i class="fa-solid fa-school"></i>
+                <span>Classes & Étudiants</span>
+            </button>
+
+            <button class="nav-item" [routerLink]="['/wizard']" [queryParams]="{view: 'wizard'}">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Générateur & PV</span>
+            </button>
+
+            <button class="nav-item" [routerLink]="['/wizard']" [queryParams]="{view: 'ml-models'}">
+                <i class="fa-solid fa-brain"></i>
+                <span>Modèles IA & ML</span>
+            </button>
+
+            <button class="nav-item" routerLink="/profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Mon Profil</span>
+            </button>
+
+            <button class="nav-item text-danger" (click)="logout()" style="margin-top: auto; color: var(--rose-text);">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Déconnexion</span>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Header Bar -->
+        <header class="top-header">
+            <div class="header-title">
+                <h1>{{ getTabTitle() }}</h1>
+                <p>{{ getTabSubtitle() }}</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" routerLink="/wizard">
+                    <i class="fa-solid fa-graduation-cap"></i> Espace Enseignant
+                </button>
+            </div>
+        </header>
+
+        <!-- View Content Area -->
+        <div class="view-container">
+            <!-- Alert Notifications -->
+            <div *ngIf="successMessage" class="alert alert-success mb-4">
+                <i class="fa-solid fa-circle-check"></i> {{ successMessage }}
+            </div>
+            <div *ngIf="errorMessage" class="alert alert-danger mb-4">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMessage }}
+            </div>
+
+            <!-- TAB 1: GESTION DES UTILISATEURS -->
+            <section *ngIf="activeTab === 'users'" class="tab-view active">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-users"></i> Validation des Comptes Enseignants & Administrateurs</h3>
+                    </div>
+                    <div class="card-body padding-0">
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nom d'utilisateur</th>
+                                        <th>Rôle actuel</th>
+                                        <th>Statut d'Accès</th>
+                                        <th>Actions d'Approbation</th>
+                                        <th>Changer Rôle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let u of users">
+                                        <td>#{{ u.id }}</td>
+                                        <td><strong>{{ u.username }}</strong></td>
+                                        <td>
+                                            <span class="badge" [ngClass]="u.role === 'ROLE_ADMIN' ? 'badge-blue' : 'badge-cyan'">
+                                                {{ u.role === 'ROLE_ADMIN' ? 'Administrateur' : 'Enseignant / Utilisateur' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge" [ngClass]="u.approved ? 'badge-green' : 'badge-amber'">
+                                                {{ u.approved ? 'Accès Autorisé' : 'En Attente' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button *ngIf="!u.approved" class="btn btn-sm btn-success mr-2" (click)="approve(u.id)">
+                                                <i class="fa-solid fa-check"></i> Approuver
+                                            </button>
+                                            <button *ngIf="u.approved && u.username !== 'admin'" class="btn btn-sm btn-danger" (click)="reject(u.id)">
+                                                <i class="fa-solid fa-xmark"></i> Révoquer
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <select *ngIf="u.username !== 'admin'" class="form-select form-select-sm" [ngModel]="u.role" (ngModelChange)="changeRole(u.id, $event)">
+                                                <option value="ROLE_USER">Enseignant (ROLE_USER)</option>
+                                                <option value="ROLE_ADMIN">Administrateur (ROLE_ADMIN)</option>
+                                            </select>
+                                            <span *ngIf="u.username === 'admin'" class="text-muted">Super Admin</span>
+                                        </td>
+                                    </tr>
+                                    <tr *ngIf="users.length === 0">
+                                        <td colspan="6" class="text-center text-muted py-4">Aucun utilisateur trouvé.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: AFFECTATIONS (ENSEIGNANT -> MATIERE -> CLASSE) -->
+            <section *ngIf="activeTab === 'affectations'" class="tab-view active">
+                <div class="grid-layout">
+                    <!-- Formulaire d'affectation -->
+                    <div class="card card-form">
+                        <div class="card-header">
+                            <h3>
+                                <i class="fa-solid" [ngClass]="editingAffectationId ? 'fa-pen-to-square' : 'fa-plus-circle'"></i>
+                                {{ editingAffectationId ? 'Modifier l\'Affectation #' + editingAffectationId : 'Nouvelle Affectation (Début d\'Année)' }}
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Enseignant :</label>
+                                <select class="form-control" [(ngModel)]="newAffectation.enseignantId">
+                                    <option [ngValue]="null">-- Sélectionner un enseignant --</option>
+                                    <option *ngFor="let u of users" [value]="u.id">
+                                        {{ u.username }} ({{ u.role === 'ROLE_ADMIN' ? 'Admin' : 'Enseignant' }})
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="form-label">Matière / Module :</label>
+                                <input type="text" class="form-control" placeholder="ex: Angular, Spring Boot, DevOps..." [(ngModel)]="newAffectation.matiere">
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="form-label">Classe Destinataire :</label>
+                                <select class="form-control" [(ngModel)]="newAffectation.classeId">
+                                    <option [ngValue]="null">-- Sélectionner une classe --</option>
+                                    <option *ngFor="let c of classes" [value]="c.id">
+                                        {{ c.nomClasse }} ({{ c.niveau }})
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="form-label">Année Universitaire :</label>
+                                <input type="text" class="form-control" [(ngModel)]="newAffectation.anneeUniversitaire">
+                            </div>
+
+                            <div *ngIf="!editingAffectationId">
+                                <button class="btn btn-primary w-100" (click)="onCreateAffectation()">
+                                    <i class="fa-solid fa-link"></i> Confirmer l'Affectation
+                                </button>
+                            </div>
+                            <div *ngIf="editingAffectationId">
+                                <button class="btn btn-success w-100 mb-2" (click)="onUpdateAffectation()">
+                                    <i class="fa-solid fa-check"></i> Enregistrer les modifications
+                                </button>
+                                <button class="btn btn-secondary w-100" (click)="cancelEditAffectation()">
+                                    <i class="fa-solid fa-xmark"></i> Annuler
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table des affectations actives avec Tri et Filtres -->
+                    <div class="card card-table">
+                        <div class="card-header space-between" style="align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h3><i class="fa-solid fa-list-check text-blue"></i> Registre des Affectations</h3>
+                                <span class="text-muted" style="font-size: 0.85rem;">Triez par matière ou classe en un clic sur les en-têtes ou via les filtres</span>
+                            </div>
+
+                            <!-- Filtres et recherche rapide -->
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <div class="input-group input-group-sm" style="max-width: 180px;">
+                                    <input type="text" class="form-control form-control-sm" placeholder="🔍 Filtrer matière..." [(ngModel)]="affectationSearchMatiere">
+                                </div>
+
+                                <select class="form-control form-control-sm" style="max-width: 160px;" [(ngModel)]="affectationFilterClasse">
+                                    <option value="ALL">Toutes les classes</option>
+                                    <option *ngFor="let c of classes" [value]="c.id">{{ c.nomClasse }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="card-body padding-0">
+                            <!-- Barre de tri rapide -->
+                            <div class="p-2 px-3 space-between bg-light" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; align-items: center;">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="text-muted"><strong>Trier par :</strong></span>
+                                    <button class="btn btn-sm" [ngClass]="affectationSortColumn === 'matiere' ? 'btn-primary' : 'btn-outline'" (click)="toggleAffectationSort('matiere')">
+                                        <i class="fa-solid fa-book"></i> Matière 
+                                        <i class="fa-solid" [ngClass]="affectationSortColumn === 'matiere' ? (affectationSortDirection === 'asc' ? 'fa-arrow-up-a-z' : 'fa-arrow-down-z-a') : ''"></i>
+                                    </button>
+                                    <button class="btn btn-sm" [ngClass]="affectationSortColumn === 'classe' ? 'btn-primary' : 'btn-outline'" (click)="toggleAffectationSort('classe')">
+                                        <i class="fa-solid fa-graduation-cap"></i> Classe 
+                                        <i class="fa-solid" [ngClass]="affectationSortColumn === 'classe' ? (affectationSortDirection === 'asc' ? 'fa-arrow-up-a-z' : 'fa-arrow-down-z-a') : ''"></i>
+                                    </button>
+                                    <button class="btn btn-sm" [ngClass]="affectationSortColumn === 'enseignant' ? 'btn-primary' : 'btn-outline'" (click)="toggleAffectationSort('enseignant')">
+                                        <i class="fa-solid fa-chalkboard-user"></i> Enseignant
+                                    </button>
+                                </div>
+                                <span class="badge badge-blue">{{ filteredAndSortedAffectations.length }} Affectation(s)</span>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="cursor: pointer; user-select: none;" (click)="toggleAffectationSort('enseignant')">
+                                                Enseignant <i class="fa-solid fa-sort text-muted" *ngIf="affectationSortColumn !== 'enseignant'"></i><i class="fa-solid" [ngClass]="affectationSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'" *ngIf="affectationSortColumn === 'enseignant'"></i>
+                                            </th>
+                                            <th style="cursor: pointer; user-select: none;" (click)="toggleAffectationSort('matiere')">
+                                                Matière <i class="fa-solid fa-sort text-muted" *ngIf="affectationSortColumn !== 'matiere'"></i><i class="fa-solid" [ngClass]="affectationSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'" *ngIf="affectationSortColumn === 'matiere'"></i>
+                                            </th>
+                                            <th style="cursor: pointer; user-select: none;" (click)="toggleAffectationSort('classe')">
+                                                Classe <i class="fa-solid fa-sort text-muted" *ngIf="affectationSortColumn !== 'classe'"></i><i class="fa-solid" [ngClass]="affectationSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'" *ngIf="affectationSortColumn === 'classe'"></i>
+                                            </th>
+                                            <th style="cursor: pointer; user-select: none;" (click)="toggleAffectationSort('annee')">
+                                                Année Univ. <i class="fa-solid fa-sort text-muted" *ngIf="affectationSortColumn !== 'annee'"></i><i class="fa-solid" [ngClass]="affectationSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'" *ngIf="affectationSortColumn === 'annee'"></i>
+                                            </th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let aff of filteredAndSortedAffectations">
+                                            <td><strong><i class="fa-solid fa-chalkboard-user"></i> {{ aff.enseignant?.username }}</strong></td>
+                                            <td><span class="badge badge-blue" style="font-weight: 600;">{{ aff.matiere }}</span></td>
+                                            <td><span class="badge badge-green" style="font-weight: 600;">{{ aff.classe?.nomClasse }}</span></td>
+                                            <td>{{ aff.anneeUniversitaire }}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary mr-1" (click)="startEditAffectation(aff)" title="Modifier cette affectation">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" (click)="onDeleteAffectation(aff.id)" title="Supprimer cette affectation">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr *ngIf="filteredAndSortedAffectations.length === 0">
+                                            <td colspan="5" class="text-center text-muted py-4">Aucune affectation correspondant aux critères.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: CLASSES ET ETUDIANTS -->
+            <section *ngIf="activeTab === 'classes'" class="tab-view active">
+                <div class="grid-layout mb-4">
+                    <!-- Formulaire de création / modification de classe -->
+                    <div class="card card-form">
+                        <div class="card-header">
+                            <h3>
+                                <i class="fa-solid" [ngClass]="editingClasseId ? 'fa-pen-to-square' : 'fa-folder-plus'"></i>
+                                {{ editingClasseId ? 'Modifier la Classe #' + editingClasseId : 'Créer une Classe' }}
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Nom de la classe (ex: 4 SAE) :</label>
+                                <input type="text" class="form-control" placeholder="ex: 4 SAE, 3 LSI..." [(ngModel)]="newClasse.nomClasse">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Niveau :</label>
+                                <input type="text" class="form-control" placeholder="ex: 4ème Année" [(ngModel)]="newClasse.niveau">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Année Universitaire :</label>
+                                <input type="text" class="form-control" [(ngModel)]="newClasse.anneeUniversitaire">
+                            </div>
+                            <div *ngIf="!editingClasseId">
+                                <button class="btn btn-success w-100" (click)="onCreateClasse()">
+                                    <i class="fa-solid fa-plus"></i> Ajouter la Classe
+                                </button>
+                            </div>
+                            <div *ngIf="editingClasseId">
+                                <button class="btn btn-success w-100 mb-2" (click)="onUpdateClasse()">
+                                    <i class="fa-solid fa-check"></i> Enregistrer les Modifications
+                                </button>
+                                <button class="btn btn-secondary w-100" (click)="cancelEditClasse()">
+                                    <i class="fa-solid fa-xmark"></i> Annuler
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire d'inscription / modification d'un étudiant -->
+                    <div class="card card-form">
+                        <div class="card-header">
+                            <h3>
+                                <i class="fa-solid" [ngClass]="editingEtudiantId ? 'fa-user-pen' : 'fa-user-plus'"></i>
+                                {{ editingEtudiantId ? 'Modifier l\'Étudiant #' + editingEtudiantId : 'Inscrire un Étudiant dans une Classe' }}
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3" *ngIf="editingEtudiantId">
+                                <label class="form-label">ID Étudiant / Matricule :</label>
+                                <input type="number" class="form-control" [value]="editingEtudiantId" disabled readonly>
+                            </div>
+                            <div class="form-group mb-3" *ngIf="!editingEtudiantId">
+                                <div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center gap-2" style="font-size: 0.88rem; border-radius: 8px;">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-primary"></i>
+                                    <span>L'<strong>ID / Matricule</strong> sera généré automatiquement.</span>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Nom de l'étudiant :</label>
+                                <input type="text" class="form-control" placeholder="ex: Ben Ali" [(ngModel)]="newEtudiantForm.nom">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Prénom de l'étudiant :</label>
+                                <input type="text" class="form-control" placeholder="ex: Mohamed" [(ngModel)]="newEtudiantForm.prenom">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Classe à rattacher :</label>
+                                <select class="form-control" [(ngModel)]="newEtudiantForm.classeId">
+                                    <option [ngValue]="null">-- Sélectionner une classe --</option>
+                                    <option *ngFor="let c of classes" [value]="c.id">{{ c.nomClasse }} ({{ c.niveau }})</option>
+                                </select>
+                            </div>
+                            <div *ngIf="!editingEtudiantId">
+                                <button class="btn btn-primary w-100" (click)="onCreateEtudiant()">
+                                    <i class="fa-solid fa-user-check"></i> Enregistrer l'Étudiant
+                                </button>
+                            </div>
+                            <div *ngIf="editingEtudiantId">
+                                <button class="btn btn-success w-100 mb-2" (click)="onUpdateEtudiant()">
+                                    <i class="fa-solid fa-check"></i> Enregistrer les Modifications
+                                </button>
+                                <button class="btn btn-secondary w-100" (click)="cancelEditEtudiant()">
+                                    <i class="fa-solid fa-xmark"></i> Annuler
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-layout">
+                    <!-- Liste des classes -->
+                    <div class="card card-table">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-school"></i> Classes Enregistrées</h3>
+                        </div>
+                        <div class="card-body padding-0">
+                            <div class="table-responsive">
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nom de la Classe</th>
+                                            <th>Niveau</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let c of classes">
+                                            <td>#{{ c.id }}</td>
+                                            <td><strong>{{ c.nomClasse }}</strong></td>
+                                            <td>{{ c.niveau }}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary mr-1" (click)="startEditClasse(c)" title="Modifier cette classe">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" (click)="onDeleteClasse(c.id)" title="Supprimer cette classe">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr *ngIf="classes.length === 0">
+                                            <td colspan="4" class="text-center text-muted py-4">Aucune classe créée.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Liste des Étudiants Séparée par Classe -->
+                    <div class="card card-table">
+                        <div class="card-header space-between" style="align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h3><i class="fa-solid fa-users-viewfinder text-blue"></i> Étudiants de Chaque Classe</h3>
+                                <span class="text-muted" style="font-size: 0.85rem;">Chaque classe est séparée avec ses propres étudiants</span>
+                            </div>
+
+                            <!-- Filtres par classe -->
+                            <div class="d-flex gap-1 align-items-center flex-wrap">
+                                <button class="btn btn-sm" [ngClass]="selectedClassFilter === 'ALL' ? 'btn-primary' : 'btn-outline'" (click)="setSelectedClassFilter('ALL')">
+                                    Tous ({{ etudiants.length }})
+                                </button>
+                                <button *ngFor="let c of classes" class="btn btn-sm" [ngClass]="selectedClassFilter === c.id ? 'btn-primary' : 'btn-outline'" (click)="setSelectedClassFilter(c.id)">
+                                    {{ c.nomClasse }} ({{ getStudentsForClass(c.id).length }})
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-3">
+                            <!-- Affichage séparé pour chaque classe -->
+                            <div *ngFor="let c of displayedClasses" class="mb-4" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #ffffff;">
+                                <div class="space-between p-2 px-3" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; align-items: center;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge badge-green" style="font-weight: bold; font-size: 0.9rem;"><i class="fa-solid fa-graduation-cap"></i> {{ c.nomClasse }}</span>
+                                        <small class="text-muted">{{ c.niveau }} - {{ c.anneeUniversitaire }}</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge badge-blue"><i class="fa-solid fa-users"></i> {{ getStudentsForClass(c.id).length }} Étudiant(s)</span>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 110px;">ID Étudiant</th>
+                                                <th>Nom & Prénom</th>
+                                                <th style="width: 110px;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let etu of getStudentsForClass(c.id)">
+                                                <td><strong>#{{ etu.idEtudiant }}</strong></td>
+                                                <td><strong>{{ etu.nom }} {{ etu.prenom }}</strong></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary mr-1" (click)="startEditEtudiant(etu)" title="Modifier cet étudiant">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" (click)="onDeleteEtudiant(etu.idEtudiant)" title="Supprimer cet étudiant">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr *ngIf="getStudentsForClass(c.id).length === 0">
+                                                <td colspan="3" class="text-center text-muted py-3">Aucun étudiant dans cette classe.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Étudiants non rattachés si existants -->
+                            <div *ngIf="(selectedClassFilter === 'ALL' || selectedClassFilter === 'UNASSIGNED') && getUnassignedStudents().length > 0" class="mb-3" style="border: 1px solid #fee2e2; border-radius: 8px; overflow: hidden;">
+                                <div class="space-between p-2 px-3" style="background: #fef2f2; border-bottom: 1px solid #fee2e2; align-items: center;">
+                                    <span class="badge badge-red"><i class="fa-solid fa-triangle-exclamation"></i> Sans Classe (Non Rattachés)</span>
+                                    <span class="badge badge-red">{{ getUnassignedStudents().length }}</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID Étudiant</th>
+                                                <th>Nom & Prénom</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let etu of getUnassignedStudents()">
+                                                <td><strong>#{{ etu.idEtudiant }}</strong></td>
+                                                <td>{{ etu.nom }} {{ etu.prenom }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary mr-1" (click)="startEditEtudiant(etu)" title="Modifier cet étudiant">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" (click)="onDeleteEtudiant(etu.idEtudiant)" title="Supprimer cet étudiant">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div *ngIf="classes.length === 0" class="text-center text-muted py-4">
+                                Aucune classe créée.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
