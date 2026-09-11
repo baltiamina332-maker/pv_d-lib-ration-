@@ -1,32 +1,15 @@
+using System;
+
 namespace DesktopApp.Models
 {
     /// <summary>
-    /// Modèle représentant un utilisateur de l'application
+    /// Énumération des statuts d'approbation d'un compte utilisateur
     /// </summary>
-    public class User
+    public enum StatutCompte
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public string Email { get; set; }
-        public UserRole Role { get; set; }
-        public string FullName { get; set; }
-        public bool IsActive { get; set; }
-
-        public User()
-        {
-            Username = string.Empty;
-            Password = string.Empty;
-            Email = string.Empty;
-            FullName = string.Empty;
-            IsActive = true;
-        }
-
-        public override string ToString()
-        {
-            return $"{FullName} ({Role})";
-        }
+        EnAttente,
+        Approuve,
+        Revoque
     }
 
     /// <summary>
@@ -35,7 +18,53 @@ namespace DesktopApp.Models
     public enum UserRole
     {
         Admin,
+        Enseignant,
         Utilisateur,
-        User  // Alias pour compatibilité
+        User // Alias de compatibilité
+    }
+
+    /// <summary>
+    /// Modèle C# représentant un utilisateur de l'application (table SQL users / utilisateur)
+    /// </summary>
+    public class User
+    {
+        public int Id { get; set; }
+        public int UserId { get => Id; set => Id = value; }
+
+        public string Username { get; set; }
+        public string NomUtilisateur { get => Username; set => Username = value; }
+
+        public string Password { get; set; }
+        public string Email { get; set; }
+        public string FullName { get; set; }
+        public string NomPrenom { get => FullName; set => FullName = value; }
+
+        public UserRole Role { get; set; }
+        public StatutCompte Statut { get; set; }
+
+        // Rétrocompatibilité booléenne (Approuvé = true)
+        public bool IsActive
+        {
+            get => Statut == StatutCompte.Approuve;
+            set => Statut = value ? StatutCompte.Approuve : StatutCompte.Revoque;
+        }
+
+        public DateTime DateCreation { get; set; }
+
+        public User()
+        {
+            Username = string.Empty;
+            Password = string.Empty;
+            Email = string.Empty;
+            FullName = string.Empty;
+            Role = UserRole.Enseignant;
+            Statut = StatutCompte.EnAttente;
+            DateCreation = DateTime.Now;
+        }
+
+        public override string ToString()
+        {
+            return $"{FullName} ({Username}) - Role: {Role} - Statut: {Statut}";
+        }
     }
 }

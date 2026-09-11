@@ -205,10 +205,16 @@ namespace DesktopApp
         }
 
         /// <summary>
+        /// Dernier message d'erreur d'exécution SQL
+        /// </summary>
+        public string LastError { get; private set; }
+
+        /// <summary>
         /// Insérer des données avec paramètres (protection contre injection SQL)
         /// </summary>
         public bool InsertRecord(string tableName, Dictionary<string, object> columnValues)
         {
+            LastError = null;
             try
             {
                 if (dbConnection.OpenConnection())
@@ -239,9 +245,14 @@ namespace DesktopApp
                     Console.WriteLine($"✓ {rowsAffected} enregistrement(s) inséré(s) dans '{tableName}'");
                     return rowsAffected > 0;
                 }
+                else
+                {
+                    LastError = "Impossible d'ouvrir la connexion à la base de données MySQL.";
+                }
             }
             catch (Exception ex)
             {
+                LastError = ex.Message;
                 Console.WriteLine($"Erreur lors de l'insertion: {ex.Message}");
             }
 

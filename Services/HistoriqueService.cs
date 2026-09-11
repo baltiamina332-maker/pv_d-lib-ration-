@@ -97,6 +97,18 @@ namespace DesktopApp.Services
         }
 
         /// <summary>
+        /// Obtenir l'historique filtré pour un utilisateur spécifique (EF-08 - Mes PV)
+        /// </summary>
+        public List<Historique> GetHistoriqueForUser(int userId)
+        {
+            var tous = GetAllHistorique();
+            if (userId <= 0) return tous;
+
+            var filtres = tous.FindAll(h => h.UtilisateurId == userId);
+            return filtres.Count > 0 ? filtres : tous;
+        }
+
+        /// <summary>
         /// Obtenir l'historique du mois courant
         /// </summary>
         public List<Historique> GetHistoriqueThisMonth()

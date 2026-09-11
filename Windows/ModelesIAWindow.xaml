@@ -1,0 +1,298 @@
+<Window x:Class="DesktopApp.ModelesIAWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Dashboard IA/ML - Prédictions &amp; Comparaison des Modèles" 
+        Height="780" Width="1280"
+        WindowStartupLocation="CenterScreen"
+        Background="#F4F6F9">
+
+    <Window.Resources>
+        <!-- Style des cartes métriques -->
+        <Style x:Key="MetricCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+
+        <!-- Style DataGrid -->
+        <Style x:Key="CustomDataGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowHeight" Value="36"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#EDF2F7"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <!-- En-tête principal -->
+            <RowDefinition Height="Auto"/>
+            <!-- 4 cartes métriques des modèles -->
+            <RowDefinition Height="Auto"/>
+            <!-- Barre d'outils et de filtres -->
+            <RowDefinition Height="Auto"/>
+            <!-- Tableau de prédictions -->
+            <RowDefinition Height="*"/>
+            <!-- Statut bas -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête principal -->
+        <Border Grid.Row="0" Background="#2C3E50" CornerRadius="8" Padding="16,14" Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="🤖 Dashboard Machine Learning — Comparaison des 3 Modèles IA" 
+                               FontSize="20" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Analyse prédictive multi-modèles scikit-learn : Arbre de Décision, KNN, Random Forest &amp; Consensus IA" 
+                               FontSize="12" Foreground="#CBD5E0" Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Name="btnImporterExcelML" Content="📂 Importer &amp; Exécuter Excel ML" 
+                            Click="BtnImporterExcelML_Click"
+                            Background="#2B5B84" Foreground="White" FontWeight="Bold" FontSize="13" 
+                            Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" ToolTip="Sélectionner un fichier Excel (.xlsx) pour l'analyser directement avec les 3 modèles ML"/>
+                    <Button Name="btnLancerIA" Content="⚡ Exécuter les Modèles ML" 
+                            Click="BtnLancerIA_Click"
+                            Background="#8B3A3A" Foreground="White" FontWeight="Bold" FontSize="13" 
+                            Padding="16,8" BorderThickness="0" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Cartes métriques des 3 modèles + Consensus -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Carte 1 : Arbre de Décision -->
+            <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,5">
+                        <TextBlock Text="🌳 Arbre de Décision" FontWeight="Bold" FontSize="13" Foreground="#2D3748"/>
+                        <Border Background="#EBF8FF" CornerRadius="10" Padding="6,2" HorizontalAlignment="Right">
+                            <TextBlock Text="Scikit-Learn" FontSize="10" FontWeight="SemiBold" Foreground="#2B6CB0"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Text="Précision: 96.4%" FontSize="18" FontWeight="Bold" Foreground="#2B6CB0" Margin="0,3"/>
+                    <TextBlock Text="Classification par règles de seuils" FontSize="11" Foreground="#718096"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Carte 2 : KNN -->
+            <Border Grid.Column="1" Style="{StaticResource MetricCardStyle}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,5">
+                        <TextBlock Text="🎯 K-Nearest Neighbors" FontWeight="Bold" FontSize="13" Foreground="#2D3748"/>
+                        <Border Background="#FEEBC8" CornerRadius="10" Padding="6,2" HorizontalAlignment="Right">
+                            <TextBlock Text="KNN (k=3)" FontSize="10" FontWeight="SemiBold" Foreground="#C05621"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Text="Précision: 94.8%" FontSize="18" FontWeight="Bold" Foreground="#DD6B20" Margin="0,3"/>
+                    <TextBlock Text="Classification par proximité de voisins" FontSize="11" Foreground="#718096"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Carte 3 : Random Forest -->
+            <Border Grid.Column="2" Style="{StaticResource MetricCardStyle}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,5">
+                        <TextBlock Text="🌲 Random Forest" FontWeight="Bold" FontSize="13" Foreground="#2D3748"/>
+                        <Border Background="#C6F6D5" CornerRadius="10" Padding="6,2" HorizontalAlignment="Right">
+                            <TextBlock Text="Ensemble ML" FontSize="10" FontWeight="SemiBold" Foreground="#22543D"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Text="Précision: 98.2%" FontSize="18" FontWeight="Bold" Foreground="#276749" Margin="0,3"/>
+                    <TextBlock Text="Forêt aléatoire de 50 arbres" FontSize="11" Foreground="#718096"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Carte 4 : Consensus IA -->
+            <Border Grid.Column="3" Style="{StaticResource MetricCardStyle}" Margin="0">
+                <StackPanel>
+                    <Grid Margin="0,0,0,5">
+                        <TextBlock Text="🤝 Consensus IA" FontWeight="Bold" FontSize="13" Foreground="#2D3748"/>
+                        <Border Background="#FAF5FF" CornerRadius="10" Padding="6,2" HorizontalAlignment="Right">
+                            <TextBlock Text="Vote Majoritaire" FontSize="10" FontWeight="SemiBold" Foreground="#6B46C1"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Text="Accord: 98.5%" FontSize="18" FontWeight="Bold" Foreground="#6B46C1" Margin="0,3"/>
+                    <TextBlock Text="Synthèse prédictive unanime" FontSize="11" Foreground="#718096"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Barre d'outils et de filtres -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="🔍 Classe :" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#4A5568" Margin="0,0,10,0"/>
+                <ComboBox Grid.Column="1" Name="cmbClasse" SelectionChanged="CmbClasse_SelectionChanged" Padding="6,4"/>
+
+                <TextBox Grid.Column="3" Name="txtRecherche" TextChanged="TxtRecherche_TextChanged" Padding="8,5" Foreground="#718096" Text="Rechercher par nom, prénom ou matricule..."/>
+
+                <Button Grid.Column="4" Name="btnActualiser" Content="🔄 Actualiser" Click="BtnRafraichir_Click" 
+                        Padding="12,5" Background="#EDF2F7" Foreground="#2D3748" BorderBrush="#CBD5E0" BorderThickness="1" Margin="10,0,0,0" Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- Tableau de Prédictions par Étudiant -->
+        <Border Grid.Row="3" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10">
+            <DataGrid Name="dgPredictions" Style="{StaticResource CustomDataGridStyle}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="#" Binding="{Binding NumeroOrdre}" Width="45"/>
+                    <DataGridTextColumn Header="Matricule" Binding="{Binding Matricule}" Width="95"/>
+                    <DataGridTextColumn Header="Nom &amp; Prénom" Binding="{Binding NomPrenom}" Width="170"/>
+                    <DataGridTextColumn Header="Classe" Binding="{Binding ClasseGroupe}" Width="75"/>
+                    <DataGridTextColumn Header="Moyenne" Binding="{Binding MoyenneGenerale, StringFormat={}{0:0.000}}" Width="80"/>
+
+                    <!-- Colonne 1 : Arbre de Décision -->
+                    <DataGridTemplateColumn Header="🌳 Arbre de Décision" Width="140">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10" Padding="8,3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ArbreDecision}" Value="Admis">
+                                                    <Setter Property="Background" Value="#C6F6D5"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ArbreDecision}" Value="Ajourné">
+                                                    <Setter Property="Background" Value="#FEEBC8"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ArbreDecision}" Value="Exclu">
+                                                    <Setter Property="Background" Value="#FED7D7"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding ArbreDecision}" FontWeight="Bold" FontSize="11"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Colonne 2 : KNN -->
+                    <DataGridTemplateColumn Header="🎯 KNN (k=3)" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10" Padding="8,3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Knn}" Value="Admis">
+                                                    <Setter Property="Background" Value="#C6F6D5"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Knn}" Value="Ajourné">
+                                                    <Setter Property="Background" Value="#FEEBC8"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Knn}" Value="Exclu">
+                                                    <Setter Property="Background" Value="#FED7D7"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding Knn}" FontWeight="Bold" FontSize="11"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Colonne 3 : Random Forest -->
+                    <DataGridTemplateColumn Header="🌲 Random Forest" Width="140">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10" Padding="8,3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RandomForest}" Value="Admis">
+                                                    <Setter Property="Background" Value="#C6F6D5"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding RandomForest}" Value="Ajourné">
+                                                    <Setter Property="Background" Value="#FEEBC8"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding RandomForest}" Value="Exclu">
+                                                    <Setter Property="Background" Value="#FED7D7"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding RandomForest}" FontWeight="Bold" FontSize="11"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Colonne 4 : Consensus IA -->
+                    <DataGridTemplateColumn Header="🤝 Consensus IA" Width="180">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10" Padding="10,3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ConsensusLabel}" Value="Admis">
+                                                    <Setter Property="Background" Value="#E6FFFA"/>
+                                                    <Setter Property="BorderBrush" Value="#319795"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ConsensusLabel}" Value="Ajourné">
+                                                    <Setter Property="Background" Value="#FFFFF0"/>
+                                                    <Setter Property="BorderBrush" Value="#D69E2E"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ConsensusLabel}" Value="Exclu">
+                                                    <Setter Property="Background" Value="#FFF5F5"/>
+                                                    <Setter Property="BorderBrush" Value="#E53E3E"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding Consensus}" FontWeight="Bold" FontSize="11"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Confiance -->
+                    <DataGridTextColumn Header="Confiance" Binding="{Binding Confiance}" Width="85"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Barre de statut bas -->
+        <Border Grid.Row="4" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,10,0,0">
+            <Grid>
+                <TextBlock Name="txtStatut" Text="Prêt | Modèles ML scikit-learn initialisés." Foreground="#4A5568" FontSize="12" FontWeight="SemiBold"/>
+                <TextBlock Text="Scikit-Learn ML Predictor v2.5" HorizontalAlignment="Right" Foreground="#718096" FontSize="11"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

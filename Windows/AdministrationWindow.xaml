@@ -1,0 +1,356 @@
+<Window x:Class="DesktopApp.AdministrationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Administration &amp; Approbation des Comptes Utilisateurs" 
+        Height="730" Width="1220"
+        WindowStartupLocation="CenterScreen"
+        Background="#F4F6F9">
+
+    <Window.Resources>
+        <!-- Style cartes -->
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#4A5568"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+
+        <Style x:Key="FormTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#8B3A3A"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost" 
+                                          VerticalAlignment="Center" 
+                                          HorizontalAlignment="Left"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="#6B2A2A"/>
+                                <Setter Property="Background" Value="#FEF7F7"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#A94442"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FormComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#8B3A3A"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#8B3A3A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="CustomDataGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowHeight" Value="42"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#EDF2F7"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <!-- En-tête -->
+            <RowDefinition Height="Auto"/>
+            <!-- Zone principale 2 colonnes -->
+            <RowDefinition Height="*"/>
+            <!-- Statut -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête de la fenêtre -->
+        <Border Grid.Row="0" Background="#2C3E50" CornerRadius="8" Padding="15,12" Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="🔐 Administration &amp; Approbation des Comptes" 
+                               FontSize="20" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Workflow de validation des inscriptions (EnAttente, Approuve, Revoque) et gestion des rôles" 
+                               FontSize="12" Foreground="#CBD5E0" Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" Name="btnRafraichirHeader" Content="🔄 Actualiser Tout" 
+                        Click="BtnRafraichir_Click"
+                        Background="#34495E" Foreground="White" FontWeight="SemiBold" 
+                        Padding="12,6" BorderThickness="0" Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- Zone Principale : Formulaire de création à gauche & Tableau à droite -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <!-- Formulaire à gauche -->
+                <ColumnDefinition Width="360"/>
+                <ColumnDefinition Width="15"/>
+                <!-- Tableau à droite -->
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ================= GAUCHE : FORMULAIRE DE CRÉATION D'UTILISATEUR ================= -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="👤 Créer un Nouveau Compte" 
+                                   FontSize="16" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+
+                        <!-- Banner d'erreur pour le formulaire -->
+                        <Border Name="borderFormError" Background="#FEF2F2" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" Visibility="Collapsed">
+                            <TextBlock Name="txtFormError" Text="" Foreground="#DC2626" FontSize="11.5" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- Nom d'utilisateur -->
+                        <TextBlock Text="Nom d'Utilisateur (Login) *" Style="{StaticResource FieldLabelStyle}"/>
+                        <TextBox Name="txtUsername" Style="{StaticResource FormTextBoxStyle}" TextChanged="TxtFormField_TextChanged"/>
+
+                        <!-- Nom complet -->
+                        <TextBlock Text="Nom et Prénom *" Style="{StaticResource FieldLabelStyle}"/>
+                        <TextBox Name="txtFullName" Style="{StaticResource FormTextBoxStyle}" TextChanged="TxtFormField_TextChanged"/>
+
+                        <!-- Email -->
+                        <TextBlock Text="Adresse Email *" Style="{StaticResource FieldLabelStyle}"/>
+                        <TextBox Name="txtEmail" Style="{StaticResource FormTextBoxStyle}" TextChanged="TxtFormField_TextChanged"/>
+
+                        <!-- Mot de passe -->
+                        <TextBlock Text="Mot de Passe *" Style="{StaticResource FieldLabelStyle}"/>
+                        <TextBox Name="txtPassword" Style="{StaticResource FormTextBoxStyle}" Text="pass123" TextChanged="TxtFormField_TextChanged"/>
+
+                        <!-- Rôle -->
+                        <TextBlock Text="Rôle de l'Utilisateur *" Style="{StaticResource FieldLabelStyle}"/>
+                        <ComboBox Name="cmbRoleInitial" Style="{StaticResource FormComboBoxStyle}">
+                            <ComboBoxItem Content="Enseignant" IsSelected="True"/>
+                            <ComboBoxItem Content="Admin"/>
+                        </ComboBox>
+
+
+
+                        <!-- Bouton Créer -->
+                        <Button Name="btnCreerUtilisateur" Content="➕ Créer et Enregistrer" 
+                                Style="{StaticResource PrimaryButtonStyle}" 
+                                Click="BtnCreerUtilisateur_Click" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+
+            <!-- ================= DROITE : TABLEAU DES UTILISATEURS & ACTIONS ================= -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <!-- Filtres haut -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- DataGrid des utilisateurs -->
+                    <RowDefinition Height="*"/>
+                    <!-- Actions globales -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Barre de filtres -->
+                <Border Grid.Row="0" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="160"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="🔍 Filtre par Statut :" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#4A5568" Margin="0,0,10,0"/>
+                        <ComboBox Grid.Column="1" Name="cmbFiltreStatut" SelectionChanged="CmbFiltreStatut_SelectionChanged" Padding="6,4">
+                            <ComboBoxItem Content="(Tous les statuts)" IsSelected="True"/>
+                            <ComboBoxItem Content="EnAttente"/>
+                            <ComboBoxItem Content="Approuve"/>
+                            <ComboBoxItem Content="Revoque"/>
+                        </ComboBox>
+
+                        <TextBox Grid.Column="3" Name="txtRecherche" TextChanged="TxtRecherche_TextChanged" Padding="8,5" Foreground="#718096" Text="Rechercher par nom d'utilisateur ou email..."/>
+
+                        <Button Grid.Column="4" Name="btnActualiser" Content="🔄 Actualiser" Click="BtnRafraichir_Click" 
+                                Padding="12,5" Background="#EDF2F7" Foreground="#2D3748" BorderBrush="#CBD5E0" BorderThickness="1" Margin="10,0,0,0" Cursor="Hand"/>
+                    </Grid>
+                </Border>
+
+                <!-- DataGrid Registre des Utilisateurs -->
+                <Border Grid.Row="1" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10">
+                    <DataGrid Name="dgUtilisateurs" Style="{StaticResource CustomDataGridStyle}">
+                        <DataGrid.Columns>
+                            <!-- Colonne de déplacement/réorganisation -->
+                            <DataGridTemplateColumn Header="↕️" Width="30">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Border Background="#F7F9FC" 
+                                                    BorderBrush="#E2E8F0" 
+                                                    BorderThickness="1" 
+                                                    CornerRadius="4" 
+                                                    Padding="4,6"
+                                                    Cursor="SizeAll"
+                                                    ToolTip="Glisser pour déplacer cette ligne">
+                                                <StackPanel Orientation="Vertical">
+                                                    <Rectangle Width="2" Height="2" Fill="#CBD5E0" Margin="1"/>
+                                                    <Rectangle Width="2" Height="2" Fill="#CBD5E0" Margin="1"/>
+                                                    <Rectangle Width="2" Height="2" Fill="#CBD5E0" Margin="1"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            
+                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" IsReadOnly="True" Width="45"/>
+                            <DataGridTextColumn Header="Login" Binding="{Binding Username}" IsReadOnly="True" Width="110"/>
+                            <DataGridTextColumn Header="Nom &amp; Prénom" Binding="{Binding FullName}" IsReadOnly="True" Width="160"/>
+                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" IsReadOnly="True" Width="160"/>
+                            
+                            <!-- Colonne Rôle avec ComboBox interactif -->
+                            <DataGridTemplateColumn Header="Rôle Utilisateur" Width="130">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ComboBox SelectedValue="{Binding Role, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                  SelectionChanged="CmbRoleRow_SelectionChanged"
+                                                  Padding="4,2" VerticalAlignment="Center">
+                                            <ComboBoxItem Content="Admin" Tag="Admin"/>
+                                            <ComboBoxItem Content="Enseignant" Tag="Enseignant"/>
+                                        </ComboBox>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Colonne Statut d'Approbation -->
+                            <DataGridTemplateColumn Header="Statut Compte" Width="110">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Statut}" Value="Approuve">
+                                                            <Setter Property="Background" Value="#C6F6D5"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Statut}" Value="EnAttente">
+                                                            <Setter Property="Background" Value="#FEEBC8"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Statut}" Value="Revoque">
+                                                            <Setter Property="Background" Value="#FED7D7"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding Statut}" FontWeight="Bold" FontSize="11">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Statut}" Value="Approuve">
+                                                                <Setter Property="Foreground" Value="#22543D"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Statut}" Value="EnAttente">
+                                                                <Setter Property="Foreground" Value="#744210"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Statut}" Value="Revoque">
+                                                                <Setter Property="Foreground" Value="#742A2A"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Colonne Actions : Boutons Approuver et Révoquer -->
+                            <DataGridTemplateColumn Header="Workflow Actions" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Button Content="✅ Approuver" 
+                                                    Click="BtnApprouverRow_Click"
+                                                    Background="#38A169" Foreground="White" 
+                                                    FontWeight="Bold" FontSize="11"
+                                                    Padding="10,4" BorderThickness="0" 
+                                                    Margin="0,0,6,0" Cursor="Hand"
+                                                    ToolTip="Approuver le compte utilisateur"/>
+                                            <Button Content="🚫 Révoquer" 
+                                                    Click="BtnRevoquerRow_Click"
+                                                    Background="#E53E3E" Foreground="White" 
+                                                    FontWeight="Bold" FontSize="11"
+                                                    Padding="10,4" BorderThickness="0" 
+                                                    Margin="0,0,6,0" Cursor="Hand"
+                                                    ToolTip="Révoquer l'accès au compte"/>
+                                            <Button Content="🗑️" 
+                                                    Click="BtnSupprimerRow_Click"
+                                                    Background="#EDF2F7" Foreground="#718096" 
+                                                    FontSize="11" Padding="6,4" 
+                                                    BorderThickness="1" BorderBrush="#CBD5E0"
+                                                    Cursor="Hand" ToolTip="Supprimer l'utilisateur"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
+                <!-- Zone d'explication bas -->
+                <Border Grid.Row="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,12,0,0">
+                    <TextBlock Text="💡 Note : Les comptes avec le statut 'EnAttente' ou 'Revoque' ne peuvent pas se connecter au système. Seuls les comptes 'Approuve' ont accès." 
+                               Foreground="#4A5568" FontSize="12"/>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Barre de statut bas -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,10,0,0">
+            <Grid>
+                <TextBlock Name="txtStatut" Text="Prêt | 0 utilisateur(s) chargé(s)." Foreground="#4A5568" FontSize="12" FontWeight="SemiBold"/>
+                <TextBlock Text="Module d'Administration des Comptes" HorizontalAlignment="Right" Foreground="#718096" FontSize="11"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -22,44 +22,38 @@ namespace DesktopApp
 
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            string username = txtUsername.Text;
+            string username = txtUsername.Text?.Trim();
             
             // Récupérer le mot de passe selon sa visibilité
-            string password = isPasswordVisible ? txtPasswordVisible.Text : pwdPassword.Password;
+            string password = (isPasswordVisible ? txtPasswordVisible.Text : pwdPassword.Password)?.Trim();
 
             // Vérifier les champs vides et les marquer en rouge
             bool hasError = false;
             
             if (string.IsNullOrWhiteSpace(username))
             {
-                txtUsername.Tag = "Error"; // Marquer en rouge
+                MarkBorderError(borderUsername, true); // Contour rouge vif
                 hasError = true;
             }
             else
             {
-                txtUsername.Tag = null; // Pas d'erreur
+                MarkBorderError(borderUsername, false);
             }
 
             if (string.IsNullOrWhiteSpace(password))
             {
-                if (isPasswordVisible)
-                    txtPasswordVisible.Tag = "Error"; // Marquer en rouge
-                else
-                    pwdPassword.Tag = "Error"; // Marquer en rouge
+                MarkBorderError(borderPassword, true); // Contour rouge vif
                 hasError = true;
             }
             else
             {
-                if (isPasswordVisible)
-                    txtPasswordVisible.Tag = null; // Pas d'erreur
-                else
-                    pwdPassword.Tag = null; // Pas d'erreur
+                MarkBorderError(borderPassword, false);
             }
 
             // Si les champs sont marqués en rouge, afficher l'erreur
             if (hasError)
             {
-                ShowError("⚠️ Veuillez remplir tous les champs.");
+                ShowError("⚠️ Veuillez remplir tous les champs obligatoires (marqués en rouge).");
                 return;
             }
 
@@ -69,14 +63,9 @@ namespace DesktopApp
             {
                 ShowError(validationError);
                 if (username.Length < 3)
-                    txtUsername.Tag = "Error";
+                    MarkBorderError(borderUsername, true);
                 if (password.Length < 1)
-                {
-                    if (isPasswordVisible)
-                        txtPasswordVisible.Tag = "Error";
-                    else
-                        pwdPassword.Tag = "Error";
-                }
+                    MarkBorderError(borderPassword, true);
                 return;
             }
 
@@ -84,11 +73,8 @@ namespace DesktopApp
             {
                 // Connexion réussie - ouvrir la fenêtre principale
                 HideError();
-                txtUsername.Tag = null;
-                if (isPasswordVisible)
-                    txtPasswordVisible.Tag = null;
-                else
-                    pwdPassword.Tag = null;
+                MarkBorderError(borderUsername, false);
+                MarkBorderError(borderPassword, false);
                 
                 MainWindow mainWindow = new MainWindow();
                 mainWindow.Show();
@@ -97,11 +83,8 @@ namespace DesktopApp
             else
             {
                 ShowError("❌ Nom d'utilisateur ou mot de passe incorrect.");
-                txtUsername.Tag = "Error";
-                if (isPasswordVisible)
-                    txtPasswordVisible.Tag = "Error";
-                else
-                    pwdPassword.Tag = "Error";
+                MarkBorderError(borderUsername, true);
+                MarkBorderError(borderPassword, true);
                 pwdPassword.Clear();
                 txtPasswordVisible.Clear();
             }
@@ -124,30 +107,18 @@ namespace DesktopApp
             }
 
             // Vérifier la longueur minimale du nom d'utilisateur
-            if (username.Length < 3)
+            if (username.Trim().Length < 3)
             {
                 return "⚠️ Le nom d'utilisateur doit contenir au moins 3 caractères.";
             }
 
-            // Vérifier la longueur minimale du mot de passe
-            if (password.Length < 1)
+            // Vérifier les caractères autorisés dans le nom d'utilisateur (lettres, chiffres, points, tirets, underscores, accents et espaces)
+            if (!System.Text.RegularExpressions.Regex.IsMatch(username.Trim(), @"^[a-zA-Z0-9._\s\-àáâäãåçèéêëìíîïñòóôöõøùúûüýÿÀÁÂÄÃÅÇÈÉÊËÌÍÎÏÑÒÓÔÖÕØÙÚÛÜÝ]+$"))
             {
-                return "⚠️ Le mot de passe ne peut pas être vide.";
+                return "⚠️ Le nom d'utilisateur contient des caractères non autorisés.";
             }
 
-            // Vérifier les caractères autorisés dans le nom d'utilisateur
-            if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^[a-zA-Z0-9._-]+$"))
-            {
-                return "⚠️ Le nom d'utilisateur ne peut contenir que des lettres, chiffres, points, tirets et underscores.";
-            }
-
-            // Vérifier que le nom d'utilisateur ne commence pas par un espace
-            if (char.IsWhiteSpace(username[0]))
-            {
-                return "⚠️ Le nom d'utilisateur ne doit pas commencer par un espace.";
-            }
-
-            // Vérifier que le mot de passe ne contient que des caractères valides
+            // Vérifier que le mot de passe ne contient pas d'injections dangereuses
             if (password.Contains(";") || password.Contains("'") || password.Contains("\""))
             {
                 return "⚠️ Le mot de passe contient des caractères non autorisés.";
@@ -159,6 +130,25 @@ namespace DesktopApp
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        /// <summary>
+        /// Événement Clic sur 'Mot de passe oublié ?'
+        /// Ouvre la fenêtre de réinitialisation de mot de passe
+        /// </summary>
+        private void BtnForgotPassword_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var forgotWindow = new DesktopApp.Windows.ForgotPasswordWindow();
+            forgotWindow.Owner = this;
+
+            bool? result = forgotWindow.ShowDialog();
+            if (result == true && !string.IsNullOrEmpty(forgotWindow.ResetUsername))
+            {
+                txtUsername.Text = forgotWindow.ResetUsername;
+                pwdPassword.Clear();
+                txtPasswordVisible.Clear();
+                ShowError("✅ Mot de passe réinitialisé ! Veuillez vous connecter avec vos nouveaux identifiants.");
+            }
         }
 
         /// <summary>
@@ -195,43 +185,10 @@ namespace DesktopApp
             // Effacer la marque d'erreur si l'utilisateur tape quelque chose
             if (!string.IsNullOrWhiteSpace(txtUsername.Text))
             {
-                txtUsername.Tag = null; // Enlever la couleur rouge
+                MarkBorderError(borderUsername, false);
             }
             
             HideError(); // Effacer les erreurs précédentes
-            
-            string username = txtUsername.Text?.Trim() ?? string.Empty;
-            
-            // Debug - afficher ce qui est validé
-            Console.WriteLine($"[LOGIN] Validation username: '{username}' (longueur: {username.Length})");
-            
-            // Vérifier si le champ est vide - pas d'erreur pour champ vide
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                return;
-            }
-
-            // Vérifier les caractères autorisés - lettres, chiffres, point, underscore, tiret
-            var regex = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9._-]+$");
-            if (!regex.IsMatch(username))
-            {
-                Console.WriteLine($"[LOGIN] ERREUR: Caractères non autorisés dans '{username}'");
-                ShowError("⚠️ Le nom d'utilisateur contient des caractères non autorisés. Utilisez seulement des lettres, chiffres, points, tirets et underscores.");
-                txtUsername.Tag = "Error";
-                return;
-            }
-
-            // Vérifier la longueur
-            if (username.Length > 50)
-            {
-                Console.WriteLine($"[LOGIN] ERREUR: Nom trop long '{username}' ({username.Length} caractères)");
-                ShowError("⚠️ Le nom d'utilisateur ne doit pas dépasser 50 caractères.");
-                txtUsername.Tag = "Error";
-                return;
-            }
-            
-            // Si on arrive ici, le nom d'utilisateur est valide
-            Console.WriteLine($"[LOGIN] ✅ Nom d'utilisateur valide: '{username}'");
         }
 
         /// <summary>
@@ -244,10 +201,9 @@ namespace DesktopApp
                 // Synchroniser avec le TextBox caché
                 txtPasswordVisible.Text = pwdPassword.Password;
                 
-                // Effacer la marque d'erreur si l'utilisateur tape quelque chose
                 if (!string.IsNullOrWhiteSpace(pwdPassword.Password))
                 {
-                    pwdPassword.Tag = null; // Enlever la couleur rouge
+                    MarkBorderError(borderPassword, false);
                     HideError();
                 }
             }
@@ -263,12 +219,29 @@ namespace DesktopApp
                 // Synchroniser avec le PasswordBox caché
                 pwdPassword.Password = txtPasswordVisible.Text;
                 
-                // Effacer la marque d'erreur si l'utilisateur tape quelque chose
                 if (!string.IsNullOrWhiteSpace(txtPasswordVisible.Text))
                 {
-                    txtPasswordVisible.Tag = null; // Enlever la couleur rouge
+                    MarkBorderError(borderPassword, false);
                     HideError();
                 }
+            }
+        }
+
+        private void MarkBorderError(System.Windows.Controls.Border border, bool isError)
+        {
+            if (border == null) return;
+
+            if (isError)
+            {
+                border.BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#EF4444"));
+                border.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FEF2F2"));
+                border.BorderThickness = new Thickness(1.8);
+            }
+            else
+            {
+                border.BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#CBD5E1"));
+                border.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F8FAFC"));
+                border.BorderThickness = new Thickness(1.0);
             }
         }
 
@@ -288,6 +261,17 @@ namespace DesktopApp
         {
             txtError.Text = "";
             borderError.Visibility = Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// Permettre de déplacer la fenêtre personnalisée au clic-glisser
+        /// </summary>
+        private void Window_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
         }
     }
 }

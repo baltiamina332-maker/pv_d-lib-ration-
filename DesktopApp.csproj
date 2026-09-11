@@ -176,6 +176,8 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="ZstdSharp, Version=0.8.6.0, Culture=neutral, PublicKeyToken=8d151af33a4ad5cf, processorArchitecture=MSIL">
       <HintPath>packages\ZstdSharp.Port.0.8.6\lib\net462\ZstdSharp.dll</HintPath>
     </Reference>
@@ -191,6 +193,8 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\Etudiant.cs" />
+    <Compile Include="Models\Classe.cs" />
+    <Compile Include="Models\Affectation.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\DecisionRule.cs" />
     <Compile Include="Models\ArchiveRecord.cs" />
@@ -210,18 +214,40 @@
     <Compile Include="Services\ConfigurationService.cs" />
     <Compile Include="Services\DocumentGenerator.cs" />
     <Compile Include="Services\StudentManagementService.cs" />
+    <Compile Include="Services\ClasseService.cs" />
+    <Compile Include="Services\EtudiantService.cs" />
+    <Compile Include="Services\AffectationService.cs" />
     <Compile Include="Services\NommageAutomatiqueService.cs" />
     <Compile Include="Services\PerformanceMetricsService.cs" />
     <Compile Include="Services\SecuriteService.cs" />
     <Compile Include="Services\ExempleExcelService.cs" />
     <Compile Include="Services\AiAssistantService.cs" />
     <Compile Include="Services\JuryMemoryService.cs" />
+    <Compile Include="Services\MlPredictionService.cs" />
     <Compile Include="Models\Historique.cs" />
     <Compile Include="Windows\CorrectionEtudiantWindow.xaml.cs">
       <DependentUpon>CorrectionEtudiantWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\ChargerClasseWindow.xaml.cs">
       <DependentUpon>ChargerClasseWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ClassesEtudiantsWindow.xaml.cs">
+      <DependentUpon>ClassesEtudiantsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\MesClassesWindow.xaml.cs">
+      <DependentUpon>MesClassesWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AffectationsWindow.xaml.cs">
+      <DependentUpon>AffectationsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AdministrationWindow.xaml.cs">
+      <DependentUpon>AdministrationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ModelesIAWindow.xaml.cs">
+      <DependentUpon>ModelesIAWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ForgotPasswordWindow.xaml.cs">
+      <DependentUpon>ForgotPasswordWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="DatabaseConnection.cs" />
     <Compile Include="DatabaseHelper.cs" />
@@ -248,6 +274,30 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\ChargerClasseWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ClassesEtudiantsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\MesClassesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\AffectationsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\AdministrationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ModelesIAWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ForgotPasswordWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

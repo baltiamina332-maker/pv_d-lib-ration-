@@ -5,13 +5,17 @@ namespace DesktopApp.Models
 {
     /// <summary>
     /// Modèle représentant un étudiant avec ses résultats
-    /// Implémente les nouvelles règles de décision basées sur MG et ECTS
+    /// Reprend exactement les colonnes de la table SQL 'etudiant' (id_etudiant, num_ordre, nom, prenom, nom_prenom, matricule, classe_groupe, filiere, statut, moyenne_generale, ects_valides, decision, mention, validation, observation, date_creation).
     /// </summary>
     public class Etudiant
     {
-        // Propriétés de base (correspondent à la base de données)
+        // Colonnes SQL de la table etudiant (types: int, string, decimal, DateTime)
         public int Id { get; set; }
+        public int IdEtudiant { get => Id; set => Id = value; }
+
         public int NumeroOrdre { get; set; }
+        public int NumOrdre { get => NumeroOrdre; set => NumeroOrdre = value; }
+
         public string Nom { get; set; }
         public string Prenom { get; set; }
         public string NomPrenom { get; set; }
@@ -32,6 +36,9 @@ namespace DesktopApp.Models
         public int Rang { get; set; }           // Rang dans la classe
         public string Observation { get; set; } // Texte explicatif de la décision
         
+        // Colonne SQL TIMESTAMP / DATETIME
+        public DateTime DateCreation { get; set; }
+
         // Propriétés de métadonnées (nouveau ajoutées pour suivi)
         public DateTime DateCalcul { get; set; }          // NEW: When decision was calculated
         public string RescueType { get; set; }            // NEW: Which rescue condition applied (if any)
@@ -47,10 +54,13 @@ namespace DesktopApp.Models
         // Constructeur
         public Etudiant()
         {
+            Nom = string.Empty;
+            Prenom = string.Empty;
             NomPrenom = string.Empty;
             Matricule = string.Empty;
             ClasseGroupe = string.Empty;
             Filiere = string.Empty;
+            Statut = "Nouveau";
             Decision = string.Empty;
             Mention = string.Empty;
             Validation = string.Empty;
@@ -59,9 +69,11 @@ namespace DesktopApp.Models
             RescueType = string.Empty;
             MoyenneOriginale = string.Empty;  // NOUVEAU: Initialiser la moyenne originale
             EctsTotal = 30;
+            EctsValides = 30;
             EstAncienEtudiant = false;
             MoyenneUE = 0;
             Rang = 0;
+            DateCreation = DateTime.Now;
             DateCalcul = DateTime.Now;
             ModulesGrades = new List<ModuleGrades>();
         }

@@ -84,6 +84,8 @@ namespace DesktopApp.Services
 
                 result.Avertissements.Add($"DIAGNOSTIC: Tentative d'ouverture du fichier Excel...");
 
+                string shadowCopyCreated = null;
+
                 while (tentatives > 0)
                 {
                     try
@@ -93,16 +95,37 @@ namespace DesktopApp.Services
                         result.Avertissements.Add($"DIAGNOSTIC: Fichier ouvert avec succès");
                         break;
                     }
-                    catch (IOException ioEx) when (tentatives > 1)
+                    catch (IOException ioEx)
                     {
-                        result.Avertissements.Add($"DIAGNOSTIC: Tentative {4-tentatives} échouée: {ioEx.Message}");
                         if (fileStream != null)
                         {
                             fileStream.Dispose();
                             fileStream = null;
                         }
+
                         tentatives--;
-                        System.Threading.Thread.Sleep(delai);
+                        if (tentatives > 0)
+                        {
+                            result.Avertissements.Add($"DIAGNOSTIC: Tentative échouée ({ioEx.Message}), réessai...");
+                            System.Threading.Thread.Sleep(delai);
+                        }
+                        else
+                        {
+                            // Tentative ultime de contournement des verrous d'application (Excel open lock)
+                            try
+                            {
+                                shadowCopyCreated = Path.Combine(Path.GetTempPath(), $"pv_shadow_{Guid.NewGuid():N}.xlsx");
+                                File.Copy(cheminFichier, shadowCopyCreated, true);
+                                fileStream = new FileStream(shadowCopyCreated, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                workbook = new XLWorkbook(fileStream);
+                                result.Avertissements.Add($"DIAGNOSTIC: Fichier ouvert avec succès via copie temporaire anti-verrouillage.");
+                                break;
+                            }
+                            catch (Exception shadowEx)
+                            {
+                                result.Avertissements.Add($"DIAGNOSTIC: Échec de la copie temporaire: {shadowEx.Message}");
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -148,13 +171,24 @@ namespace DesktopApp.Services
 
                     if (result.Etudiants.Count > 0)
                     {
+                        // Vérification post-lecture EF-02 : s'assurer que les moyennes ne sont pas toutes à 0.00/20
+                        bool toutesZero = result.Etudiants.All(e => e.MoyenneGenerale == 0.00m);
+                        if (toutesZero)
+                        {
+                            result.Succes = false;
+                            result.MessageErreur = "⛔ Validation Gabarit Échouée (EF-02) : Les moyennes générales lues sont toutes égales à 0.00/20.\n\n" +
+                                                   "Le format numérique des moyennes ou le nom de la colonne ne correspond pas au gabarit officiel. " +
+                                                   "Veuillez vérifier que la colonne 'Moyenne Générale' contient des valeurs numériques valides (ex: 12.50 ou 12,50).";
+                            return result;
+                        }
+
                         result.Succes = true;
-                        result.MessageSucces = $"{result.Etudiants.Count} étudiant(s) importé(s) avec succès.";
+                        result.MessageSucces = $"{result.Etudiants.Count} étudiant(s) importé(s) avec succès (moyennes valides).";
                     }
                     else
                     {
                         result.Succes = false;
-                        result.MessageErreur = "Aucune donnée valide d'étudiant trouvée dans le fichier.";
+                        result.MessageErreur = "⛔ Validation Gabarit Échouée (EF-02) : Aucune donnée d'étudiant valide trouvée dans le fichier Excel.";
                         if (result.Erreurs.Any())
                         {
                             result.MessageErreur += "\n\nERREURS DÉTECTÉES:\n" + string.Join("\n", result.Erreurs);
@@ -163,6 +197,10 @@ namespace DesktopApp.Services
                 }
                 
                 if (fileStream != null) fileStream.Dispose();
+                if (!string.IsNullOrEmpty(shadowCopyCreated) && File.Exists(shadowCopyCreated))
+                {
+                    try { File.Delete(shadowCopyCreated); } catch { }
+                }
             }
             catch (Exception ex)
             {
@@ -179,7 +217,7 @@ namespace DesktopApp.Services
             {
                 if (worksheet.LastRowUsed() == null)
                 {
-                    result.MessageErreur = "La feuille Excel est vide.";
+                    result.MessageErreur = "⛔ Validation Gabarit (EF-02) : La feuille Excel est vide.";
                     return false;
                 }
 
@@ -190,7 +228,57 @@ namespace DesktopApp.Services
 
                 if (lastCol < 2)
                 {
-                    result.MessageErreur = $"Nombre de colonnes insuffisant ({lastCol} trouvée(s), 2 minimum requises).";
+                    result.MessageErreur = $"⛔ Validation Gabarit (EF-02) : Nombre de colonnes insuffisant ({lastCol} trouvée(s), 2 minimum requises : Nom/Prénom et Moyenne).";
+                    return false;
+                }
+
+                // Inspection des 5 premières lignes pour détecter la présence des colonnes indispensables selon EF-02
+                var firstRows = new List<List<string>>();
+                for (int r = 1; r <= Math.Min(5, lastRow); r++)
+                {
+                    var rowCells = new List<string>();
+                    for (int c = 1; c <= lastCol; c++)
+                    {
+                        var cell = worksheet.Cell(r, c);
+                        rowCells.Add(cell.IsEmpty() ? "" : cell.GetString().Trim());
+                    }
+                    firstRows.Add(rowCells);
+                }
+
+                ColumnIndices detectedMap = new ColumnIndices();
+                for (int r = 0; r < firstRows.Count; r++)
+                {
+                    var map = DetectColumns(firstRows[r]);
+                    if (map.Moyenne != -1) detectedMap.Moyenne = map.Moyenne;
+                    if (map.Nom != -1) detectedMap.Nom = map.Nom;
+                    if (map.Prenom != -1) detectedMap.Prenom = map.Prenom;
+                    if (map.NomPrenom != -1) detectedMap.NomPrenom = map.NomPrenom;
+                    if (map.Matricule != -1) detectedMap.Matricule = map.Matricule;
+                    if (map.Classe != -1) detectedMap.Classe = map.Classe;
+                    if (map.Decision != -1) detectedMap.Decision = map.Decision;
+                    if (map.Mention != -1) detectedMap.Mention = map.Mention;
+                }
+
+                // Si Moyenne est toujours introuvable dans les en-têtes, scanner les colonnes numériques
+                if (detectedMap.Moyenne == -1)
+                {
+                    detectedMap = FallbackColumnIndices(detectedMap, lastCol, firstRows, 1);
+                }
+
+                // Vérifier la présence des colonnes clés pour validation du gabarit imposé (EF-02)
+                var colonnesManquantes = new List<string>();
+                if (detectedMap.Nom == -1 && detectedMap.NomPrenom == -1)
+                {
+                    colonnesManquantes.Add("Nom & Prénom (ou Nom)");
+                }
+                if (detectedMap.Moyenne == -1)
+                {
+                    colonnesManquantes.Add("Moyenne Générale (ou Note)");
+                }
+
+                if (colonnesManquantes.Count > 0)
+                {
+                    result.MessageErreur = $"⛔ Gabarit Excel non conforme (EF-02) : Colonnes obligatoires introuvables : {string.Join(", ", colonnesManquantes)}.\n\nVeuillez respecter le modèle officiel imposé avec les colonnes : N°, Matricule, Nom, Prénom, Moyenne Générale, Décision, Mention.";
                     return false;
                 }
 
@@ -198,7 +286,7 @@ namespace DesktopApp.Services
             }
             catch (Exception ex)
             {
-                result.MessageErreur = $"Erreur lors de la validation de la structure: {ex.Message}";
+                result.MessageErreur = $"Erreur lors de la validation du gabarit: {ex.Message}";
                 return false;
             }
         }
@@ -235,31 +323,31 @@ namespace DesktopApp.Services
                 string normHeader = RemoveAccents(header.ToLowerInvariant())
                                     .Replace("_", "").Replace(" ", "").Replace("-", "").Replace("\"", "").Replace("'", "");
 
-                if (normHeader.Contains("moyenne") || normHeader.Contains("mg") || normHeader == "note" || normHeader == "notegenerale")
+                if (normHeader.Contains("moyenne") || normHeader.Contains("mg") || normHeader == "note" || normHeader == "notegenerale" || normHeader == "notefinale" || normHeader == "moy" || normHeader == "avg" || normHeader == "average" || normHeader.Contains("moyennegenerale"))
                 {
                     if (map.Moyenne == -1) map.Moyenne = col;
                 }
-                else if ((normHeader.Contains("nom") && normHeader.Contains("prenom")) || normHeader == "nomprenom" || normHeader == "etudiant" || normHeader == "student")
+                else if ((normHeader.Contains("nom") && normHeader.Contains("prenom")) || normHeader == "nomprenom" || normHeader == "etudiant" || normHeader == "student" || normHeader == "nomcomplet" || normHeader == "fullname")
                 {
                     if (map.NomPrenom == -1) map.NomPrenom = col;
                 }
-                else if (normHeader == "nom" || normHeader == "nometudiant" || normHeader.StartsWith("nom"))
+                else if (normHeader == "nom" || normHeader == "nometudiant" || normHeader == "surname" || normHeader == "lastname" || normHeader.StartsWith("nom"))
                 {
                     if (map.Nom == -1) map.Nom = col;
                 }
-                else if (normHeader == "prenom" || normHeader == "prenometudiant" || normHeader.StartsWith("prenom"))
+                else if (normHeader == "prenom" || normHeader == "prenometudiant" || normHeader == "firstname" || normHeader.StartsWith("prenom"))
                 {
                     if (map.Prenom == -1) map.Prenom = col;
                 }
-                else if (normHeader.Contains("matricule") || normHeader.Contains("cne") || normHeader.Contains("cin") || normHeader == "idetudiant" || normHeader == "id")
+                else if (normHeader.Contains("matricule") || normHeader.Contains("cne") || normHeader.Contains("cin") || normHeader == "idetudiant" || normHeader == "id" || normHeader == "code" || normHeader.Contains("numetudiant"))
                 {
                     if (map.Matricule == -1) map.Matricule = col;
                 }
-                else if (normHeader.Contains("classe") || normHeader.Contains("groupe") || normHeader.Contains("filiere"))
+                else if (normHeader.Contains("classe") || normHeader.Contains("groupe") || normHeader.Contains("filiere") || normHeader.Contains("promo") || normHeader.Contains("section"))
                 {
                     if (map.Classe == -1) map.Classe = col;
                 }
-                else if (normHeader.Contains("decision") || normHeader.Contains("resultat") || normHeader.Contains("avis"))
+                else if (normHeader.Contains("decision") || normHeader.Contains("resultat") || normHeader.Contains("avis") || normHeader.Contains("statut"))
                 {
                     if (map.Decision == -1) map.Decision = col;
                 }
@@ -267,11 +355,11 @@ namespace DesktopApp.Services
                 {
                     if (map.Mention == -1) map.Mention = col;
                 }
-                else if (normHeader.Contains("observation") || normHeader.Contains("remarque"))
+                else if (normHeader.Contains("observation") || normHeader.Contains("remarque") || normHeader == "obs")
                 {
                     if (map.Observation == -1) map.Observation = col;
                 }
-                else if (normHeader == "n" || normHeader == "num" || normHeader == "numero" || normHeader == "ordre" || normHeader == "numeroordre")
+                else if (normHeader == "n" || normHeader == "num" || normHeader == "numero" || normHeader == "ordre" || normHeader == "numeroordre" || normHeader == "no" || normHeader == "seq")
                 {
                     if (map.NumOrdre == -1) map.NumOrdre = col;
                 }

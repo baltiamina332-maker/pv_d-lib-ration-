@@ -247,13 +247,42 @@ class ChatbotDeliberation:
         try:
             messages = [{"role": "user", "content": texte_utilisateur}]
             
-            # Appel initial à Claude avec la déclaration des outils
-            response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=1024,
-                tools=TOOLS,
-                messages=messages
-            )
+            # Détecter si la question porte sur les données d'étudiants
+            if self._est_question_donnees_etudiants(texte_utilisateur):
+                system_prompt = """Vous êtes l'assistant IA de délibération universitaire spécialisé dans l'analyse des données étudiants.
+
+IMPORTANT : Cette conversation porte sur des données RÉELLES d'étudiants. 
+- Utilisez UNIQUEMENT les outils fournis pour obtenir des informations factuelles
+- Ne jamais inventer ou estimer de chiffres 
+- Si vous n'avez pas l'information exacte via un outil, dites-le clairement
+- Répondez en français de manière professionnelle et précise
+
+Les outils disponibles vous donnent accès aux vraies données de délibération."""
+                
+                # Appel avec outils pour les questions sur les données
+                response = self.client.messages.create(
+                    model="claude-3-5-sonnet-20241022",
+                    max_tokens=1024,
+                    system=system_prompt,
+                    tools=TOOLS,
+                    messages=messages
+                )
+            else:
+                # Réponse directe sans outils pour les questions générales
+                system_prompt = """Vous êtes un assistant IA polyvalent et conversationnel.
+
+Répondez naturellement à toutes les questions générales : météo, actualités, calculs, conseils, culture générale, etc.
+
+Vous êtes aussi spécialisé en délibérations universitaires, mais pour cette question, répondez comme un assistant général classique.
+
+Soyez naturel, utile et conversationnel en français."""
+                
+                response = self.client.messages.create(
+                    model="claude-3-5-sonnet-20241022",
+                    max_tokens=1024,
+                    system=system_prompt,
+                    messages=messages
+                )
 
             action_ui_result = None
             classe_result = None
@@ -294,6 +323,7 @@ class ChatbotDeliberation:
                 final_response = self.client.messages.create(
                     model="claude-3-5-sonnet-20241022",
                     max_tokens=1024,
+                    system=system_prompt,
                     messages=messages
                 )
 
@@ -317,37 +347,147 @@ class ChatbotDeliberation:
                 "action_ui": None
             }
 
+    def _est_question_donnees_etudiants(self, texte):
+        """
+        Détermine si une question porte sur les données spécifiques des étudiants
+        """
+        texte_norm = texte.lower().strip()
+        
+        # Mots-clés indiquant une question sur les données étudiants/délibération
+        mots_cles_etudiants = [
+            "etudiant", "etudiante", "etudiants", "eleve", "eleves",
+            "mention", "moyenne", "note", "admis", "ajourne", "exclu",
+            "reussite", "echec", "classe", "promotion", "promo",
+            "deliberation", "pv", "proces", "verbal",
+            "statistique", "taux", "pourcentage", "effectif",
+            "bien", "tres bien", "assez bien", "passable",
+            "mg", "score", "resultat", "decision", "conseil",
+            "export", "genere", "generer", "filtre"
+        ]
+
+        # Contextes spécifiques aux données 
+        mots_contextuels = ["combien", "nombre", "total", "resume"]
+
+        # Vérification directe des mots-clés étudiants
+        for mot_cle in mots_cles_etudiants:
+            if mot_cle in texte_norm:
+                return True
+
+        # Vérification contextuelle (ex: "combien" seul = général, "combien d'étudiants" = données)
+        for mot_contexte in mots_contextuels:
+            if mot_contexte in texte_norm:
+                # Vérifier si c'est dans un contexte étudiant
+                for mot_etudiant in mots_cles_etudiants:
+                    if mot_etudiant in texte_norm:
+                        return True
+
+        return False
+
     def _fallback_local(self, texte):
         """Mode local d'analyse intelligente si aucune clé ANTHROPIC_API_KEY n'est configurée."""
         t = texte.lower()
-        if "pv" in t or "genere" in t or "génère" in t:
-            # Extraire classe si présente
-            classe = "3A40"
-            for word in t.split():
-                if len(word) >= 3 and word[0].isdigit():
-                    classe = word.upper()
+        
+        # Vérifier si c'est une question sur les données étudiants
+        if self._est_question_donnees_etudiants(texte):
+            # Traitement des questions spécialisées délibération
+            if "pv" in t or "genere" in t or "génère" in t:
+                # Extraire classe si présente
+                classe = "3A40"
+                for word in t.split():
+                    if len(word) >= 3 and word[0].isdigit():
+                        classe = word.upper()
+                return {
+                    "texte": f"J'ai préparé la génération du PV de la classe {classe} et je vous bascule sur l'onglet correspondant. (Pour utiliser Anthropic Claude, configurez ANTHROPIC_API_KEY).",
+                    "action_ui": "basculer_onglet_generation_pv",
+                    "classe": classe
+                }
+            elif "stat" in t or "mention" in t or "reussite" in t or "réussite" in t or "bien" in t:
+                stats = self.db.obtenir_statistiques()
+                txt = f"📊 Statistiques de délibération :\n" \
+                      f"• Effectif total : {stats.get('total_etudiants')}\n" \
+                      f"• Admis : {stats.get('nombre_admis')} (Taux : {stats.get('taux_reussite')}%)\n" \
+                      f"• Ajournés : {stats.get('nombre_ajournes')}\n" \
+                      f"• Moyenne générale : {stats.get('moyenne_generale')}/20\n" \
+                      f"• Mentions Bien : {stats.get('mentions', {}).get('bien')}"
+                return {"texte": txt, "action_ui": None}
+            elif "export" in t or "excel" in t:
+                return {
+                    "texte": "Démarrage de l'exportation Excel des étudiants...",
+                    "action_ui": "exporter_excel"
+                }
+            else:
+                return {
+                    "texte": f"Question sur les délibérations détectée, mais je ne peux traiter que les statistiques, génération PV et exports sans clé API Claude. Pour des réponses plus sophistiquées, configurez ANTHROPIC_API_KEY.",
+                    "action_ui": None
+                }
+        else:
+            # Questions générales - Réponses d'assistant polyvalent
+            return self._reponse_generale_locale(texte)
+
+    def _reponse_generale_locale(self, texte):
+        """Gère les questions générales sans API Claude"""
+        t = texte.lower()
+        
+        # Salutations
+        if any(mot in t for mot in ["bonjour", "salut", "hello", "qui es tu", "presentation"]):
             return {
-                "texte": f"J'ai préparé la génération du PV de la classe {classe} et je vous bascule sur l'onglet correspondant. (Pour utiliser Anthropic Claude, configurez ANTHROPIC_API_KEY).",
-                "action_ui": "basculer_onglet_generation_pv",
-                "classe": classe
+                "texte": "Bonjour ! Je suis l'Assistant IA de délibération universitaire, mais je peux aussi répondre à des questions générales !\n\n" +
+                        "• 🎓 Questions sur les délibérations (statistiques, PV, exports)\n" +
+                        "• 💬 Questions générales (calculs, aide, informations)\n\n" +
+                        "Pour des réponses avancées avec Anthropic Claude, configurez ANTHROPIC_API_KEY.",
+                "action_ui": None
             }
-        elif "stat" in t or "mention" in t or "reussite" in t or "réussite" in t or "bien" in t:
-            stats = self.db.obtenir_statistiques()
-            txt = f"📊 Statistiques de délibération :\n" \
-                  f"• Effectif total : {stats.get('total_etudiants')}\n" \
-                  f"• Admis : {stats.get('nombre_admis')} (Taux : {stats.get('taux_reussite')}%)\n" \
-                  f"• Ajournés : {stats.get('nombre_ajournes')}\n" \
-                  f"• Moyenne générale : {stats.get('moyenne_generale')}/20\n" \
-                  f"• Mentions Bien : {stats.get('mentions', {}).get('bien')}"
-            return {"texte": txt, "action_ui": None}
-        elif "export" in t or "excel" in t:
+        
+        # Questions sur l'heure et la date
+        elif any(mot in t for mot in ["quelle heure", "quel jour", "date"]):
+            import datetime
+            now = datetime.datetime.now()
             return {
-                "texte": "Démarrage de l'exportation Excel des étudiants...",
-                "action_ui": "exporter_excel"
+                "texte": f"🕒 Nous sommes le {now.strftime('%A %d %B %Y')} et il est {now.strftime('%H:%M')}.\n\n" +
+                        "Besoin d'aide pour programmer une délibération ou autre chose ?",
+                "action_ui": None
             }
+        
+        # Calculs simples
+        elif any(mot in t for mot in ["calcul", "combien font", "plus", "moins", "multiplie"]) and not any(mot in t for mot in ["etudiant", "moyenne"]):
+            return {
+                "texte": "🔢 Je peux faire des calculs simples !\n\n" +
+                        "Exemples: 'Combien font 15 + 27 ?', 'Quelle est la racine de 144 ?'\n\n" +
+                        "Pour des calculs sur les notes d'étudiants, utilisez mes fonctions de délibération spécialisées.",
+                "action_ui": None
+            }
+        
+        # Questions sur l'application
+        elif any(mot in t for mot in ["application", "comment ca marche", "aide", "utiliser"]):
+            return {
+                "texte": "📱 Cette application de délibération vous permet de :\n\n" +
+                        "• Importer des fichiers Excel avec les notes\n" +
+                        "• Générer automatiquement les PV de délibération\n" +
+                        "• Exporter les résultats\n" +
+                        "• Poser des questions à cet Assistant IA\n\n" +
+                        "Commencez par l'onglet 'Import Excel' !",
+                "action_ui": None
+            }
+        
+        # Questions météo, actualités, culture générale
+        elif any(mot in t for mot in ["meteo", "temperature", "actualite", "nouvelles"]):
+            return {
+                "texte": "🌍 Je suis spécialisé dans les délibérations universitaires, mais je peux vous aider !\n\n" +
+                        "Pour des informations précises sur la météo ou l'actualité, consultez des services spécialisés.\n\n" +
+                        "Par contre, pour tout ce qui concerne vos délibérations étudiantes, je suis votre expert !",
+                "action_ui": None
+            }
+        
+        # Fallback général
         else:
             return {
-                "texte": f"Bonjour ! (Clé ANTHROPIC_API_KEY non détectée dans l'environnement). Posez-moi une question sur les résultats, les mentions ou la génération de PV pour la classe 3A40.",
+                "texte": f"🤖 Vous m'avez demandé : '{texte}'\n\n" +
+                        "Je suis un assistant polyvalent spécialisé en délibérations universitaires.\n\n" +
+                        "**Mes spécialités :**\n" +
+                        "• Questions sur vos données étudiants\n" +
+                        "• Génération de PV et exports\n" +
+                        "• Questions générales et conseils\n\n" +
+                        "Comment puis-je vous aider précisément ?",
                 "action_ui": None
             }
 

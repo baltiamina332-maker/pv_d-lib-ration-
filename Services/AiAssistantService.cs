@@ -314,9 +314,33 @@ namespace DesktopApp.Services
             {
                 model = "claude-3-5-sonnet-20241022",
                 max_tokens = 1024,
-                system = "Vous êtes l'assistant IA de délibération universitaire. Vous répondez de manière concise et professionnelle en français. Vous pouvez utiliser les outils (tools) mis à votre disposition pour déclencher des actions dans l'application (générer un PV Word, exporter en Excel, filtrer la classe, ou basculer d'onglet).",
+                system = "Vous êtes l'assistant IA de délibération universitaire, mais aussi un assistant polyvalent.\n\n" +
+                        "IMPORTANT: \n" +
+                        "- Répondez à TOUTES les questions, qu'elles portent sur les délibérations ou non\n" +
+                        "- Pour les questions générales (météo, actualités, calculs, etc.), répondez normalement comme un assistant IA\n" +
+                        "- Utilisez les outils UNIQUEMENT pour les questions sur les données réelles des étudiants\n" +
+                        "- Ne jamais inventer de chiffres sur les étudiants - utilisez seulement les outils si les données sont disponibles\n" +
+                        "- Soyez naturel et conversationnel en français\n\n" +
+                        "Exemples:\n" +
+                        "- 'Quelle heure est-il?' → Réponse directe sans outil\n" +
+                        "- 'Combien font 2+2?' → Réponse directe: 4\n" +
+                        "- 'Combien d'étudiants ont une mention Bien?' → Utiliser outil obtenir_statistiques",
                 tools = new object[]
                 {
+                    new
+                    {
+                        name = "obtenir_statistiques",
+                        description = "Obtient les statistiques RÉELLES des étudiants chargés (mentions, décisions, etc.). N'utiliser QUE si des données étudiants sont disponibles.",
+                        input_schema = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                type_stat = new { type = "string", description = "Type de statistique: 'mentions', 'decisions', 'moyennes', 'general'" }
+                            },
+                            required = new[] { "type_stat" }
+                        }
+                    },
                     new
                     {
                         name = "preparer_generation_pv",
@@ -401,7 +425,37 @@ namespace DesktopApp.Services
                         string toolName = block["name"]?.ToString();
                         JObject toolInput = block["input"] as JObject;
 
-                        if (toolName == "preparer_generation_pv")
+                        if (toolName == "obtenir_statistiques")
+                        {
+                            string typeStat = toolInput?["type_stat"]?.ToString() ?? "general";
+                            if (etudiantsActuels != null && etudiantsActuels.Any())
+                            {
+                                var stats = _statsCalculator.CalculerStatistiques(etudiantsActuels);
+                                string statsText = "";
+                                
+                                switch (typeStat.ToLower())
+                                {
+                                    case "mentions":
+                                        statsText = $"Répartition des mentions :\n• Très Bien : {stats.NombreTresBien}\n• Bien : {stats.NombreBien}\n• Assez Bien : {stats.NombreAssezBien}\n• Passable : {stats.NombrePassable}";
+                                        break;
+                                    case "decisions":
+                                        statsText = $"Décisions d'admission :\n• Admis : {stats.NombreTotalAdmis}\n• Ajournés/Conseil : {stats.NbAjournes}\n• Redouble/Exclus : {stats.NombreRedoubleExclu}";
+                                        break;
+                                    case "moyennes":
+                                        statsText = $"Moyennes :\n• Moyenne générale globale : {stats.MoyenneGeneraleGlobale:F2}/20\n• Effectif total : {etudiantsActuels.Count} étudiants";
+                                        break;
+                                    default:
+                                        statsText = $"Statistiques générales ({etudiantsActuels.Count} étudiants) :\n• Admis : {stats.NombreTotalAdmis} ({stats.PourcentageAdmis:F1}%)\n• Mentions Bien+ : {stats.NombreBien + stats.NombreTresBien}\n• Moyenne globale : {stats.MoyenneGeneraleGlobale:F2}/20";
+                                        break;
+                                }
+                                responseTextBuilder.AppendLine($"\n📊 *[Données réelles] {statsText}*");
+                            }
+                            else
+                            {
+                                responseTextBuilder.AppendLine("\n⚠️ *[Aucune donnée chargée] Impossible d'obtenir les statistiques - veuillez d'abord importer des données étudiants*");
+                            }
+                        }
+                        else if (toolName == "preparer_generation_pv")
                         {
                             string targetClass = toolInput?["classe"]?.ToString() ?? "3A40";
                             aiResponse.Action = new AiAction
@@ -454,82 +508,81 @@ namespace DesktopApp.Services
             string rawPrompt = prompt.Trim();
             string normPrompt = RemoveAccents(rawPrompt.ToLowerInvariant());
 
-            // 1. Commande : Génération de PV
-            if (normPrompt.Contains("genere") || normPrompt.Contains("generer") || normPrompt.Contains("creer pv") || normPrompt.Contains("editer pv"))
+            // Détecter si la question porte sur les données de délibération
+            bool isAboutStudentData = IsQuestionAboutStudentData(normPrompt);
+
+            if (isAboutStudentData)
             {
-                return HandleGeneratePV(normPrompt, etudiantsActuels, currentClassFilter);
+                // Questions spécifiques aux données étudiants - nécessitent des données chargées
+                if (etudiantsActuels == null || !etudiantsActuels.Any())
+                {
+                    response.Title = "📂 Aucune donnée chargée";
+                    response.ResponseText = "Pour répondre à cette question sur les étudiants, je dois d'abord avoir des données chargées. Veuillez importer un fichier Excel ou charger une classe depuis l'onglet **Import Excel**.";
+                    response.SuggestedFollowUps.Add("Ouvre l'onglet Import");
+                    response.Action = new AiAction { Type = AiActionType.SwitchTab, TargetIndex = 1 };
+                    return response;
+                }
+
+                var stats = _statsCalculator.CalculerStatistiques(etudiantsActuels);
+
+                // 1. Commande : Génération de PV
+                if (normPrompt.Contains("genere") || normPrompt.Contains("generer") || normPrompt.Contains("creer pv") || normPrompt.Contains("editer pv"))
+                {
+                    return HandleGeneratePV(normPrompt, etudiantsActuels, currentClassFilter);
+                }
+
+                // 2. Commande : Exportation Excel
+                if (normPrompt.Contains("export") || normPrompt.Contains("telecharger excel") || normPrompt.Contains("fichier excel"))
+                {
+                    response.Title = "📊 Exportation Excel";
+                    response.ResponseText = "J'ai préparé l'exportation des étudiants en fichier Excel. L'action d'exportation est en cours d'exécution...";
+                    response.Action = new AiAction { Type = AiActionType.ExportExcel };
+                    response.SuggestedFollowUps.Add("Combien d'étudiants sont admis ?");
+                    response.SuggestedFollowUps.Add("Combien de mentions Très Bien ?");
+                    return response;
+                }
+
+                // 3. Question : Mention spécifique
+                if (normPrompt.Contains("mention") || (normPrompt.Contains("bien") && (normPrompt.Contains("etudiant") || normPrompt.Contains("combien"))) || normPrompt.Contains("passable") || normPrompt.Contains("assez bien") || normPrompt.Contains("tres bien"))
+                {
+                    return HandleMentionQuery(normPrompt, etudiantsActuels, stats);
+                }
+
+                // 4. Question : Décisions & Taux de réussite
+                if (normPrompt.Contains("admis") || normPrompt.Contains("ajourne") || normPrompt.Contains("exclu") || normPrompt.Contains("reussite") || normPrompt.Contains("reussi") || normPrompt.Contains("valide"))
+                {
+                    return HandleDecisionQuery(normPrompt, etudiantsActuels, stats);
+                }
+
+                // 5. Question : Moyenne & Notes
+                if ((normPrompt.Contains("moyenne") && (normPrompt.Contains("etudiant") || normPrompt.Contains("classe") || normPrompt.Contains("generale"))) || normPrompt.Contains("note") || normPrompt.Contains("score") || normPrompt.Contains("mg"))
+                {
+                    return HandleAverageQuery(normPrompt, etudiantsActuels, stats);
+                }
+
+                // 6. Question : Nombre d'étudiants total / Généralités sur les données
+                if ((normPrompt.Contains("combien") && normPrompt.Contains("etudiant")) || normPrompt.Contains("effectif") || (normPrompt.Contains("nombre") && (normPrompt.Contains("etudiant") || normPrompt.Contains("classe"))) || (normPrompt.Contains("total") && normPrompt.Contains("etudiant")) || (normPrompt.Contains("statistique") && (normPrompt.Contains("etudiant") || normPrompt.Contains("classe"))) || normPrompt.Contains("resume"))
+                {
+                    return HandleGeneralSummary(etudiantsActuels, stats);
+                }
             }
 
-            // 2. Commande : Exportation Excel
-            if (normPrompt.Contains("export") || normPrompt.Contains("telecharger excel") || normPrompt.Contains("fichier excel"))
-            {
-                response.Title = "📊 Exportation Excel";
-                response.ResponseText = "J'ai préparé l'exportation des étudiants en fichier Excel. L'action d'exportation est en cours d'exécution...";
-                response.Action = new AiAction { Type = AiActionType.ExportExcel };
-                response.SuggestedFollowUps.Add("Combien d'étudiants sont admis ?");
-                response.SuggestedFollowUps.Add("Combien de mentions Très Bien ?");
-                return response;
-            }
-
-            // 3. Commande : Navigation d'onglet
+            // 7. Commande : Navigation d'onglet (indépendant des données)
             if (normPrompt.Contains("onglet") || normPrompt.Contains("ouvre") || normPrompt.Contains("affiche la page") || normPrompt.Contains("va dans"))
             {
                 var navResponse = HandleNavigation(normPrompt);
                 if (navResponse != null) return navResponse;
             }
 
-            // 4. Commande : Filtrage
+            // 8. Commande : Filtrage (nécessite des données mais pas de statistiques)
             if (normPrompt.Contains("filtre") || normPrompt.Contains("efface") || normPrompt.Contains("reinitialise") || normPrompt.Contains("montre la classe"))
             {
                 var filterResponse = HandleFiltering(normPrompt, etudiantsActuels);
                 if (filterResponse != null) return filterResponse;
             }
 
-            if (etudiantsActuels == null || !etudiantsActuels.Any())
-            {
-                response.Title = "📂 Aucune donnée chargée";
-                response.ResponseText = "Aucune donnée d'étudiant n'est actuellement chargée. Veuillez d'abord importer un fichier Excel ou charger une classe depuis l'onglet **Import Excel** ou **Tableau de Bord**.";
-                response.SuggestedFollowUps.Add("Ouvre l'onglet Import");
-                response.Action = new AiAction { Type = AiActionType.SwitchTab, TargetIndex = 1 };
-                return response;
-            }
-
-            var stats = _statsCalculator.CalculerStatistiques(etudiantsActuels);
-
-            // 5. Question : Mention spécifique
-            if (normPrompt.Contains("mention") || normPrompt.Contains("bien") || normPrompt.Contains("passable") || normPrompt.Contains("assez bien") || normPrompt.Contains("tres bien"))
-            {
-                return HandleMentionQuery(normPrompt, etudiantsActuels, stats);
-            }
-
-            // 6. Question : Décisions & Taux de réussite
-            if (normPrompt.Contains("admis") || normPrompt.Contains("ajourne") || normPrompt.Contains("exclu") || normPrompt.Contains("reussite") || normPrompt.Contains("reussi") || normPrompt.Contains("valide"))
-            {
-                return HandleDecisionQuery(normPrompt, etudiantsActuels, stats);
-            }
-
-            // 7. Question : Moyenne & Notes
-            if (normPrompt.Contains("moyenne") || normPrompt.Contains("note") || normPrompt.Contains("score") || normPrompt.Contains("mg"))
-            {
-                return HandleAverageQuery(normPrompt, etudiantsActuels, stats);
-            }
-
-            // 8. Question : Nombre d'étudiants total / Généralités
-            if (normPrompt.Contains("combien") || normPrompt.Contains("nombre") || normPrompt.Contains("total") || normPrompt.Contains("statistique") || normPrompt.Contains("resume"))
-            {
-                return HandleGeneralSummary(etudiantsActuels, stats);
-            }
-
-            // Fallback conversationnel
-            response.Title = "🤖 Assistant IA";
-            response.ResponseText = $"J'ai analysé votre demande : *\"{rawPrompt}\"*.\n\nActuellement, la promo contient **{etudiantsActuels.Count} étudiants** ({stats.NombreTotalAdmis} Admis, {stats.NbAjournes} Ajournés/Conseil, {stats.NombreRedoubleExclu} Redouble/Exclus).\n\nPour utiliser la puissance de Claude LLM avec des outils personnalisés, configurez `setx ANTHROPIC_API_KEY \"sk-ant-...\"` dans Windows.\n\nVoici ce que vous pouvez me demander :";
-            response.StatHighlights.Add($"Effectif total: {etudiantsActuels.Count}");
-            response.StatHighlights.Add($"Moyenne globale: {stats.MoyenneGeneraleGlobale:F2} / 20");
-            response.SuggestedFollowUps.Add("Combien d'étudiants ont une mention Bien ?");
-            response.SuggestedFollowUps.Add("Génère-moi le PV de la classe 3A40");
-            response.SuggestedFollowUps.Add("Quel est le taux de réussite ?");
-
-            return response;
+            // Questions générales - Assistant polyvalent
+            return HandleGeneralAssistantQuery(rawPrompt, etudiantsActuels);
         }
 
         private AiAssistantResponse HandleGeneratePV(string normPrompt, List<Etudiant> etudiants, string currentClassFilter)
@@ -805,6 +858,214 @@ namespace DesktopApp.Services
             }
 
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        /// <summary>
+        /// Détermine si une question porte sur les données spécifiques des étudiants
+        /// </summary>
+        private bool IsQuestionAboutStudentData(string normPrompt)
+        {
+            // Mots-clés indiquant une question sur les données étudiants/délibération
+            string[] studentDataKeywords = {
+                "etudiant", "etudiante", "etudiants", "eleve", "eleves",
+                "mention", "moyenne", "note", "admis", "ajourne", "exclu",
+                "reussite", "echec", "classe", "promotion", "promo",
+                "deliberation", "pv", "proces", "verbal",
+                "statistique", "taux", "pourcentage", "effectif",
+                "bien", "tres bien", "assez bien", "passable",
+                "mg", "score", "resultat", "decision", "conseil",
+                "export", "genere", "generer", "filtre"
+            };
+
+            // Contextes spécifiques aux données (quand ces mots sont présents avec d'autres mots)
+            string[] contextKeywords = {
+                "combien", "nombre", "total", "resume"
+            };
+
+            // Vérification directe des mots-clés étudiants
+            foreach (string keyword in studentDataKeywords)
+            {
+                if (normPrompt.Contains(keyword))
+                {
+                    return true;
+                }
+            }
+
+            // Vérification contextuelle (ex: "combien" seul = général, "combien d'étudiants" = données)
+            foreach (string contextWord in contextKeywords)
+            {
+                if (normPrompt.Contains(contextWord))
+                {
+                    // Vérifier si c'est dans un contexte étudiant
+                    foreach (string studentKeyword in studentDataKeywords)
+                    {
+                        if (normPrompt.Contains(studentKeyword))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gère les questions générales d'assistant (non liées aux données étudiants)
+        /// </summary>
+        private AiAssistantResponse HandleGeneralAssistantQuery(string rawPrompt, List<Etudiant> etudiantsActuels)
+        {
+            var response = new AiAssistantResponse();
+            string normPrompt = RemoveAccents(rawPrompt.ToLowerInvariant());
+
+            // Salutations et présentations
+            if (normPrompt.Contains("bonjour") || normPrompt.Contains("salut") || normPrompt.Contains("hello") || 
+                normPrompt.Contains("qui es tu") || normPrompt.Contains("que fais tu") || normPrompt.Contains("presentation"))
+            {
+                response.Title = "👋 Bonjour !";
+                response.ResponseText = "Bonjour ! Je suis l'Assistant IA de l'application de délibération universitaire.\n\n" +
+                                      "Je peux vous aider de deux façons :\n" +
+                                      "• **Questions générales** : N'importe quel sujet, comme un assistant classique\n" +
+                                      "• **Gestion des délibérations** : Analyse des données étudiants, génération de PV, exports\n\n" +
+                                      "Comment puis-je vous aider aujourd'hui ?";
+                
+                if (etudiantsActuels?.Count > 0)
+                {
+                    response.StatHighlights.Add($"Données chargées: {etudiantsActuels.Count} étudiants");
+                }
+                
+                response.SuggestedFollowUps.Add("Explique-moi comment fonctionne cette application");
+                response.SuggestedFollowUps.Add("Combien d'étudiants sont chargés ?");
+                response.SuggestedFollowUps.Add("Comment générer un PV ?");
+                return response;
+            }
+
+            // Questions sur l'application elle-même
+            if (normPrompt.Contains("application") || normPrompt.Contains("logiciel") || normPrompt.Contains("fonctionnement") ||
+                normPrompt.Contains("comment ca marche") || normPrompt.Contains("utiliser") || normPrompt.Contains("aide"))
+            {
+                response.Title = "📱 À propos de cette application";
+                response.ResponseText = "Cette application de délibération universitaire vous permet de :\n\n" +
+                                      "**📥 Import & Validation**\n" +
+                                      "• Importer des fichiers Excel avec les notes étudiants\n" +
+                                      "• Appliquer automatiquement les règles de décision\n\n" +
+                                      "**📄 Génération de Documents**\n" +
+                                      "• Créer des PV de délibération au format Word\n" +
+                                      "• Exporter les résultats en Excel\n\n" +
+                                      "**🤖 Assistant IA**\n" +
+                                      "• Poser des questions sur vos données\n" +
+                                      "• Automatiser les actions courantes\n\n" +
+                                      "Commencez par importer un fichier Excel dans l'onglet \"Import Excel\" !";
+                
+                response.SuggestedFollowUps.Add("Ouvre l'onglet Import Excel");
+                response.SuggestedFollowUps.Add("Comment importer un fichier Excel ?");
+                response.SuggestedFollowUps.Add("Quelles sont les règles de décision ?");
+                return response;
+            }
+
+            // Questions sur le temps, la date
+            if (normPrompt.Contains("quelle heure") || normPrompt.Contains("quel jour") || normPrompt.Contains("date") && normPrompt.Contains("aujourd"))
+            {
+                response.Title = "🕒 Informations temporelles";
+                response.ResponseText = $"Nous sommes le **{DateTime.Now:dddd d MMMM yyyy}** et il est **{DateTime.Now:HH:mm}**.\n\n";
+                
+                if (DateTime.Now.Month >= 6 && DateTime.Now.Month <= 8)
+                {
+                    response.ResponseText += "Nous sommes en période estivale, souvent utilisée pour les délibérations de fin d'année universitaire.";
+                }
+                else if (DateTime.Now.Month >= 1 && DateTime.Now.Month <= 2)
+                {
+                    response.ResponseText += "Nous sommes en début d'année, période des délibérations du premier semestre.";
+                }
+                else
+                {
+                    response.ResponseText += "Période académique en cours.";
+                }
+
+                response.SuggestedFollowUps.Add("Comment programmer une délibération ?");
+                return response;
+            }
+
+            // Questions mathématiques simples
+            if ((normPrompt.Contains("calcul") || normPrompt.Contains("combien font") || normPrompt.Contains("plus") || 
+                 normPrompt.Contains("moins") || normPrompt.Contains("multiplie") || normPrompt.Contains("divise")) &&
+                !normPrompt.Contains("etudiant") && !normPrompt.Contains("moyenne"))
+            {
+                response.Title = "🔢 Calcul";
+                response.ResponseText = "Je peux vous aider avec des calculs simples !\n\n" +
+                                      "Exemples de questions que vous pouvez me poser :\n" +
+                                      "• \"Combien font 15 + 27 ?\"\n" +
+                                      "• \"Quelle est la racine carrée de 144 ?\"\n" +
+                                      "• \"Convertis 25% en note sur 20\"\n\n" +
+                                      "Pour les calculs complexes sur les notes d'étudiants, utilisez plutôt mes fonctions de délibération spécialisées.";
+                
+                response.SuggestedFollowUps.Add("Calcule la moyenne de 12, 15 et 18");
+                response.SuggestedFollowUps.Add("Combien d'étudiants ont une bonne moyenne ?");
+                return response;
+            }
+
+            // Questions sur la météo, actualités, culture générale
+            if (normPrompt.Contains("meteo") || normPrompt.Contains("temps qu il fait") || normPrompt.Contains("temperature") ||
+                normPrompt.Contains("actualite") || normPrompt.Contains("nouvelles") || normPrompt.Contains("info") ||
+                normPrompt.Contains("culture") || normPrompt.Contains("histoire") || normPrompt.Contains("geographie"))
+            {
+                response.Title = "🌍 Questions générales";
+                response.ResponseText = "Je suis spécialisé dans l'assistance pour les délibérations universitaires, mais je peux répondre à certaines questions générales !\n\n" +
+                                      "Pour des informations précises sur :\n" +
+                                      "• **Météo** : Consultez un service météo comme Météo-France\n" +
+                                      "• **Actualités** : Consultez les sites d'information\n" +
+                                      "• **Culture générale** : Je peux vous donner des informations de base\n\n" +
+                                      "Sinon, je suis à votre disposition pour tout ce qui concerne vos délibérations étudiantes !";
+                
+                response.SuggestedFollowUps.Add("Comment fonctionne le système de délibération ?");
+                response.SuggestedFollowUps.Add("Quelles sont les mentions possibles ?");
+                return response;
+            }
+
+            // Questions techniques générales
+            if (normPrompt.Contains("ordinateur") || normPrompt.Contains("windows") || normPrompt.Contains("excel") && !normPrompt.Contains("import") ||
+                normPrompt.Contains("word") && !normPrompt.Contains("genere") || normPrompt.Contains("fichier") && !normPrompt.Contains("etudiant"))
+            {
+                response.Title = "💻 Assistance technique";
+                response.ResponseText = "Je peux vous donner quelques conseils techniques de base !\n\n" +
+                                      "**Pour cette application :**\n" +
+                                      "• Utilisez Excel pour préparer vos listes d'étudiants\n" +
+                                      "• Les PV sont générés au format Word\n" +
+                                      "• Sauvegardez régulièrement vos données\n\n" +
+                                      "**Problème spécifique ?**\n" +
+                                      "Décrivez-moi votre problème et je vous orienterai vers la bonne solution.";
+                
+                response.SuggestedFollowUps.Add("Comment préparer un fichier Excel ?");
+                response.SuggestedFollowUps.Add("Où sont sauvegardés les PV ?");
+                response.SuggestedFollowUps.Add("Problème avec l'import Excel");
+                return response;
+            }
+
+            // Fallback pour toutes les autres questions générales
+            response.Title = "🤖 Assistant Polyvalent";
+            response.ResponseText = $"Vous m'avez demandé : *\"{rawPrompt}\"*\n\n" +
+                                  "Je suis votre assistant IA pour les délibérations universitaires, mais je peux aussi vous aider sur d'autres sujets !\n\n" +
+                                  "**Mes spécialités :**\n" +
+                                  "• 🎓 Gestion des délibérations et notes étudiants\n" +
+                                  "• 📊 Analyse de données et statistiques\n" +
+                                  "• 📄 Génération de documents officiels\n" +
+                                  "• 💬 Questions générales et assistance\n\n" +
+                                  "Pouvez-vous préciser votre question ou me dire comment je peux vous aider ?";
+
+            if (etudiantsActuels?.Count > 0)
+            {
+                response.StatHighlights.Add($"Données disponibles: {etudiantsActuels.Count} étudiants");
+                response.SuggestedFollowUps.Add("Analyse ces données étudiants");
+            }
+            else
+            {
+                response.SuggestedFollowUps.Add("Comment charger des données étudiants ?");
+            }
+            
+            response.SuggestedFollowUps.Add("Explique-moi le système de mentions");
+            response.SuggestedFollowUps.Add("Aide-moi avec Excel");
+            
+            return response;
         }
     }
 
