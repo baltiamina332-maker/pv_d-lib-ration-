@@ -117,10 +117,16 @@
                                FontSize="12" Foreground="#CBD5E0" Margin="0,3,0,0"/>
                 </StackPanel>
 
-                <Button Grid.Column="1" Name="btnRafraichirHeader" Content="🔄 Actualiser Tout" 
-                        Click="BtnRafraichir_Click"
-                        Background="#34495E" Foreground="White" FontWeight="SemiBold" 
-                        Padding="12,6" BorderThickness="0" Cursor="Hand"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Name="btnMailingHeader" Content="📧 Mailing Enseignants" 
+                            Click="BtnMailingAdmin_Click"
+                            Background="#DC2626" Foreground="White" FontWeight="Bold" 
+                            Padding="12,6" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand"/>
+                    <Button Name="btnRafraichirHeader" Content="🔄 Actualiser Tout" 
+                            Click="BtnRafraichir_Click"
+                            Background="#34495E" Foreground="White" FontWeight="SemiBold" 
+                            Padding="12,6" BorderThickness="0" Cursor="Hand"/>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -218,7 +224,7 @@
 
                 <!-- DataGrid Registre des Utilisateurs -->
                 <Border Grid.Row="1" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10">
-                    <DataGrid Name="dgUtilisateurs" Style="{StaticResource CustomDataGridStyle}">
+                    <DataGrid Name="dgUtilisateurs" Style="{StaticResource CustomDataGridStyle}" CellEditEnding="DgUtilisateurs_CellEditEnding">
                         <DataGrid.Columns>
                             <!-- Colonne de déplacement/réorganisation -->
                             <DataGridTemplateColumn Header="↕️" Width="30">
@@ -246,7 +252,7 @@
                             <DataGridTextColumn Header="ID" Binding="{Binding Id}" IsReadOnly="True" Width="45"/>
                             <DataGridTextColumn Header="Login" Binding="{Binding Username}" IsReadOnly="True" Width="110"/>
                             <DataGridTextColumn Header="Nom &amp; Prénom" Binding="{Binding FullName}" IsReadOnly="True" Width="160"/>
-                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" IsReadOnly="True" Width="160"/>
+                            <DataGridTextColumn Header="Email (Double-cliquer)" Binding="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="False" Width="180"/>
                             
                             <!-- Colonne Rôle avec ComboBox interactif -->
                             <DataGridTemplateColumn Header="Rôle Utilisateur" Width="130">

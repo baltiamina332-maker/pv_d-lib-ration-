@@ -215,15 +215,15 @@
 
                     <UniformGrid Columns="3" Margin="0,4,0,0">
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="3.7k" FontSize="14" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+                            <TextBlock Name="txtSidebarEtudiants" Text="0" FontSize="14" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
                             <TextBlock Text="Étudiants" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="64" FontSize="14" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+                            <TextBlock Name="txtSidebarPVs" Text="0" FontSize="14" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
                             <TextBlock Text="PVs" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="13" FontSize="14" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+                            <TextBlock Name="txtSidebarNotifs" Text="7" FontSize="14" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
                             <TextBlock Text="Notifs" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </UniformGrid>
@@ -256,14 +256,6 @@
                         <Button Name="btnNavIA" Content="🤖 Dashboard IA &amp; ML" 
                                 Style="{StaticResource MenuItemStyle}" 
                                 Click="BtnNavTab_Click" Tag="4"/>
-
-                        <Button Name="btnNavAffectations" Content="📋 Mes Classes &amp; Affectations" 
-                                Style="{StaticResource MenuItemStyle}" 
-                                Click="BtnNavTab_Click" Tag="7"/>
-
-                        <Button Name="btnNavChargerClasse" Content="📚 Charger Classe" 
-                                Style="{StaticResource MenuItemStyle}" 
-                                Click="BtnNavTab_Click" Tag="1"/>
 
                         <Border Name="borderConfigurationSeparator" Height="1" Background="#F1F5F9" Margin="8,14,8,14"/>
 
@@ -364,13 +356,6 @@
 
                     <!-- Boutons d'Action Rapide & Notifications -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Name="btnOpenFolders" Click="BtnOpenFolders_Click" Width="36" Height="36" Padding="0" 
-                                Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Ouvrir le dossier PV">
-                            <Border Width="36" Height="36" CornerRadius="18" Background="#30FFFFFF">
-                                <TextBlock Text="📁" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </Button>
-
                         <Button Name="btnOpenMessages" Click="BtnOpenMessages_Click" Width="36" Height="36" Padding="0" Margin="0,0,8,0"
                                 Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Consulter les messages">
                             <Border Width="36" Height="36" CornerRadius="18" Background="#30FFFFFF">
@@ -421,196 +406,324 @@
                  ========================================== -->
             <Grid Grid.Row="1">
                 <TabControl Name="tabMain" Background="Transparent" BorderThickness="0" Padding="0">
-                    <TabControl.Resources>
-                        <Style TargetType="TabItem">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                        </Style>
-                    </TabControl.Resources>
+                    <TabControl.Template>
+                        <ControlTemplate TargetType="TabControl">
+                            <ContentPresenter ContentSource="SelectedContent"/>
+                        </ControlTemplate>
+                    </TabControl.Template>
 
                     <!-- ==========================================
-                         ONGLET 0 : TABLEAU DE BORD (RED DASHBOARD)
+                         ONGLET 0 : TABLEAU DE BORD (LIGHT ANALYTICS DASHBOARD)
                          ========================================== -->
                     <TabItem Header="Dashboard" IsSelected="True">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <Grid Margin="4,4">
+                            <Grid Margin="2,2">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- En-tête de bienvenue Dashboard -->
+                                <!-- 1. EN-TÊTE DASHBOARD CLAIR -->
                                 <Grid Grid.Row="0" Margin="0,0,0,20">
                                     <StackPanel VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="📊 Vue d'Ensemble &amp; Analytics" Style="{StaticResource Title}" Margin="0,0,0,0"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="📊 Vue d'Ensemble &amp; Analytics" Style="{StaticResource Title}" Margin="0,0,10,0"/>
+                                            <Border Background="#FEF2F2" BorderBrush="#DC2626" BorderThickness="1" CornerRadius="12" Padding="10,4" VerticalAlignment="Center">
+                                                <TextBlock Text="● Live Session 2026" FontSize="11" Foreground="#DC2626" FontWeight="Bold"/>
+                                            </Border>
                                         </StackPanel>
-                                        <TextBlock Text="Suivi global des délibérations, taux de réussite et procès-verbaux de la session" Style="{StaticResource BodyText}"/>
+                                        <TextBlock Text="Suivi des performances des étudiants, moyennes de promotions et statistiques des PVs" Style="{StaticResource BodyText}" Margin="0,4,0,0"/>
                                     </StackPanel>
 
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <Button Content="🔄 Actualiser" Click="RefreshHistorique" Style="{StaticResource SecondaryButton}"/>
+                                        <Button Content="🔄 Actualiser Données" Click="RefreshHistorique" Style="{StaticResource SecondaryButton}"/>
                                     </StackPanel>
                                 </Grid>
 
-                                <!-- 4 CARTES KPIS ROUGES -->
+                                <!-- 2. RANGÉE DES 4 CARTES KPIS BLANCHES AVEC SPARKELINES ROUGES -->
                                 <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,20">
-                                    <Border Background="White" CornerRadius="16" Padding="18" Margin="0,0,8,0">
+                                    <!-- CARTE 1: TOTAL ÉTUDIANTS -->
+                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="16" Padding="20" Margin="0,0,8,0">
                                         <Border.Effect>
-                                            <DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="2" Opacity="0.04"/>
+                                            <DropShadowEffect Color="#0F172A" BlurRadius="15" ShadowDepth="2" Opacity="0.04"/>
                                         </Border.Effect>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28" Background="#FEF2F2" BorderBrush="#DC2626" BorderThickness="2.5" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                <TextBlock Text="📄" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="Total PV Générés" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
-                                                <TextBlock Name="txtTotalPV" Text="0" FontSize="28" FontWeight="Bold" Foreground="#DC2626" Margin="0,2,0,2"/>
-                                                <TextBlock Text="● Procès-verbaux valides" FontSize="10.5" Foreground="#DC2626"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-
-                                    <Border Background="White" CornerRadius="16" Padding="18" Margin="4,0,4,0">
-                                        <Border.Effect>
-                                            <DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="2" Opacity="0.04"/>
-                                        </Border.Effect>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28" Background="#FEE2E2" BorderBrush="#B91C1C" BorderThickness="2.5" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                <TextBlock Text="📅" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="Sessions Ce Mois" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
-                                                <TextBlock Name="txtMoisPV" Text="0" FontSize="28" FontWeight="Bold" Foreground="#B91C1C" Margin="0,2,0,2"/>
-                                                <TextBlock Text="▲ +100% cette session" FontSize="10.5" Foreground="#B91C1C" FontWeight="SemiBold"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-
-                                    <Border Background="White" CornerRadius="16" Padding="18" Margin="4,0,4,0">
-                                        <Border.Effect>
-                                            <DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="2" Opacity="0.04"/>
-                                        </Border.Effect>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28" Background="#FFF1F2" BorderBrush="#EF4444" BorderThickness="2.5" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                <TextBlock Text="⏰" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="Créés Aujourd'hui" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
-                                                <TextBlock Name="txtJourPV" Text="0" FontSize="28" FontWeight="Bold" Foreground="#EF4444" Margin="0,2,0,2"/>
-                                                <TextBlock Text="● En cours de délibération" FontSize="10.5" Foreground="#EF4444"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-
-                                    <Border Background="White" CornerRadius="16" Padding="18" Margin="8,0,0,0">
-                                        <Border.Effect>
-                                            <DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="2" Opacity="0.04"/>
-                                        </Border.Effect>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28" Background="#FFE4E6" BorderBrush="#991B1B" BorderThickness="2.5" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                <TextBlock Text="🏆" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="Taux d'Admission" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
-                                                <TextBlock Name="txtTauxAdmissionKPI" Text="0%" FontSize="28" FontWeight="Bold" Foreground="#991B1B" Margin="0,2,0,2"/>
-                                                <TextBlock Name="txtMoyenneKPI" Text="★ Moyenne générale: 0.00/20" FontSize="10.5" Foreground="#991B1B" FontWeight="SemiBold"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </UniformGrid>
-
-                                <!-- GRAPHIQUES ET ACTIONS -->
-                                <Grid Grid.Row="2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="2*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Border Grid.Column="0" Style="{StaticResource ModernCard}" Margin="0,0,10,0">
                                         <StackPanel>
-                                            <Grid Margin="0,0,0,16">
-                                                <TextBlock Text="Progression des Délibérations &amp; Volumes" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                                    <Border Background="#FEF2F2" CornerRadius="6" Padding="8,3" Margin="0,0,6,0">
-                                                        <TextBlock Text="● Serveur PV A (Rouge)" FontSize="11" Foreground="#DC2626" FontWeight="Bold"/>
-                                                    </Border>
-                                                    <Border Background="#FFE4E6" CornerRadius="6" Padding="8,3">
-                                                        <TextBlock Text="● Serveur PV B (Bordeaux)" FontSize="11" Foreground="#991B1B" FontWeight="Bold"/>
-                                                    </Border>
-                                                </StackPanel>
+                                            <Grid Margin="0,0,0,12">
+                                                <Border Width="42" Height="42" CornerRadius="12" Background="#FEF2F2" BorderBrush="#DC2626" BorderThickness="1.5" HorizontalAlignment="Left">
+                                                    <TextBlock Text="👥" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <Border Background="#DCFCE7" CornerRadius="12" Padding="8,4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <TextBlock Text="↗ 12.4%" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
+                                                </Border>
                                             </Grid>
-
-                                            <Border Height="210" Background="#FAFAFA" CornerRadius="12" BorderBrush="#F1F5F9" BorderThickness="1" Padding="16">
-                                                <Grid>
-                                                    <Path Data="M 10,140 Q 60,70 120,110 T 240,40 T 360,90 T 480,30" Stroke="#DC2626" StrokeThickness="3.5"/>
-                                                    <Path Data="M 10,160 Q 60,120 120,130 T 240,80 T 360,120 T 480,70" Stroke="#F87171" StrokeThickness="2.5" StrokeDashArray="4 2"/>
-                                                    <TextBlock Text="Graphique dynamique en temps réel" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="#94A3B8" FontSize="11"/>
-                                                </Grid>
-                                            </Border>
+                                            <TextBlock Text="Total étudiants" FontSize="12.5" Foreground="#64748B" FontWeight="Medium"/>
+                                            <TextBlock Name="txtTotalEtudiants" Text="3,750" FontSize="30" FontWeight="Bold" Foreground="#0F172A" Margin="0,2,0,8"/>
+                                            <!-- Mini Sparkline Red -->
+                                            <Viewbox Height="28" Stretch="Fill">
+                                                <Path Data="M 0,22 C 20,25 35,18 55,20 C 75,22 90,10 110,14 C 130,18 150,5 170,10 C 190,14 210,4 230,8" 
+                                                      Stroke="#DC2626" StrokeThickness="3"/>
+                                            </Viewbox>
                                         </StackPanel>
                                     </Border>
 
-                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                                        <Border Style="{StaticResource ModernCard}">
-                                            <StackPanel>
-                                                <TextBlock Text="Répartition des Décisions" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
-                                                <ProgressBar Value="88" Height="10" Foreground="#DC2626" Background="#F1F5F9" Margin="0,0,0,8"/>
-                                                <Grid>
-                                                    <TextBlock Text="Admis (88%)" FontSize="11.5" Foreground="#475569"/>
-                                                    <TextBlock Text="Rattrapage (12%)" FontSize="11.5" Foreground="#DC2626" HorizontalAlignment="Right"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
+                                    <!-- CARTE 2: TAUX D'ADMISSION -->
+                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="16" Padding="20" Margin="4,0,4,0">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#0F172A" BlurRadius="15" ShadowDepth="2" Opacity="0.04"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,12">
+                                                <Border Width="42" Height="42" CornerRadius="12" Background="#FEE2E2" BorderBrush="#B91C1C" BorderThickness="1.5" HorizontalAlignment="Left">
+                                                    <TextBlock Text="📈" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <Border Background="#DCFCE7" CornerRadius="12" Padding="8,4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <TextBlock Text="↗ 8.1%" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="Taux d'admission" FontSize="12.5" Foreground="#64748B" FontWeight="Medium"/>
+                                            <TextBlock Name="txtTauxAdmissionKPI" Text="88.5%" FontSize="30" FontWeight="Bold" Foreground="#0F172A" Margin="0,2,0,8"/>
+                                            <TextBlock Name="txtTauxReussite" Text="88.5%" Visibility="Collapsed"/>
+                                            <!-- Mini Sparkline Crimson -->
+                                            <Viewbox Height="28" Stretch="Fill">
+                                                <Path Data="M 0,24 C 25,22 45,26 70,18 C 95,10 115,16 140,12 C 165,8 195,14 230,5" 
+                                                      Stroke="#B91C1C" StrokeThickness="3"/>
+                                            </Viewbox>
+                                        </StackPanel>
+                                    </Border>
 
-                                        <Border Style="{StaticResource ModernCard}">
-                                            <StackPanel>
-                                                <TextBlock Text="Statistiques Étudiants" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
-                                                <Grid Margin="0,0,0,8">
-                                                    <StackPanel>
-                                                        <TextBlock Text="Total Étudiants" FontSize="11" Foreground="#64748B"/>
-                                                        <TextBlock Name="txtTotalEtudiants" Text="0" FontSize="20" FontWeight="Bold" Foreground="#DC2626"/>
-                                                    </StackPanel>
-                                                </Grid>
-                                                <Grid Margin="0,0,0,8">
-                                                    <StackPanel>
-                                                        <TextBlock Text="Taux Réussite" FontSize="11" Foreground="#64748B"/>
-                                                        <TextBlock Name="txtTauxReussite" Text="0%" FontSize="20" FontWeight="Bold" Foreground="#991B1B"/>
-                                                    </StackPanel>
-                                                </Grid>
-                                                <Grid>
-                                                    <StackPanel>
-                                                        <TextBlock Text="Moyenne Générale" FontSize="11" Foreground="#64748B"/>
-                                                        <TextBlock Name="txtMoyenneGenerale" Text="0.00/20" FontSize="20" FontWeight="Bold" Foreground="#B91C1C"/>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
+                                    <!-- CARTE 3: MOYENNE GÉNÉRALE -->
+                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="16" Padding="20" Margin="4,0,4,0">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#0F172A" BlurRadius="15" ShadowDepth="2" Opacity="0.04"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,12">
+                                                <Border Width="42" Height="42" CornerRadius="12" Background="#FFF1F2" BorderBrush="#EF4444" BorderThickness="1.5" HorizontalAlignment="Left">
+                                                    <TextBlock Text="📊" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <Border Background="#DCFCE7" CornerRadius="12" Padding="8,4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <TextBlock Text="↗ 0.6%" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="Moyenne générale" FontSize="12.5" Foreground="#64748B" FontWeight="Medium"/>
+                                            <TextBlock Name="txtMoyenneGenerale" Text="13.42 / 20" FontSize="28" FontWeight="Bold" Foreground="#0F172A" Margin="0,2,0,8"/>
+                                            <TextBlock Name="txtMoyenneKPI" Text="★ 13.42/20" Visibility="Collapsed"/>
+                                            <!-- Mini Sparkline Emerald -->
+                                            <Viewbox Height="28" Stretch="Fill">
+                                                <Path Data="M 0,25 C 20,28 50,22 75,18 C 100,14 125,20 150,12 C 175,6 200,10 230,4" 
+                                                      Stroke="#10B981" StrokeThickness="3"/>
+                                            </Viewbox>
+                                        </StackPanel>
+                                    </Border>
 
-                                        <Border Style="{StaticResource ModernCard}">
-                                            <StackPanel>
-                                                <TextBlock Text="Actions Rapides" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
-                                                <Button Content="📊 Exporter Rapport Excel" Click="BtnExporterExcel_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,0,8"/>
-                                                <Button Content="📁 Dossier des PV Générés" Click="BtnOuvrirArchive_Click" Style="{StaticResource SecondaryButton}"/>
+                                    <!-- CARTE 4: PVs GÉNÉRÉS -->
+                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="16" Padding="20" Margin="8,0,0,0">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#0F172A" BlurRadius="15" ShadowDepth="2" Opacity="0.04"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,12">
+                                                <Border Width="42" Height="42" CornerRadius="12" Background="#FFE4E6" BorderBrush="#991B1B" BorderThickness="1.5" HorizontalAlignment="Left">
+                                                    <TextBlock Text="📄" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <Border Background="#FEE2E2" CornerRadius="12" Padding="8,4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <TextBlock Text="↘ 2.1%" FontSize="11" FontWeight="Bold" Foreground="#B91C1C"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="Procès-verbaux générés" FontSize="12.5" Foreground="#64748B" FontWeight="Medium"/>
+                                            <TextBlock Name="txtTotalPV" Text="64" FontSize="30" FontWeight="Bold" Foreground="#0F172A" Margin="0,2,0,8"/>
+                                            <TextBlock Name="txtMoisPV" Text="64" Visibility="Collapsed"/>
+                                            <TextBlock Name="txtJourPV" Text="12" Visibility="Collapsed"/>
+                                            <!-- Mini Sparkline Amber -->
+                                            <Viewbox Height="28" Stretch="Fill">
+                                                <Path Data="M 0,8 C 30,12 50,6 80,14 C 110,22 140,16 170,24 C 190,20 210,26 230,22" 
+                                                      Stroke="#F59E0B" StrokeThickness="3"/>
+                                            </Viewbox>
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+
+                                <!-- 3. RANGÉE PRINCIPALE: GRAPHIQUE PROGRESSION + DONUT DÉCISIONS -->
+                                <Grid Grid.Row="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- PANNEAU GAUCHE: GRAPHIQUE PROGRESSION SPLINE ROUGE -->
+                                    <Border Grid.Column="0" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="16" Padding="24" Margin="0,0,12,0">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#0F172A" BlurRadius="15" ShadowDepth="2" Opacity="0.04"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <!-- Top Bar Panel Graphique -->
+                                            <Grid Margin="0,0,0,16">
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="Aperçu des Délibérations &amp; Moyennes" FontSize="13" Foreground="#64748B" FontWeight="Medium"/>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0" VerticalAlignment="Center">
+                                                        <TextBlock Name="txtBigAverageHeader" Text="13.42 / 20" FontSize="30" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,12,0"/>
+                                                        <Border Background="#DCFCE7" CornerRadius="12" Padding="8,4" VerticalAlignment="Center">
+                                                            <TextBlock Text="↗ +18.2% vs session précédente" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <!-- Segmented Control Filtres Rouge -->
+                                                <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#F1F5F9" CornerRadius="10" Padding="4">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#DC2626" CornerRadius="7" Padding="12,6" Cursor="Hand">
+                                                            <TextBlock Text="Moyennes" FontSize="11.5" FontWeight="Bold" Foreground="White"/>
+                                                        </Border>
+                                                        <Border Background="Transparent" CornerRadius="7" Padding="12,6" Cursor="Hand" Margin="2,0,0,0">
+                                                            <TextBlock Text="Admis" FontSize="11.5" FontWeight="Medium" Foreground="#64748B"/>
+                                                        </Border>
+                                                        <Border Background="Transparent" CornerRadius="7" Padding="12,6" Cursor="Hand" Margin="2,0,0,0">
+                                                            <TextBlock Text="Sessions" FontSize="11.5" FontWeight="Medium" Foreground="#64748B"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- ZONE DE DESSIN DU GRAPHIQUE ROUGE -->
+                                            <Border Height="240" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="16">
+                                                <Grid>
+                                                    <!-- Lignes de grille horizontales -->
+                                                    <UniformGrid Rows="4" VerticalAlignment="Stretch">
+                                                        <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1"/>
+                                                        <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1"/>
+                                                        <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1"/>
+                                                        <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1"/>
+                                                    </UniformGrid>
+
+                                                    <Viewbox Stretch="Fill" Margin="10,10,10,25">
+                                                        <Grid Width="700" Height="220">
+                                                            <!-- Surface Dégradée Rouge -->
+                                                            <Path Data="M 10,180 C 60,200 110,210 160,140 C 210,70 260,170 310,135 C 360,100 410,120 460,70 C 510,20 560,90 610,35 L 610,210 L 10,210 Z">
+                                                                <Path.Fill>
+                                                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                        <GradientStop Color="#40DC2626" Offset="0.0"/>
+                                                                        <GradientStop Color="#00DC2626" Offset="1.0"/>
+                                                                    </LinearGradientBrush>
+                                                                </Path.Fill>
+                                                            </Path>
+
+                                                            <!-- Courbe Red principal -->
+                                                            <Path Data="M 10,180 C 60,200 110,210 160,140 C 210,70 260,170 310,135 C 360,100 410,120 460,70 C 510,20 560,90 610,35" 
+                                                                  Stroke="#DC2626" StrokeThickness="3.5">
+                                                                <Path.Effect>
+                                                                    <DropShadowEffect Color="#DC2626" BlurRadius="8" ShadowDepth="2" Opacity="0.3"/>
+                                                                </Path.Effect>
+                                                            </Path>
+
+                                                            <!-- Points Lumineux interactifs -->
+                                                            <Ellipse Canvas.Left="156" Canvas.Top="136" Width="10" Height="10" Fill="White" Stroke="#DC2626" StrokeThickness="3"/>
+                                                            <Ellipse Canvas.Left="306" Canvas.Top="131" Width="10" Height="10" Fill="White" Stroke="#DC2626" StrokeThickness="3"/>
+                                                            <Ellipse Canvas.Left="456" Canvas.Top="66" Width="10" Height="10" Fill="White" Stroke="#DC2626" StrokeThickness="3"/>
+                                                            <Ellipse Canvas.Left="606" Canvas.Top="31" Width="10" Height="10" Fill="White" Stroke="#DC2626" StrokeThickness="3"/>
+                                                        </Grid>
+                                                    </Viewbox>
+
+                                                    <!-- Axe des abscisses (Mois / Sessions) -->
+                                                    <UniformGrid Columns="12" VerticalAlignment="Bottom" Margin="10,0,10,2">
+                                                        <TextBlock Text="Jan" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Fév" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Mar" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Avr" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Mai" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Juin" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Juil" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Aoû" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Sep" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Oct" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Nov" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Déc" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                    </UniformGrid>
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Actions rapides sous le graphique -->
+                                            <Grid Margin="0,16,0,0">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                                    <Button Content="📊 Exporter Rapport Excel" Click="BtnExporterExcel_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0"/>
+                                                    <Button Content="📁 Dossier des PV Générés" Click="BtnOuvrirArchive_Click" Style="{StaticResource SecondaryButton}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- PANNEAU DROIT: DONUT CHART RÉPARTITION DES DÉCISIONS -->
+                                    <Border Grid.Column="1" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="16" Padding="24" Margin="12,0,0,0">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#0F172A" BlurRadius="15" ShadowDepth="2" Opacity="0.04"/>
+                                        </Border.Effect>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Text="Répartition des Décisions" FontSize="16" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,16"/>
+
+                                            <!-- ANNEAU DONUT CHART -->
+                                            <Grid Grid.Row="1" VerticalAlignment="Center">
+                                                <Viewbox Width="170" Height="170" HorizontalAlignment="Center">
+                                                    <Grid Width="200" Height="200">
+                                                        <!-- Segment 1: Red (Admis 65%) -->
+                                                        <Path Data="M 100,10 A 90,90 0 1,1 25,145" Stroke="#DC2626" StrokeThickness="22" StrokeEndLineCap="Round" StrokeStartLineCap="Round"/>
+                                                        <!-- Segment 2: Emerald (Rattrapage 22%) -->
+                                                        <Path Data="M 20,135 A 90,90 0 0,1 60,20" Stroke="#10B981" StrokeThickness="22" StrokeEndLineCap="Round" StrokeStartLineCap="Round"/>
+                                                        <!-- Segment 3: Amber (Ajourné 8%) -->
+                                                        <Path Data="M 65,15 A 90,90 0 0,1 92,10" Stroke="#F59E0B" StrokeThickness="22" StrokeEndLineCap="Round" StrokeStartLineCap="Round"/>
+                                                        <!-- Segment 4: Blue (Exclu 5%) -->
+                                                        <Path Data="M 94,10 A 90,90 0 0,1 100,10" Stroke="#2563EB" StrokeThickness="22" StrokeEndLineCap="Round" StrokeStartLineCap="Round"/>
+
+                                                        <!-- Centre du Donut avec Statistique -->
+                                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <TextBlock Name="txtDonutCenterPercent" Text="88.5%" FontSize="28" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+                                                            <TextBlock Text="Total Admis" FontSize="11" Foreground="#64748B" FontWeight="Medium" HorizontalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Viewbox>
+                                            </Grid>
+
+                                            <!-- LÉGENDE DU DONUT CHART -->
+                                            <StackPanel Grid.Row="2" Margin="0,16,0,0">
+                                                <Grid Margin="0,0,0,8">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Width="10" Height="10" Fill="#DC2626" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="Admis" FontSize="12.5" Foreground="#475569"/>
+                                                    </StackPanel>
+                                                    <TextBlock Name="txtLegAdmis" Text="65%" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                                </Grid>
+
+                                                <Grid Margin="0,0,0,8">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Width="10" Height="10" Fill="#10B981" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="Rattrapage" FontSize="12.5" Foreground="#475569"/>
+                                                    </StackPanel>
+                                                    <TextBlock Name="txtLegRattrapage" Text="22%" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                                </Grid>
+
+                                                <Grid Margin="0,0,0,8">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Width="10" Height="10" Fill="#F59E0B" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="Ajourné" FontSize="12.5" Foreground="#475569"/>
+                                                    </StackPanel>
+                                                    <TextBlock Name="txtLegAjourne" Text="8%" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                                </Grid>
+
+                                                <Grid>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Width="10" Height="10" Fill="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="Non Admis" FontSize="12.5" Foreground="#475569"/>
+                                                    </StackPanel>
+                                                    <TextBlock Name="txtLegExclu" Text="5%" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                                </Grid>
                                             </StackPanel>
-                                        </Border>
-                                    </StackPanel>
+                                        </Grid>
+                                    </Border>
                                 </Grid>
                             </Grid>
                         </ScrollViewer>
@@ -921,7 +1034,8 @@
                                     <TextBlock Name="txtStatutGeneration" Foreground="#DC2626" FontWeight="SemiBold" Margin="0,0,0,12"/>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <Button Content="📄 Générer PV Word (.docx)" Click="BtnGenererPVWord_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0"/>
-                                        <Button Content="📊 Générer PV Excel (.xlsx)" Click="BtnExporterExcel_Click" Style="{StaticResource SecondaryButton}"/>
+                                        <Button Content="📊 Générer PV Excel (.xlsx)" Click="BtnExporterExcel_Click" Style="{StaticResource SecondaryButton}" Margin="0,0,10,0"/>
+                                        <Button Name="btnMailingPV" Content="📧 Envoyer PV par Email" Click="BtnOpenMailing_Click" Style="{StaticResource SecondaryButton}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -1370,6 +1484,15 @@
                                             </DataGridTemplateColumn>
                                         </DataGrid.Columns>
                                     </DataGrid>
+
+                                    <!-- Section Mailing -->
+                                    <Border Style="{StaticResource ModernCard}" Margin="0,20,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="📧 Mailing - Envoyer PV aux Enseignants" FontSize="15" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,8"/>
+                                            <TextBlock Text="Envoyez des fichiers PV à plusieurs enseignants par email" FontSize="12" Foreground="#64748B" Margin="0,0,0,12"/>
+                                            <Button Name="btnOpenMailing" Content="📧 Ouvrir Mailing" Click="BtnOpenMailing_Click" Style="{StaticResource PrimaryButton}" Width="150" HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </ScrollViewer>

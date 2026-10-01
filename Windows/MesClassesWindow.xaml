@@ -4,7 +4,7 @@
         Title="Mes Classes Attribuées &amp; Étudiants (Espace Enseignant)" 
         Height="720" Width="1100"
         WindowStartupLocation="CenterScreen"
-        Background="#F4F6F9">
+        Background="#F8FAFC">
 
     <Window.Resources>
         <!-- Style pour DataGrid -->
@@ -12,9 +12,9 @@
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="RowHeight" Value="34"/>
+            <Setter Property="RowHeight" Value="36"/>
             <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#EDF2F7"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#F1F5F9"/>
             <Setter Property="AutoGenerateColumns" Value="False"/>
             <Setter Property="IsReadOnly" Value="True"/>
             <Setter Property="CanUserAddRows" Value="False"/>
@@ -24,18 +24,18 @@
         <!-- Style rouge pour TextBox -->
         <Style x:Key="RedTextBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#8B3A3A"/>
-            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#DC2626"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="Padding" Value="12,8"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
                         <Border Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="6" 
+                                CornerRadius="10" 
                                 Padding="{TemplateBinding Padding}">
                             <ScrollViewer x:Name="PART_ContentHost" 
                                           VerticalAlignment="Center" 
@@ -43,11 +43,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True">
-                                <Setter Property="BorderBrush" Value="#6B2A2A"/>
-                                <Setter Property="Background" Value="#FEF7F7"/>
+                                <Setter Property="BorderBrush" Value="#991B1B"/>
+                                <Setter Property="Background" Value="#FEF2F2"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="BorderBrush" Value="#A94442"/>
+                                <Setter Property="BorderBrush" Value="#EF4444"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -58,15 +58,124 @@
         <!-- Style rouge pour ComboBox -->
         <Style x:Key="RedComboBoxStyle" TargetType="ComboBox">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#8B3A3A"/>
-            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#DC2626"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="Padding" Value="12,8"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+        </Style>
+
+        <!-- Style Bouton En-tête (Glace Translucide Blanc/Rouge) -->
+        <Style x:Key="HeaderButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#35FFFFFF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#50FFFFFF"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="10" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#60FFFFFF"/>
+                    <Setter Property="BorderBrush" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#20FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style Bouton Recharger (Rouge Accent Vibrant) -->
+        <Style x:Key="ModernRechargerButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FEF2F2"/>
+            <Setter Property="Foreground" Value="#DC2626"/>
+            <Setter Property="BorderBrush" Value="#FCA5A5"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="10" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#DC2626"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderBrush" Value="#DC2626"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#991B1B"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderBrush" Value="#991B1B"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style Moderne pour TabItem -->
+        <Style TargetType="TabItem">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Name="Border" 
+                                Background="#F1F5F9" 
+                                BorderBrush="#E2E8F0" 
+                                BorderThickness="1,1,1,0" 
+                                CornerRadius="10,10,0,0" 
+                                Padding="{TemplateBinding Padding}" 
+                                Cursor="Hand">
+                            <ContentPresenter Name="ContentSite"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              ContentSource="Header"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#FEF2F2"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#DC2626"/>
+                                <Setter Property="Foreground" Value="#DC2626"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#F8FAFC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
-    <Grid Margin="18">
+    <Grid Margin="20">
         <Grid.RowDefinitions>
             <!-- En-tête principal -->
             <RowDefinition Height="Auto"/>
@@ -79,7 +188,17 @@
         </Grid.RowDefinitions>
 
         <!-- EN-TÊTE DE LA FENÊTRE -->
-        <Border Grid.Row="0" Background="#8B3A3A" CornerRadius="8" Padding="18,14" Margin="0,0,0,15">
+        <Border Grid.Row="0" CornerRadius="14" Padding="20,16" Margin="0,0,0,16">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                    <GradientStop Color="#991B1B" Offset="0.0"/>
+                    <GradientStop Color="#DC2626" Offset="0.5"/>
+                    <GradientStop Color="#EF4444" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <DropShadowEffect Color="#DC2626" BlurRadius="15" ShadowDepth="3" Opacity="0.25"/>
+            </Border.Effect>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -90,18 +209,20 @@
                     <TextBlock Text="👨‍🏫 Mes Classes Attribuées &amp; Étudiants (Lecture Seule)" 
                                FontSize="20" FontWeight="Bold" Foreground="White"/>
                     <TextBlock Text="Espace Enseignant • Consultation des étudiants et classes qui vous sont officiellement attribuées" 
-                               FontSize="12" Foreground="#F8F9FA" Margin="0,3,0,0" Opacity="0.95"/>
+                               FontSize="12" Foreground="#FEE2E2" Margin="0,3,0,0"/>
                 </StackPanel>
 
                 <Button Grid.Column="1" Name="btnRafraichirHeader" Content="🔄 Rafraîchir" 
                         Click="BtnRafraichir_Click"
-                        Background="#6B2C2C" Foreground="White" FontWeight="SemiBold" 
-                        Padding="14,7" BorderThickness="0" Cursor="Hand"/>
+                        Style="{StaticResource HeaderButtonStyle}"/>
             </Grid>
         </Border>
 
         <!-- BARRE DE RECHERCHE ET FILTRES -->
-        <Border Grid.Row="1" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,15">
+        <Border Grid.Row="1" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,16">
+            <Border.Effect>
+                <DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="2" Opacity="0.04"/>
+            </Border.Effect>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -111,12 +232,12 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="🏫 Mes Classes Attribuées :" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#4A5568" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="0" Text="🏫 Mes Classes Attribuées :" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,10,0"/>
                 <ComboBox Grid.Column="1" Name="cmbFiltreClasse" SelectionChanged="CmbFiltreClasse_SelectionChanged" Style="{StaticResource RedComboBoxStyle}"/>
 
-                <TextBox Grid.Column="3" Name="txtRecherche" TextChanged="TxtRecherche_TextChanged" Style="{StaticResource RedTextBoxStyle}" Foreground="#718096" Text="Rechercher un étudiant par nom, prénom ou matricule..."/>
+                <TextBox Grid.Column="3" Name="txtRecherche" TextChanged="TxtRecherche_TextChanged" Style="{StaticResource RedTextBoxStyle}" Foreground="#64748B" Text="Rechercher un étudiant par nom, prénom ou matricule..."/>
 
-                <Button Grid.Column="4" Name="btnActualiser" Content="🔄 Recharger" Click="BtnRafraichir_Click" Padding="14,7" Background="#EDF2F7" Foreground="#2D3748" BorderBrush="#CBD5E0" BorderThickness="1" Margin="10,0,0,0" Cursor="Hand"/>
+                <Button Grid.Column="4" Name="btnActualiser" Content="🔄 Recharger" Click="BtnRafraichir_Click" Style="{StaticResource ModernRechargerButtonStyle}" Margin="12,0,0,0"/>
             </Grid>
         </Border>
 
@@ -124,8 +245,11 @@
         <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0">
 
             <!-- Onglet 1 : Liste des Étudiants de Mes Classes -->
-            <TabItem Header="🎓 Étudiants Inscrits (Lecture Seule)" FontSize="14" FontWeight="SemiBold">
-                <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="0,8,8,8" Padding="12">
+            <TabItem Header="🎓 Étudiants Inscrits (Lecture Seule)">
+                <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="0,12,12,12" Padding="14">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="2" Opacity="0.04"/>
+                    </Border.Effect>
                     <DataGrid Name="dgEtudiants" Style="{StaticResource CustomDataGridStyle}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="#" Binding="{Binding NumeroOrdre}" Width="45"/>
@@ -143,8 +267,11 @@
             </TabItem>
 
             <!-- Onglet 2 : Mes Classes Attribuées -->
-            <TabItem Header="🏫 Mes Classes Attribuées (Lecture Seule)" FontSize="14" FontWeight="SemiBold">
-                <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="0,8,8,8" Padding="12">
+            <TabItem Header="🏫 Mes Classes Attribuées (Lecture Seule)">
+                <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="0,12,12,12" Padding="14">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#0F172A" BlurRadius="12" ShadowDepth="2" Opacity="0.04"/>
+                    </Border.Effect>
                     <DataGrid Name="dgClasses" Style="{StaticResource CustomDataGridStyle}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
@@ -161,10 +288,13 @@
         </TabControl>
 
         <!-- BARRE DE STATUT -->
-        <Border Grid.Row="3" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="12,8" Margin="0,12,0,0">
+        <Border Grid.Row="3" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,14,0,0">
+            <Border.Effect>
+                <DropShadowEffect Color="#0F172A" BlurRadius="10" ShadowDepth="1" Opacity="0.03"/>
+            </Border.Effect>
             <Grid>
-                <TextBlock Name="txtStatut" Text="Prêt | Espace Enseignant (Mode Consultation)." Foreground="#4A5568" FontSize="12" FontWeight="SemiBold"/>
-                <TextBlock Text="🔒 Mode Lecture Seule — Modifications réservées à l'Administration" HorizontalAlignment="Right" Foreground="#718096" FontSize="11"/>
+                <TextBlock Name="txtStatut" Text="Prêt | Espace Enseignant (Mode Consultation)." Foreground="#475569" FontSize="12" FontWeight="SemiBold"/>
+                <TextBlock Text="🔒 Mode Lecture Seule — Modifications réservées à l'Administration" HorizontalAlignment="Right" Foreground="#94A3B8" FontSize="11" FontWeight="Medium"/>
             </Grid>
         </Border>
     </Grid>

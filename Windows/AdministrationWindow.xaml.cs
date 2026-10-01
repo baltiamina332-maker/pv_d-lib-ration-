@@ -244,6 +244,20 @@ namespace DesktopApp
         }
 
         /// <summary>
+        /// Événement : Édition de la cellule email terminée dans AdministrationWindow
+        /// </summary>
+        private void DgUtilisateurs_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (e.Row.Item is User user && e.EditingElement is TextBox tb)
+            {
+                string newEmail = tb.Text?.Trim() ?? "";
+                user.Email = newEmail;
+                _authService.MettreAJourEmailUtilisateur(user.Id, newEmail);
+                txtStatut.Text = $"Email de '{user.Username}' mis à jour : {newEmail}";
+            }
+        }
+
+        /// <summary>
         /// Action Bouton : Supprimer un utilisateur (avec protection contre l'auto-suppression)
         /// </summary>
         private void BtnSupprimerRow_Click(object sender, RoutedEventArgs e)
@@ -531,6 +545,22 @@ namespace DesktopApp
                 element = VisualTreeHelper.GetParent(element) as UIElement;
             }
             return element as DataGridRow;
+        }
+
+        /// <summary>
+        /// Ouvrir la fenêtre de mailing pour envoyer les PV aux enseignants
+        /// </summary>
+        private void BtnMailingAdmin_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var mailingWin = new DesktopApp.Windows.MailingWindow();
+                mailingWin.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'ouverture du module mailing: {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         #endregion

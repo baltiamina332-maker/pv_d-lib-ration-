@@ -1,0 +1,253 @@
+<Window x:Class="DesktopApp.Windows.MailingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="📧 Mailing - Envoyer PV aux Enseignants" 
+        Height="700" Width="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#F1F5F9">
+
+    <Window.Resources>
+        <Style x:Key="HeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        
+        <Style x:Key="SubHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête -->
+        <Border Grid.Row="0" Background="#DC2626" Padding="20">
+            <StackPanel>
+                <TextBlock Text="📧 Mailing - Envoyer PV aux Enseignants" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Envoyez des fichiers PV à plusieurs enseignants par email" FontSize="12" Foreground="#FEE2E2" Margin="0,4,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Contenu -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20">
+                <!-- Section 0: Configuration SMTP Expéditeur -->
+                <Expander Name="expanderSmtp"
+                          Header="⚙️ Configuration du Compte d'Envoi SMTP (Expéditeur)" 
+                          IsExpanded="False" 
+                          Background="White" 
+                          Padding="16" 
+                          Margin="0,0,0,16"
+                          FontWeight="Bold"
+                          Foreground="#0F172A">
+                    <StackPanel Margin="0,12,0,0">
+                        <Border Background="#EFF6FF" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="💡 Configuration SMTP (Gmail / Outlook / Autre)" FontWeight="Bold" Foreground="#1E40AF" Margin="0,0,0,4"/>
+                                <TextBlock Text="• Entrez votre adresse e-mail expéditeur et votre mot de passe d'application ci-dessous." Foreground="#1E3A8A" FontSize="11.5" TextWrapping="Wrap"/>
+                                <TextBlock Text="• Pour Gmail : Activez la validation en 2 étapes, puis générez un 'Mot de passe d'application' (Sécurité > Mots de passe d'application)." Foreground="#1E3A8A" FontSize="11.5" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Email Expéditeur (Ex: admin@gmail.com) *" FontSize="12" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,4"/>
+                                <TextBox Name="txtSmtpEmail" Padding="10,8" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="13"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Mot de Passe (Mot de Passe d'Application) *" FontSize="12" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,4"/>
+                                <PasswordBox Name="pwdSmtpPassword" Padding="10,8" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="13"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Serveur SMTP" FontSize="12" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,4"/>
+                                <TextBox Name="txtSmtpServer" Text="smtp.gmail.com" Padding="8,6" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Port SMTP" FontSize="12" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,4"/>
+                                <TextBox Name="txtSmtpPort" Text="587" Padding="8,6" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1"/>
+                            </StackPanel>
+
+                            <CheckBox Grid.Column="4" Name="chkSmtpSsl" Content="SSL / TLS" IsChecked="True" VerticalAlignment="Bottom" Margin="0,0,0,8" FontWeight="SemiBold"/>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <!-- Section 1: Sélectionner le fichier PV -->
+                <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource HeaderStyle}" Text="1. Sélectionner le fichier PV"/>
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Choisissez le fichier PV à envoyer à tous les enseignants"/>
+                        
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBox Name="txtPVFilePath" 
+                                     Grid.Column="0"
+                                     Text="Aucun fichier sélectionné"
+                                     IsReadOnly="True"
+                                     Padding="12"
+                                     BorderBrush="#E2E8F0"
+                                     BorderThickness="1"
+                                     Background="#F8FAFC"
+                                     Foreground="#64748B"/>
+                            
+                            <Button Name="btnBrowsePV" 
+                                    Grid.Column="1"
+                                    Content="📁 Parcourir"
+                                    Click="BtnBrowsePV_Click"
+                                    Margin="8,0,0,0"
+                                    Padding="12,6"
+                                    Background="#DC2626"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    FontWeight="SemiBold"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Section 2: Sélectionner les enseignants -->
+                <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource HeaderStyle}" Text="2. Sélectionner les enseignants"/>
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Cochez les enseignants qui doivent recevoir le PV (Double-cliquez sur l'email pour le modifier/ajouter)"/>
+                        
+                        <DataGrid Name="dgTeachers" 
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  Height="250"
+                                  BorderBrush="#E2E8F0"
+                                  BorderThickness="1"
+                                  Margin="0,0,0,12"
+                                  CellEditEnding="DgTeachers_CellEditEnding">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Header="✓" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+                                <DataGridTextColumn Header="Enseignant" Binding="{Binding FullName}" IsReadOnly="True" Width="200"/>
+                                <DataGridTextColumn Header="Email (Double-cliquer pour éditer)" Binding="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="320"/>
+                                <DataGridTextColumn Header="Rôle" Binding="{Binding Role}" IsReadOnly="True" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Name="btnSelectAll" 
+                                    Content="✓ Tous"
+                                    Click="BtnSelectAll_Click"
+                                    Padding="12,6"
+                                    Margin="0,0,6,0"
+                                    Background="#94A3B8"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"/>
+                            
+                            <Button Name="btnDeselectAll" 
+                                    Content="✗ Aucun"
+                                    Click="BtnDeselectAll_Click"
+                                    Padding="12,6"
+                                    Background="#94A3B8"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Section 3: Sujet et Message personnalisé -->
+                <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource HeaderStyle}" Text="3. Sujet et Message de l'Email"/>
+                        <TextBlock Style="{StaticResource SubHeaderStyle}" Text="Personnalisez l'objet et le texte de l'email"/>
+                        
+                        <TextBlock Text="Sujet de l'email :" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,4"/>
+                        <TextBox Name="txtEmailSubject"
+                                 Text="📄 Procès-Verbal de Délibération"
+                                 Padding="10"
+                                 Margin="0,0,0,12"
+                                 BorderBrush="#E2E8F0"
+                                 BorderThickness="1"
+                                 Background="#F8FAFC"
+                                 Foreground="#0F172A"/>
+                        
+                        <TextBlock Text="Corps du message :" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,4"/>
+                        <TextBox Name="txtEmailMessage"
+                                 Text="Veuillez trouver ci-joint le Procès-Verbal de la session de délibération."
+                                 Padding="12"
+                                 Height="90"
+                                 TextWrapping="Wrap"
+                                 VerticalAlignment="Top"
+                                 BorderBrush="#E2E8F0"
+                                 BorderThickness="1"
+                                 Background="#F8FAFC"
+                                 Foreground="#0F172A"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Section 4: Résumé & Progression -->
+                <Border Background="#FEF2F2" CornerRadius="12" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="📊 Résumé du mailing" FontSize="14" FontWeight="Bold" Foreground="#DC2626" Margin="0,0,0,8"/>
+                        <TextBlock Name="txtSummary" Text="Aucun fichier sélectionné | 0 enseignant(s) sélectionné(s)" Foreground="#64748B"/>
+                        <ProgressBar Name="pbSendingProgress" Height="8" Margin="0,10,0,4" Visibility="Collapsed" IsIndeterminate="False"/>
+                        <TextBlock Name="txtSendingStatus" Text="" Foreground="#DC2626" FontWeight="SemiBold" FontSize="12" Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Boutons d'action -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="20">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Name="btnCancel" 
+                        Content="❌ Annuler"
+                        Click="BtnCancel_Click"
+                        Padding="16,8"
+                        Margin="0,0,8,0"
+                        Background="#E2E8F0"
+                        Foreground="#0F172A"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        FontWeight="SemiBold"/>
+                
+                <Button Name="btnSendMailing" 
+                        Content="📧 Envoyer à tous"
+                        Click="BtnSendMailing_Click"
+                        Padding="16,8"
+                        Background="#DC2626"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        FontWeight="SemiBold"
+                        FontSize="13"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

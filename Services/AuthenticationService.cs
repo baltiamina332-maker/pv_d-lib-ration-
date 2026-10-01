@@ -336,6 +336,41 @@ namespace DesktopApp.Services
         }
 
         /// <summary>
+        /// Mettre à jour l'adresse email d'un utilisateur
+        /// </summary>
+        public bool MettreAJourEmailUtilisateur(int userId, string newEmail)
+        {
+            newEmail = newEmail?.Trim() ?? "";
+
+            var targetUser = _users.Find(u => u.Id == userId);
+            if (targetUser != null)
+            {
+                targetUser.Email = newEmail;
+            }
+
+            try
+            {
+                if (_dbConnection.OpenConnection())
+                {
+                    string query = "UPDATE users SET email=@email WHERE id=@id";
+                    MySqlCommand cmd = new MySqlCommand(query, _dbConnection.GetConnection());
+                    cmd.Parameters.AddWithValue("@id", userId);
+                    cmd.Parameters.AddWithValue("@email", newEmail);
+
+                    cmd.ExecuteNonQuery();
+                    _dbConnection.CloseConnection();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AuthenticationService] Erreur maj email: {ex.Message}");
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Modifier un utilisateur existant (Mise à jour rôle et statut)
         /// </summary>
         public bool UpdateUser(User user)
