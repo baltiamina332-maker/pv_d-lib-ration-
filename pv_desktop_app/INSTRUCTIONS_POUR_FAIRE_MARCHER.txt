@@ -1,0 +1,308 @@
+═══════════════════════════════════════════════════════════════════════════════
+         INSTRUCTIONS EXACTES POUR FAIRE FONCTIONNER EMAIL - PAS À PAS
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF: La fonctionnalité Email doit être 100% opérationnelle
+TEMPS ESTIMÉ: 15-20 minutes
+DIFFICULTÉ: Facile
+
+───────────────────────────────────────────────────────────────────────────────
+ÉTAPE 1: PRÉPARER LA BASE DE DONNÉES (5 minutes)
+───────────────────────────────────────────────────────────────────────────────
+
+Option A: Utiliser phpMyAdmin (le plus simple)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Ouvrer votre navigateur
+2. Aller à: http://localhost/phpmyadmin
+3. Identifier-vous si nécessaire
+4. Dans la liste à gauche, cliquer sur: pv_deliberation
+5. Cliquer sur l'onglet: SQL
+6. Dans la zone de texte, copier-coller EXACTEMENT:
+
+   ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL DEFAULT '';
+
+7. Cliquer sur le bouton: Exécuter
+8. Vous devriez voir le message: "La commande a été exécutée avec succès"
+9. Fermer phpMyAdmin
+
+Status: ✅ Base de données mise à jour
+
+───────────────────────────────────────────────────────────────────────────────
+
+Option B: Utiliser MySQL Workbench
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Ouvrir MySQL Workbench
+2. Double-cliquer sur votre connexion
+3. Cliquer sur: File → New Query Tab
+4. Copier-coller le code SQL ci-dessus
+5. Cliquer sur: Execute (bouton ⚡)
+6. Vous devriez voir: "Rows affected: 0" (c'est normal)
+7. Fermer l'onglet
+
+Status: ✅ Base de données mise à jour
+
+───────────────────────────────────────────────────────────────────────────────
+ÉTAPE 2: COMPILER L'APPLICATION (5 minutes)
+───────────────────────────────────────────────────────────────────────────────
+
+1. Ouvrir Visual Studio
+2. Cliquer sur: File → Open → Project/Solution
+3. Chercher et sélectionner: DesktopApp.sln
+4. Cliquer sur: Open
+
+5. Attendre que le projet se charge (peut prendre quelques secondes)
+
+6. Cliquer sur: Build → Clean Solution
+   (Cela supprime les anciens fichiers compilés)
+
+7. Attendre la fin...
+
+8. Cliquer sur: Build → Rebuild Solution
+   (Cela compile l'application)
+
+9. Attendre ~2-3 minutes la compilation
+
+10. Regarder la fenêtre "Output" en bas
+    Vous devriez voir: "========== Build: 1 succeeded, 0 failed =========="
+
+11. Si erreurs:
+    - Voir section DÉPANNAGE ci-dessous
+    - Sinon: Continuer à l'étape 3
+
+Status: ✅ Application compilée
+
+───────────────────────────────────────────────────────────────────────────────
+ÉTAPE 3: LANCER L'APPLICATION (2 minutes)
+───────────────────────────────────────────────────────────────────────────────
+
+1. Double-cliquer sur: bin/Debug/DesktopApp.exe
+   (Vous le trouverez dans le dossier du projet)
+
+   OU
+
+   Dans Visual Studio: Cliquer sur le bouton ▶️ "Start" ou presser F5
+
+2. Attendre le démarrage de l'application (quelques secondes)
+
+3. La fenêtre "Connexion" devrait apparaître
+
+4. Entrer les identifiants:
+   - Username: admin
+   - Password: admin123
+
+5. Cliquer sur: Connexion
+
+6. Vous devriez arriver à l'accueil de l'application
+
+Status: ✅ Application lancée et connectée
+
+───────────────────────────────────────────────────────────────────────────────
+ÉTAPE 4: TESTER LA FONCTIONNALITÉ EMAIL (5 minutes)
+───────────────────────────────────────────────────────────────────────────────
+
+TEST 1: Ajouter un utilisateur avec email valide
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Cliquer sur l'onglet: ⚙️ Administration
+
+2. Vous devriez voir le formulaire "Ajouter un nouvel utilisateur"
+   Avec ces champs:
+   - Nom d'utilisateur
+   - Nom complet
+   - Email ← NOUVEAU
+   - Rôle
+
+3. Remplir le formulaire:
+
+   Nom d'utilisateur: [john]
+   Nom complet: [John Doe]
+   Email: [john@example.com]
+   Rôle: [Utilisateur]
+
+4. Cliquer sur: Ajouter
+
+5. Vérifications:
+   ✅ Message "Utilisateur ajouté avec succès." s'affiche
+   ✅ La liste des utilisateurs se rafraîchit
+   ✅ John Doe apparaît dans la liste
+   ✅ L'email "john@example.com" s'affiche dans la colonne Email
+
+Status: ✅ Utilisateur créé avec email
+
+───────────────────────────────────────────────────────────────────────────────
+
+TEST 2: Validation - Email vide
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Remplir le formulaire:
+
+   Nom d'utilisateur: [marie]
+   Nom complet: [Marie Dupont]
+   Email: [LAISSER VIDE] ← NE PAS REMPLIR
+   Rôle: [Utilisateur]
+
+2. Cliquer sur: Ajouter
+
+3. Vérification:
+   ⚠️ Un message d'erreur s'affiche: "Veuillez remplir tous les champs."
+   ⚠️ L'utilisateur n'est PAS créé
+   ⚠️ Le formulaire reste ouvert
+
+Status: ✅ Validation fonctionne
+
+───────────────────────────────────────────────────────────────────────────────
+
+TEST 3: Validation - Email sans @
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Remplir le formulaire:
+
+   Nom d'utilisateur: [pierre]
+   Nom complet: [Pierre Martin]
+   Email: [pierreexample.com] ← SANS @ INTENTIONNELLEMENT
+   Rôle: [Utilisateur]
+
+2. Cliquer sur: Ajouter
+
+3. Vérifications:
+   ⚠️ Message d'erreur: "❌ L'adresse email doit contenir un @."
+   ✅ Le champ Email reçoit automatiquement le focus
+   ✅ Le texte dans le champ est automatiquement sélectionné
+   ⚠️ L'utilisateur n'est PAS créé
+
+4. Corriger l'email:
+   - Appuyer sur Suppr pour effacer le texte sélectionné
+   - Taper: pierre@example.com
+
+5. Cliquer sur: Ajouter
+
+6. Vérification:
+   ✅ Message "Utilisateur ajouté avec succès." s'affiche
+   ✅ Utilisateur créé avec l'email correct
+
+Status: ✅ Validation email fonctionne
+
+───────────────────────────────────────────────────────────────────────────────
+ÉTAPE 5: VÉRIFIER EN BASE DE DONNÉES (3 minutes)
+───────────────────────────────────────────────────────────────────────────────
+
+1. Ouvrir phpMyAdmin ou MySQL Workbench
+
+2. Exécuter la requête:
+
+   SELECT nom_utilisateur, email FROM users ORDER BY id DESC LIMIT 5;
+
+3. Vérifier le résultat:
+   Vous devriez voir les utilisateurs créés avec leurs emails:
+
+   nom_utilisateur | email
+   ────────────────┼──────────────────
+   pierre          | pierre@example.com
+   marie           | (vide ou null - pas créé)
+   john            | john@example.com
+   admin           | ...
+
+Status: ✅ Emails sauvegardés en base de données
+
+───────────────────────────────────────────────────────────────────────────────
+RÉCAPITULATIF FINAL
+───────────────────────────────────────────────────────────────────────────────
+
+Checklist - Cocher tous les points:
+
+☐ Base de données mise à jour (colonne email ajoutée)
+☐ Application compilée sans erreur
+☐ Application lancée et connectée
+☐ Formulaire affiche le champ Email
+☐ Liste affiche la colonne Email
+☐ Utilisateur créé avec email valide
+☐ Validation: Email vide rejetée
+☐ Validation: Email sans @ rejetée
+☐ Emails sauvegardés en base de données
+☐ Emails s'affichent dans la liste
+
+Si TOUS les points sont cochés: ✅ LA FONCTIONNALITÉ EMAIL EST COMPLÈTEMENT OPÉRATIONNELLE!
+
+───────────────────────────────────────────────────────────────────────────────
+DÉPANNAGE - SI QUELQUE CHOSE NE FONCTIONNE PAS
+───────────────────────────────────────────────────────────────────────────────
+
+PROBLÈME 1: Erreur lors de la compilation
+═════════════════════════════════════════
+
+Message: "CS0103: Le nom 'txtNewEmail' n'existe pas"
+
+Solution:
+1. Ouvrir MainWindow.xaml
+2. Chercher "txtNewEmail"
+3. Si absent: Le champ n'a pas été ajouté (voir guide complet)
+4. Si présent: Fermer Visual Studio
+5. Supprimer dossiers bin/ et obj/
+6. Rouvrir Visual Studio
+7. Recompiler
+
+───────────────────────────────────────────────────────────────────────────────
+
+PROBLÈME 2: Le champ Email n'apparaît pas dans le formulaire
+═════════════════════════════════════════════════════════════
+
+Solution:
+1. Fermer l'application
+2. Ouvrir MainWindow.xaml
+3. Chercher: <TextBox Name="txtNewEmail"
+4. Si absent: Voir guide complet "FAIRE_FONCTIONNER_EMAIL.md"
+5. Si présent: Recompiler
+
+───────────────────────────────────────────────────────────────────────────────
+
+PROBLÈME 3: L'application se plante à la connexion
+═══════════════════════════════════════════════════
+
+Solution:
+1. Vérifier que MySQL Server est en cours d'exécution
+   - Services Windows → MySQL Server (doit être "Exécution")
+2. Vérifier les identifiants dans App.config
+3. Vérifier la base de données existe
+
+───────────────────────────────────────────────────────────════════════════════
+
+PROBLÈME 4: L'email n'est pas sauvegardé en base de données
+═════════════════════════════════════════════════════════════
+
+Solution:
+1. Vérifier la colonne email existe:
+   DESCRIBE users;
+   (doit voir "email" dans la liste)
+
+2. Si absent: Exécuter:
+   ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL;
+
+3. Redémarrer l'application
+
+───────────────────────────────────────────────────────────────────────────────
+
+PROBLÈME 5: Message d'erreur MySQL lors de l'ajout
+═══════════════════════════════════════════════════
+
+Message: "Erreur lors de l'ajout de l'utilisateur"
+
+Solution:
+1. Chercher le message d'erreur exact
+2. Généralement: Colonne 'email' n'existe pas
+3. Exécuter: ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL;
+4. Redémarrer l'application
+
+═══════════════════════════════════════════════════════════════════════════════
+                              C'EST TOUT!
+═══════════════════════════════════════════════════════════════════════════════
+
+Vous avez suivie 5 étapes simples et la fonctionnalité Email est maintenant
+100% opérationnelle dans votre application!
+
+Temps total estimé: 15-20 minutes
+Difficulté: Facile
+Résultat: Succès! ✅
+
+═══════════════════════════════════════════════════════════════════════════════

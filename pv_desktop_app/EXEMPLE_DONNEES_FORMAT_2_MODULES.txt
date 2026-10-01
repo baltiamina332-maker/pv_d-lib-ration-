@@ -1,0 +1,158 @@
+═════════════════════════════════════════════════════════════════════════════════════════════════
+DONNÉES DE TEST - FORMAT 2: AVEC MODULES CC/TP/EXAMEN À CALCULER
+═════════════════════════════════════════════════════════════════════════════════════════════════
+
+Ce fichier contient des exemples de données dans le FORMAT 2 (nouveau).
+Format 2 permet à l'application de CALCULER la moyenne à partir de CC, TP, Examen, et Crédits.
+
+Comment utiliser:
+1. Copier les données ci-dessous
+2. Créer un fichier Excel: format2_test.xlsx
+3. Coller les données dans la feuille 1
+4. Assurez-vous que la première ligne contient les en-têtes
+5. Importer dans l'application avec le bouton "Charger Excel"
+6. L'application devrait détecter le format automatiquement
+7. Vérifier la console pour voir les calculs
+
+═════════════════════════════════════════════════════════════════════════════════════════════════
+
+EN-TÊTES (Ligne 1 - Copier exactement):
+N°	Nom Prénom	Matricule	Classe	Année	Module	CC	TP	Examen	Crédit
+
+DONNÉES (À partir de la ligne 2):
+
+1	Jean Dupont	MAT001	L1 Info	2025/26	Mathématiques	14	13	15	4
+1	Jean Dupont	MAT001	L1 Info	2025/26	Physique	12	11	13	3
+1	Jean Dupont	MAT001	L1 Info	2025/26	Chimie	10	9	11	2
+
+2	Marie Martin	MAT002	L1 Info	2025/26	Mathématiques	13	12	14	4
+2	Marie Martin	MAT002	L1 Info	2025/26	Physique	11	10	12	3
+2	Marie Martin	MAT002	L1 Info	2025/26	Chimie	9	8	10	2
+
+3	Pierre Dubois	MAT003	L1 Info	2025/26	Mathématiques	9	8	10	4
+3	Pierre Dubois	MAT003	L1 Info	2025/26	Physique	7	6	8	3
+3	Pierre Dubois	MAT003	L1 Info	2025/26	Chimie	5	4	6	2
+
+4	Sophie Bernard	MAT004	L1 Info	2025/26	Mathématiques	15	14	16	4
+4	Sophie Bernard	MAT004	L1 Info	2025/26	Physique	13	12	14	3
+4	Sophie Bernard	MAT004	L1 Info	2025/26	Chimie	11	10	12	2
+
+5	Luc Lefevre	MAT005	L1 Info	2025/26	Mathématiques	11	10	12	4
+5	Luc Lefevre	MAT005	L1 Info	2025/26	Physique	9	8	10	3
+5	Luc Lefevre	MAT005	L1 Info	2025/26	Chimie	7	6	8	2
+
+═════════════════════════════════════════════════════════════════════════════════════════════════
+
+CALCULS ATTENDUS (Pour vérification):
+
+JEAN DUPONT (MAT001):
+  Mathématiques: (14+13+15)/3 = 14.00 × 4 = 56.00
+  Physique:      (12+11+13)/3 = 12.00 × 3 = 36.00
+  Chimie:        (10+9+11)/3  = 10.00 × 2 = 20.00
+  ─────────────────────────────────────────────
+  MG = (56 + 36 + 20) / (4 + 3 + 2) = 112 / 9 = 12.44
+  ECTS Total = 4 + 3 + 2 = 9
+  Décision: ADMIS (MG ≥ 12.0) ✅
+
+MARIE MARTIN (MAT002):
+  Mathématiques: (13+12+14)/3 = 13.00 × 4 = 52.00
+  Physique:      (11+10+12)/3 = 11.00 × 3 = 33.00
+  Chimie:        (9+8+10)/3   = 9.00 × 2  = 18.00
+  ─────────────────────────────────────────────
+  MG = (52 + 33 + 18) / (4 + 3 + 2) = 103 / 9 = 11.44
+  ECTS Total = 9
+  Décision: RATTRAPAGE (10.0 ≤ MG < 12.0) 🟡
+
+PIERRE DUBOIS (MAT003):
+  Mathématiques: (9+8+10)/3  = 9.00 × 4  = 36.00
+  Physique:      (7+6+8)/3   = 7.00 × 3  = 21.00
+  Chimie:        (5+4+6)/3   = 5.00 × 2  = 10.00
+  ─────────────────────────────────────────────
+  MG = (36 + 21 + 10) / (4 + 3 + 2) = 67 / 9 = 7.44
+  ECTS Total = 9
+  Décision: REFUSÉ (MG < 10.0) 🔴
+
+SOPHIE BERNARD (MAT004):
+  Mathématiques: (15+14+16)/3 = 15.00 × 4 = 60.00
+  Physique:      (13+12+14)/3 = 13.00 × 3 = 39.00
+  Chimie:        (11+10+12)/3 = 11.00 × 2 = 22.00
+  ─────────────────────────────────────────────
+  MG = (60 + 39 + 22) / (4 + 3 + 2) = 121 / 9 = 13.44
+  ECTS Total = 9
+  Décision: ADMIS (MG ≥ 12.0) ✅
+
+LUC LEFEVRE (MAT005):
+  Mathématiques: (11+10+12)/3 = 11.00 × 4 = 44.00
+  Physique:      (9+8+10)/3   = 9.00 × 3  = 27.00
+  Chimie:        (7+6+8)/3    = 7.00 × 2  = 14.00
+  ─────────────────────────────────────────────
+  MG = (44 + 27 + 14) / (4 + 3 + 2) = 85 / 9 = 9.44
+  ECTS Total = 9
+  Décision: REFUSÉ (MG < 10.0) 🔴
+
+═════════════════════════════════════════════════════════════════════════════════════════════════
+
+RÉSUMÉ ATTENDU:
+  🟢 Admis:      2 (Jean Dupont, Sophie Bernard)
+  🟡 Rattrapage: 1 (Marie Martin)
+  🔴 Refusé:     2 (Pierre Dubois, Luc Lefevre)
+  ────────────────────
+  Total:        5 étudiants
+
+═════════════════════════════════════════════════════════════════════════════════════════════════
+
+COMMENT COPIER-COLLER DANS EXCEL:
+
+Méthode 1 (Recommandée):
+1. Sélectionner le texte ci-dessus (EN-TÊTES + DONNÉES)
+2. Copier (Ctrl+C)
+3. Créer un nouveau fichier Excel
+4. Cliquer sur la cellule A1
+5. Coller (Ctrl+V)
+6. Excel va auto-formater les colonnes séparées par des tabulations
+
+Méthode 2 (Alternative):
+1. Créer un nouveau fichier Excel
+2. Entrer manuellement les en-têtes ligne 1
+3. Remplir les données à partir de la ligne 2
+4. Sauvegarder
+
+Méthode 3 (Depuis un fichier texte):
+1. Copier ce contenu dans un fichier text: format2_test.txt
+2. Ouvrir Excel
+3. Data → From Text (ou Get External Data)
+4. Sélectionner le fichier
+5. Choisir "Tab Delimited"
+6. Importer
+
+═════════════════════════════════════════════════════════════════════════════════════════════════
+
+IMPORTANT:
+- Les colonnes doivent être séparées par des TABULATIONS (pas d'espaces)
+- Les décimales doivent être des points (14, pas 14,0)
+- La première ligne doit contenir exactement: N°, Nom Prénom, Matricule, Classe, Année, Module, CC, TP, Examen, Crédit
+- Chaque module du même étudiant doit avoir le même N°, Nom Prénom, Matricule, Classe, Année
+
+═════════════════════════════════════════════════════════════════════════════════════════════════
+
+RÉSULTATS APRÈS IMPORT DANS L'APPLICATION:
+
+Le DataGrid affichera un tableau avec les colonnes:
+N° | Nom et Prénom | Matricule | Classe | Année | MG (calculée) | ECTS (total) | Décision | Mention
+
+Et pour chaque étudiant, la ligne affichera:
+- MG calculée: 12.44, 11.44, 7.44, 13.44, 9.44
+- ECTS: 9 (pour tous - somme des crédits)
+- Décision automatique: Admis, Rattrapage, Refusé
+
+La console (Output) affichera les calculs détaillés:
+[IMPORT] Format détecté: AVEC MODULES (CC/TP/Examen à calculer)
+[CALC] Calcul de moyenne pour Jean Dupont à partir de 3 module(s):
+  Module: Mathématiques | CC:14.00 TP:13.00 Exam:15.00 | Moy:14.00 × Crédit:4 = 56.00
+  Module: Physique | CC:12.00 TP:11.00 Exam:13.00 | Moy:12.00 × Crédit:3 = 36.00
+  Module: Chimie | CC:10.00 TP:9.00 Exam:11.00 | Moy:10.00 × Crédit:2 = 20.00
+  TOTAL PONDÉRÉ: 112.00 / TOTAL CRÉDITS: 9 = MG: 12.44
+✓ Jean Dupont - MG: 12.44 - Décision: Admis
+
+═════════════════════════════════════════════════════════════════════════════════════════════════
+

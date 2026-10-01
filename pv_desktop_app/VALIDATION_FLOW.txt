@@ -1,0 +1,195 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║           CONTRÔLE DE SAISIE - FLUX DE VALIDATION COMPLET                   ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1️⃣  SAISIE EN TEMPS RÉEL                                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Utilisateur saisit le nom d'utilisateur
+              ↓
+        TextChanged Event
+              ↓
+    TxtUsername_TextChanged() déclenché
+              ↓
+    ┌────────────────────────────┐
+    │ Vérifications:             │
+    │ • Caractères valides?      │
+    │ • Longueur < 50?           │
+    └────────────────────────────┘
+              ↓
+    ✅ Valide: Pas de message    OU    ❌ Invalide: Affiche ⚠️
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2️⃣  BASCULEMENT AFFICHAGE MOT DE PASSE                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Utilisateur clique sur 👁️
+              ↓
+        BtnTogglePassword_Click()
+              ↓
+    isPasswordVisible = true
+              ↓
+    Copie PasswordBox → TextBox visible
+              ↓
+    PasswordBox masqué
+    TextBox visible affiche le mot de passe en clair
+    Bouton change: 👁️ → 🔒
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3️⃣  SYNCHRONISATION MOT DE PASSE                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Mode Masqué (PasswordBox visible):
+    ────────────────────────────────
+    Utilisateur tape dans PasswordBox
+              ↓
+        PasswordChanged Event
+              ↓
+    Copie automatiquement vers TextBox caché
+    (Permet le basculement transparent)
+
+
+    Mode Visible (TextBox visible):
+    ──────────────────────────────
+    Utilisateur tape dans TextBox
+              ↓
+        TextChanged Event
+              ↓
+    Copie automatiquement vers PasswordBox caché
+    (Permet le basculement transparent)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4️⃣  CLIC SUR "SE CONNECTER"                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    BtnLogin_Click()
+              ↓
+    Récupère les valeurs:
+    • username = txtUsername.Text
+    • password = (isPasswordVisible ? txtPasswordVisible : pwdPassword)
+              ↓
+    Appelle ValidateInputs(username, password)
+              ↓
+    ┌─────────────────────────────────────────┐
+    │     VALIDATION COMPLÈTE                 │
+    ├─────────────────────────────────────────┤
+    │ ✓ Nom d'utilisateur vide?              │
+    │ ✓ Mot de passe vide?                   │
+    │ ✓ Username < 3 caractères?             │
+    │ ✓ Password < 1 caractère?              │
+    │ ✓ Caractères valides dans username?    │
+    │ ✓ Username commence par espace?        │
+    │ ✓ Caractères SQL injection?            │
+    └─────────────────────────────────────────┘
+              ↓
+    ❌ Erreur de validation?
+              ↓
+    Affiche message d'erreur (rouge)
+    STOP - Ne pas continuer
+              ↓
+    ✅ Validation réussie
+              ↓
+    authService.Authenticate(username, password)
+              ↓
+    ┌──────────────────┐
+    │ Authentification │
+    │ en Base de Données
+    └──────────────────┘
+              ↓
+    ✅ Credentials valides?
+              ↓
+    Ouvre MainWindow
+    Ferme LoginWindow
+              ↓
+    ❌ Credentials invalides?
+              ↓
+    Affiche: "Nom d'utilisateur ou mot de passe incorrect."
+    Vide les champs (sécurité)
+    Attend une nouvelle tentative
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                          MESSAGES D'ERREUR                                   ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+❌ CHAMPS VIDES:
+   "⚠️ Veuillez entrer votre nom d'utilisateur."
+   "⚠️ Veuillez entrer votre mot de passe."
+
+❌ LONGUEUR:
+   "⚠️ Le nom d'utilisateur doit contenir au moins 3 caractères."
+   "⚠️ Le nom d'utilisateur ne doit pas dépasser 50 caractères."
+
+❌ CARACTÈRES INVALIDES:
+   "⚠️ Le nom d'utilisateur ne peut contenir que des lettres, chiffres, 
+      points, tirets et underscores."
+   "⚠️ Le nom d'utilisateur contient des caractères non autorisés."
+
+❌ SÉCURITÉ:
+   "⚠️ Le mot de passe contient des caractères non autorisés."
+   (Refuse: ; ' ")
+
+❌ FORMAT:
+   "⚠️ Le nom d'utilisateur ne doit pas commencer par un espace."
+
+❌ AUTHENTIFICATION:
+   "Nom d'utilisateur ou mot de passe incorrect."
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                       ÉTAT DES CONTRÔLES                                    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+AVANT VALIDATION:
+├─ Nom d'utilisateur: [________] ← Accepte tous les caractères initialement
+├─ Mot de passe: [••••••••] ← Masqué par défaut
+├─ Bouton 👁️: Toggle affichage/masquage
+├─ Message d'erreur: [Vide]
+└─ Bouton "Se connecter": [Actif]
+
+
+PENDANT LA SAISIE:
+├─ Chaque caractère vérifié en temps réel
+├─ Message d'erreur si caractères invalides
+├─ Pas de blocage de saisie (UX fluide)
+└─ Feedback immédiat
+
+
+APRÈS VALIDATION:
+├─ ✅ Valide: Tentative de connexion à la BD
+├─ ❌ Invalide: Message d'erreur rouge
+│   └─ Utilisateur doit corriger
+└─ Impossible de se connecter sans correction
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                       SÉCURITÉ IMPLÉMENTÉE                                  ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+1. VALIDATION DE FORMAT:
+   ✓ Regex pour caractères autorisés
+   ✓ Longueur minimale/maximale
+   ✓ Pas de caractères spéciaux dangereux
+
+2. PROTECTION SQL INJECTION:
+   ✓ Refuse les caractères: ; ' "
+   ✓ Valide avant envoi à la base de données
+
+3. MASQUAGE DU MOT DE PASSE:
+   ✓ PasswordBox par défaut (masque la saisie)
+   ✓ Toggle optionnel pour visibilité
+   ✓ Synchronisation transparente
+
+4. NETTOYAGE APRÈS ERREUR:
+   ✓ Efface les champs après échec authentification
+   ✓ Prévient les fuites d'information
+
+5. MESSAGES EXPLICITES:
+   ✓ Guide l'utilisateur dans la correction
+   ✓ N'expose pas les détails techniques
+
+═══════════════════════════════════════════════════════════════════════════════

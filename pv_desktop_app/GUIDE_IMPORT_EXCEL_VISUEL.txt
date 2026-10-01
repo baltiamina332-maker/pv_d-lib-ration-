@@ -1,0 +1,261 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                      GUIDE VISUEL - IMPORT EXCEL                              ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+
+ÉTAPE 1: PRÉPARER LE FICHIER EXCEL
+──────────────────────────────────
+
+Créez un fichier Excel avec cette structure:
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│  A  │  B          │  C      │  D      │  E          │  F   │  G    │      │
+├────────────────────────────────────────────────────────────────────────────┤
+│ N°  │ Nom Prénom  │ Matric. │ Classe  │ Année Univ. │ MG   │ ECTS  │      │
+├────────────────────────────────────────────────────────────────────────────┤
+│ 1   │ Ali Ahmed   │ MAT001  │ 3INFO-A │ 2024-2025   │ 10.5 │ 12    │  ✓   │
+│ 2   │ Fatima B.   │ MAT002  │ 3INFO-A │ 2024-2025   │ 9.8  │ 18    │  ✓   │
+│ 3   │ Mohamed K.  │ MAT003  │ 3INFO-A │ 2024-2025   │ 11.2 │ 10    │  ✓   │
+│ 4   │ Amira Z.    │ MAT004  │ 3INFO-A │ 2024-2025   │ 8.5  │ 25    │  ✓   │
+│ 5   │ Hassan B.   │ MAT005  │ 3INFO-A │ 2024-2025   │ 12.0 │ 8     │  ✓   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+✅ Vérifications avant de continuer:
+  ☑ Fichier a 7 colonnes (A à G)
+  ☑ Ligne 1 contient les en-têtes
+  ☑ Données commencent ligne 2
+  ☑ N° et ECTS sont des nombres
+  ☑ MG est décimal (10.5, pas 10 ou "10.5")
+  ☑ Fichier est en .xlsx
+
+📊 Types de Colonnes dans Excel:
+  Col A (N°)         → Format Nombre | Décimales: 0
+  Col B (Nom)        → Format Texte
+  Col C (Matricule)  → Format Texte
+  Col D (Classe)     → Format Texte
+  Col E (Année)      → Format Texte
+  Col F (MG)         → Format Nombre | Décimales: 2
+  Col G (ECTS)       → Format Nombre | Décimales: 0
+
+
+ÉTAPE 2: ENREGISTRER LE FICHIER
+────────────────────────────────
+
+1. Clic droit sur le fichier → Propriétés
+   ✓ Vérifier: Type = "Microsoft Excel Document (.xlsx)"
+   
+2. Si format .csv ou autre:
+   Fichier → Enregistrer sous
+              Format: Excel 2007-365 (.xlsx)
+              Enregistrer
+
+
+ÉTAPE 3: FERMER LE FICHIER EXCEL
+─────────────────────────────────
+
+⚠️  IMPORTANT: Fermez le fichier dans Excel!
+
+Si le fichier reste ouvert:
+  ❌ L'application ne pourra pas l'accéder
+  ❌ Erreur: "Le fichier est verrouillé"
+
+Après import, vous pouvez le rouvrir.
+
+
+ÉTAPE 4: IMPORTER DANS L'APPLICATION
+──────────────────────────────────────
+
+L'application est lancée et vous êtes dans l'onglet "📥 Import Excel"
+
+┌─────────────────────────────────────────────────────────────────┐
+│                       INTERFACE IMPORT                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  📁 Parcourir          [BOUTON]                               │
+│  📥 Charger Excel      [BOUTON]                               │
+│                                                                 │
+│  Chemin fichier: ________________________                       │
+│  Statut: En attente d'un fichier Excel...                     │
+│                                                                 │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ N° │ Nom Prénom │ Matricule │ Classe │ MG │ ... │          │
+│  ├──────────────────────────────────────────────────┤          │
+│  │ [Pas de données]                                 │          │
+│  └──────────────────────────────────────────────────┘          │
+│                                                                 │
+│  Statut: En attente d'un fichier Excel...                     │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+
+ÉTAPE 5A: CLIQUER SUR "PARCOURIR"
+──────────────────────────────────
+
+      [📁 PARCOURIR]
+         ↓
+    Boîte de dialogue "Ouvrir fichier"
+         ↓
+    Naviguer jusqu'à votre fichier Excel
+         ↓
+    Cliquer sur le fichier pour le sélectionner
+         ↓
+    Cliquer sur "Ouvrir"
+
+Résultat:
+  ✅ Le chemin du fichier s'affiche
+  ✅ Le bouton "📥 Charger Excel" devient actif
+  ✅ Message: "📁 Fichier sélectionné: mon_fichier.xlsx"
+
+
+ÉTAPE 5B: CLIQUER SUR "CHARGER EXCEL"
+──────────────────────────────────────
+
+Après avoir sélectionné le fichier:
+
+      [📥 CHARGER EXCEL]
+         ↓
+    Message: "⏳ Chargement et validation en cours..."
+         ↓
+    L'application lit le fichier Excel
+    - Valide la structure
+    - Lit les données
+    - Calcule les décisions (MG/ECTS)
+    - Calcule les mentions
+         ↓
+    Résultat:
+
+    ✅ SUCCÈS:
+       - Tableau se remplit avec les données
+       - Message vert: "✅ 5 étudiant(s) importé(s) avec succès."
+       - Les colonnes affichent:
+         * N°, Nom, Matricule, Classe, Année
+         * MG, ECTS, Décision, Mention
+
+    ❌ ERREUR:
+       - Message rouge s'affiche
+       - Tableau reste vide
+       - Message d'erreur: explique le problème
+
+
+ÉTAPE 6: VÉRIFIER LES RÉSULTATS
+────────────────────────────────
+
+Le tableau devrait ressembler à ceci:
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ N° │ Nom Prénom  │ Matr. │ Classe  │ Année    │ MG   │ Décision     │
+├─────────────────────────────────────────────────────────────────────┤
+│ 1  │ Ali Ahmed   │ MAT01 │ 3INFO-A │ 2024-025 │ 10.5 │ ✅ Admis     │
+│ 2  │ Fatima B.   │ MAT02 │ 3INFO-A │ 2024-025 │ 9.8  │ ⚠️ Conseil   │
+│ 3  │ Mohamed K.  │ MAT03 │ 3INFO-A │ 2024-025 │ 11.2 │ ✅ Admis     │
+│ 4  │ Amira Z.    │ MAT04 │ 3INFO-A │ 2024-025 │ 8.5  │ ❌ Redouble  │
+│ 5  │ Hassan B.   │ MAT05 │ 3INFO-A │ 2024-025 │ 12.0 │ ✅ Admis     │
+└─────────────────────────────────────────────────────────────────────┘
+
+✅ Vérifications:
+  ☑ Toutes les lignes s'affichent?
+  ☑ Les décisions sont calculées (pas vides)?
+  ☑ Les MG affichent 2 décimales?
+  ☑ Les ECTS sont correctes?
+
+
+ÉTAPE 7: GÉNÉRER LE PV
+──────────────────────
+
+Une fois les données importées avec succès:
+
+1. Allez à l'onglet "📄 Génération PV"
+2. Cliquez sur "Générer PV Word"
+3. Un document Word est créé automatiquement:
+   - Stocké dans: Documents\PV_Archives\
+   - Nom: PV_3INFO-A_2024-12-15_145023.docx
+   - Enregistré en base de données
+4. Le document s'ouvre automatiquement (optionnel)
+
+
+RÉSUMÉ DU FLUX COMPLET
+──────────────────────
+
+┌────────────────┐
+│ 1. Préparer    │  Excel avec 7 colonnes
+│    Excel       │  (N°, Nom, Matricule, Classe, Année, MG, ECTS)
+└────────┬───────┘
+         ↓
+┌────────────────┐
+│ 2. Fermer      │  Fermer le fichier dans Excel
+│    le fichier  │
+└────────┬───────┘
+         ↓
+┌────────────────┐
+│ 3. Parcourir   │  Cliquer "📁 Parcourir"
+│                │  Sélectionner le fichier
+└────────┬───────┘
+         ↓
+┌────────────────┐
+│ 4. Charger     │  Cliquer "📥 Charger Excel"
+│                │  Attendre la validation et import
+└────────┬───────┘
+         ↓
+┌────────────────┐
+│ 5. Vérifier    │  Les données s'affichent dans le tableau
+│    les données │  Les décisions sont calculées automatiquement
+└────────┬───────┘
+         ↓
+┌────────────────┐
+│ 6. Générer PV  │  Cliquer "Générer PV Word"
+│                │  Document créé et archivé
+└────────────────┘
+
+
+MESSAGES D'ERREUR ET SOLUTIONS
+───────────────────────────────
+
+❌ "Le fichier est verrouillé"
+   → Fermez le fichier dans Excel et réessayez
+
+❌ "Le fichier ne contient pas assez de colonnes"
+   → Ajoutez les 7 colonnes requises (N°, Nom, Matricule, etc.)
+
+❌ "Aucune donnée valide trouvée"
+   → Assurez-vous que les données commencent à la ligne 2
+   → Vérifiez que les types de colonnes sont corrects
+
+❌ "Valeur non valide pour MG"
+   → MG doit être un nombre (10.5, pas "10.5" ou 10)
+
+❌ "Valeur non valide pour ECTS"
+   → ECTS doit être un nombre entier (12, pas "12" ou 12.5)
+
+✅ "5 étudiant(s) importé(s) avec succès"
+   → Import réussi! Les données sont affichées
+
+
+DONNÉES EXEMPLE POUR TESTER
+───────────────────────────
+
+Si vous n'avez pas encore de données, créez ce fichier test:
+
+N° | Nom et Prénom | Matricule | Classe/Groupe | Année Univ. | MG  | ECTS
+ 1 | Ali Ahmed     | MAT001    | 3INFO-A       | 2024-2025   | 10.5| 12
+ 2 | Fatima Bel    | MAT002    | 3INFO-A       | 2024-2025   | 9.8 | 18
+ 3 | Mohamed Kar   | MAT003    | 3INFO-A       | 2024-2025   | 11.2| 10
+ 4 | Amira Zou     | MAT004    | 3INFO-A       | 2024-2025   | 8.5 | 25
+ 5 | Hassan Ben    | MAT005    | 3INFO-A       | 2024-2025   | 12.0| 8
+
+Enregistrez en .xlsx et importez pour vérifier que tout fonctionne.
+
+
+BESOIN D'AIDE?
+──────────────
+
+Consultez ces fichiers:
+  📄 FORMAT_EXCEL_REQUIS.md      → Format exact du fichier
+  📄 DEBBOGGAGE_IMPORT_EXCEL.md  → Résolution des problèmes
+  📄 QUICK_START.md              → Guide rapide
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+C'est tout! Votre import Excel devrait fonctionner maintenant. 🚀
+
+═══════════════════════════════════════════════════════════════════════════════

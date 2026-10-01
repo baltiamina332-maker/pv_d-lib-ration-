@@ -1,0 +1,140 @@
+EXEMPLE DE DONNÉES POUR TESTER L'APPLICATION
+
+Format à utiliser dans Excel (2 formats acceptés):
+
+═══════════════════════════════════════════════════════════════════════════════
+FORMAT 1: NOM ET PRÉNOM COMBINÉS (RECOMMANDÉ)
+═══════════════════════════════════════════════════════════════════════════════
+
+N°	Nom Prénom	Matricule	Classe	Année	MG	ECTS
+1	Jean Dupont	MAT001	L1 Info	2025/26	13.5	28
+2	Marie Martin	MAT002	L1 Info	2025/26	11.2	25
+3	Pierre Dubois	MAT003	L1 Info	2025/26	9.8	20
+4	Sophie Bernard	MAT004	L1 Info	2025/26	10.5	22
+5	Luc Lefevre	MAT005	L1 Info	2025/26	8.9	18
+6	Anne Leclerc	MAT006	L1 Info	2025/26	14.2	30
+7	Marc Fontaine	MAT007	L1 Info	2025/26	12.0	26
+8	Isabelle Moreau	MAT008	L1 Info	2025/26	9.5	15
+
+
+RÉSULTATS ATTENDUS:
+───────────────────
+1. Jean Dupont (MG: 13.5) → ADMIS 🟢
+2. Marie Martin (MG: 11.2) → RATTRAPAGE 🟡
+3. Pierre Dubois (MG: 9.8) → REFUSÉ 🔴
+4. Sophie Bernard (MG: 10.5) → RATTRAPAGE 🟡
+5. Luc Lefevre (MG: 8.9) → REFUSÉ 🔴
+6. Anne Leclerc (MG: 14.2) → ADMIS 🟢
+7. Marc Fontaine (MG: 12.0) → ADMIS 🟢
+8. Isabelle Moreau (MG: 9.5) → REFUSÉ 🔴
+
+STATISTIQUES:
+─────────────
+🟢 Admis: 3 (37.5%)
+🟡 Rattrapage: 2 (25.0%)
+🔴 Refusé: 3 (37.5%)
+Total: 8
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FORMAT 2: NOM ET PRÉNOM SÉPARÉS
+═══════════════════════════════════════════════════════════════════════════════
+
+N°	Nom	Prénom	Matricule	Classe	Année	MG	ECTS
+1	Dupont	Jean	MAT001	L1 Info	2025/26	13.5	28
+2	Martin	Marie	MAT002	L1 Info	2025/26	11.2	25
+3	Dubois	Pierre	MAT003	L1 Info	2025/26	9.8	20
+4	Bernard	Sophie	MAT004	L1 Info	2025/26	10.5	22
+5	Lefevre	Luc	MAT005	L1 Info	2025/26	8.9	18
+
+
+═══════════════════════════════════════════════════════════════════════════════
+RÈGLES DE DÉCISION
+═══════════════════════════════════════════════════════════════════════════════
+
+MG ≥ 12.0  →  ADMIS (🟢 Vert)
+10.0 ≤ MG < 12.0  →  RATTRAPAGE (🟡 Jaune)
+MG < 10.0  →  REFUSÉ (🔴 Rouge)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+COMMENT CRÉER LE FICHIER DANS EXCEL
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Ouvrir Excel
+2. Créer les colonnes dans la ligne 1:
+   Colonne A: N°
+   Colonne B: Nom Prénom (ou simplement Nom si séparé)
+   Colonne C: Matricule (ou Prénom si format séparé)
+   Colonne D: Classe (ou Matricule si format séparé)
+   Colonne E: Année (ou Classe si format séparé)
+   Colonne F: MG ← OBLIGATOIRE (ou Année si format séparé)
+   Colonne G: ECTS (ou MG si format séparé)
+   Colonne H: (ou ECTS si format séparé)
+
+3. Remplir les données à partir de la ligne 2
+4. Sauvegarder en format Excel (.xlsx)
+5. Importer dans l'application
+
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️  POINTS IMPORTANTS
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ La colonne MG DOIT être remplie
+✓ Format de la moyenne: 13.5 (point comme séparateur, pas virgule)
+✓ Pas de lignes vides entre les données
+✓ Les en-têtes doivent correspondre aux colonnes attendues
+✓ ECTS doit être un nombre entier (28, pas 28.5)
+✓ La première ligne doit contenir les en-têtes
+✓ Les données commencent à partir de la ligne 2
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ERREURS FRÉQUENTES ET SOLUTIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ "Impossible de charger le fichier"
+✓ Vérifiez que le fichier existe et est en format Excel (.xlsx ou .xls)
+
+❌ "Aucune donnée trouvée"
+✓ Vérifiez que les données commencent à la ligne 2
+✓ Vérifiez qu'il n'y a pas de lignes vides
+
+❌ "Erreur de format"
+✓ Vérifiez les en-têtes: N°, Nom Prénom, Matricule, Classe, Année, MG, ECTS
+✓ Vérifiez que MG est un nombre (13.5) et pas du texte
+
+❌ "Moyenne non trouvée"
+✓ Vérifiez que la colonne MG contient des données
+✓ Vérifiez le format: utiliser le point (.) et pas la virgule (,)
+
+❌ "Aucune décision calculée"
+✓ Vérifiez que MG n'est pas vide
+✓ Vérifiez que le service DecisionCalculatorService fonctionne
+
+
+═══════════════════════════════════════════════════════════════════════════════
+PROPRIÉTÉS DE LA CLASSE ÉTUDIANT UTILISÉES
+═══════════════════════════════════════════════════════════════════════════════
+
+- Id: ID unique de l'étudiant
+- NumeroOrdre: Numéro d'ordre (colonne A)
+- Nom: Nom de l'étudiant (extrait de NomPrenom si combiné)
+- Prenom: Prénom de l'étudiant (extrait de NomPrenom si combiné)
+- NomPrenom: Nom et prénom complets
+- Matricule: Identifiant unique (ex: MAT001)
+- ClasseGroupe: Classe ou groupe (ex: L1 Info)
+- AnneeUniversitaire: Année (ex: 2025/26)
+- MoyenneGenerale: Moyenne générale (MG) - UTILISÉE POUR DÉCISION
+- EctsValides: ECTS validés
+- EctsTotal: Total ECTS (par défaut 30)
+- Decision: Décision calculée (Admis / Rattrapage / Refusé)
+- Mention: Mention académique (optionnel)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Pour plus d'informations, consultez:
+- EXCEL_FORMAT_GUIDE.md (guide détaillé du format Excel)
+- FINAL_STATUS_REPORT.md (rapport complet d'état)

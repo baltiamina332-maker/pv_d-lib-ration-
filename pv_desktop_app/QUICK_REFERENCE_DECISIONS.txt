@@ -1,0 +1,219 @@
+════════════════════════════════════════════════════════════════════════════════
+                    QUICK REFERENCE - Decision Workflow
+════════════════════════════════════════════════════════════════════════════════
+
+📋 YOUR EXCEL FILE FORMAT (You Create)
+════════════════════════════════════════════════════════════════════════════════
+
+REQUIRED COLUMNS:
+┌──────────┬──────────┬──────────┬──────────┬─────┐
+│ Nom      │ Prénom   │Matricule │ Classe   │  MG │
+├──────────┼──────────┼──────────┼──────────┼─────┤
+│ Dupont   │ Jean     │ MAT001   │ L1-A     │14.50│
+│ Martin   │ Marie    │ MAT002   │ L1-A     │11.20│
+│ Bernard  │ Pierre   │ MAT003   │ L1-A     │ 9.50│
+│ Lefevre  │ Anne     │ MAT004   │ L1-B     │12.00│
+│ Moreau   │ Luc      │ MAT005   │ L1-B     │10.80│
+└──────────┴──────────┴──────────┴──────────┴─────┘
+
+KEY POINTS:
+✓ Column named "MG" must contain averages (0-20)
+✓ Averages can be decimals (14.50, 11.25, etc.)
+✓ Save file as Excel (.xlsx format)
+✓ Include all students you want to process
+
+════════════════════════════════════════════════════════════════════════════════
+
+🎯 APPLICATION PROCESSING
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: Click "Parcourir" (Browse)
+└─ Select your Excel file
+
+STEP 2: Click "Charger et valider" (Load & Validate)
+└─ Application processes file
+
+STEP 3: Automatic Calculation
+├─ Reads MG values from your Excel
+├─ Compares with thresholds
+├─ Assigns decision (Admis/Rattrapage/Refusé)
+└─ Shows results and statistics
+
+════════════════════════════════════════════════════════════════════════════════
+
+📊 DECISION RULES
+════════════════════════════════════════════════════════════════════════════════
+
+MG ≥ 12.0        →  Admis (Admitted)          🟢 GREEN
+10.0 ≤ MG < 12.0 →  Rattrapage (Makeup)       🟡 YELLOW
+MG < 10.0        →  Refusé (Rejected)         🔴 RED
+
+EXAMPLE:
+├─ MG = 15.0  →  Admis 🟢
+├─ MG = 11.5  →  Rattrapage 🟡
+├─ MG = 9.5   →  Refusé 🔴
+└─ MG = 12.0  →  Admis 🟢 (exactly at threshold)
+
+════════════════════════════════════════════════════════════════════════════════
+
+✨ RESULTS TABLE (Displayed in Application)
+════════════════════════════════════════════════════════════════════════════════
+
+┌───┬─────────┬────────┬──────────┬────────┬─────────┬────────────┬────────┐
+│ # │ Nom     │Prénom  │Matricule │ Classe │   MG    │ Décision   │Mention │
+├───┼─────────┼────────┼──────────┼────────┼─────────┼────────────┼────────┤
+│1  │ Dupont  │ Jean   │ MAT001   │ L1-A   │ 14.50   │ Admis 🟢   │ Bien   │
+│2  │ Martin  │ Marie  │ MAT002   │ L1-A   │ 11.20   │ Rattrapage 🟡      │
+│3  │ Bernard │ Pierre │ MAT003   │ L1-A   │  9.50   │ Refusé 🔴          │
+│4  │ Lefevre │ Anne   │ MAT004   │ L1-B   │ 12.00   │ Admis 🟢   │Assez Bien
+│5  │ Moreau  │ Luc    │ MAT005   │ L1-B   │ 10.80   │ Rattrapage 🟡      │
+└───┴─────────┴────────┴──────────┴────────┴─────────┴────────────┴────────┘
+
+COLUMNS:
+├─ Nom, Prénom, Matricule, Classe = From your Excel
+├─ MG = From your Excel (your input)
+├─ Décision = Calculated automatically ← HERE
+└─ Mention = Automatic (Bien, Assez Bien, etc.)
+
+════════════════════════════════════════════════════════════════════════════════
+
+📈 STATISTICS DISPLAYED
+════════════════════════════════════════════════════════════════════════════════
+
+After loading your Excel:
+
+🟢 Admis:      2 (40%)
+🟡 Rattrapage: 2 (40%)
+🔴 Refusé:     1 (20%)
+────────────────────
+Total:         5
+
+Averages by category:
+├─ Admis average:       13.50
+├─ Rattrapage average:  11.00
+└─ Refusé average:       9.50
+
+════════════════════════════════════════════════════════════════════════════════
+
+🔧 CUSTOMIZATION
+════════════════════════════════════════════════════════════════════════════════
+
+TO CHANGE THRESHOLDS:
+
+Edit: Services/DecisionCalculatorService.cs
+
+Lines 10-11:
+┌─────────────────────────────────────────────────┐
+│ private const decimal MOYENNE_ADMIS = 12.0m;    │
+│ private const decimal MOYENNE_RATTRAPAGE = 10.0m;
+└─────────────────────────────────────────────────┘
+
+EXAMPLES:
+┌─ More Lenient ──────────────────────────┐
+│ MOYENNE_ADMIS = 11.0m                  │
+│ MOYENNE_RATTRAPAGE = 9.0m              │
+│ (easier to pass)                       │
+└────────────────────────────────────────┘
+
+┌─ More Strict ──────────────────────────┐
+│ MOYENNE_ADMIS = 13.0m                  │
+│ MOYENNE_RATTRAPAGE = 11.0m             │
+│ (harder to pass)                       │
+└────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════
+
+✅ BEFORE YOU START
+════════════════════════════════════════════════════════════════════════════════
+
+CHECKLIST:
+☐ Build project (dotnet build or Visual Studio)
+☐ Create Excel file with data + MG values
+☐ Save as .xlsx format
+☐ Run application
+☐ Click "Parcourir"
+☐ Select your Excel
+☐ Click "Charger et valider"
+☐ Verify decisions are calculated correctly
+☐ Export or generate PV as needed
+
+════════════════════════════════════════════════════════════════════════════════
+
+🎓 TYPICAL PROCESS
+════════════════════════════════════════════════════════════════════════════════
+
+MONDAY MORNING:
+1. Prepare students Excel with averages (MG column)
+2. Open application
+3. Import your Excel
+4. ✓ Decisions calculated automatically
+5. Export with decisions
+6. Generate PV (letter grade document)
+7. Done! 
+
+ENTIRE PROCESS: ~5 minutes ⚡
+
+════════════════════════════════════════════════════════════════════════════════
+
+📞 TROUBLESHOOTING
+════════════════════════════════════════════════════════════════════════════════
+
+PROBLEM: "Excel file not found"
+SOLUTION: Check file path, ensure file exists, use full path
+
+PROBLEM: "Decisions not calculating"
+SOLUTION: Verify MG column has decimal numbers, not text
+
+PROBLEM: "MG values not reading"
+SOLUTION: Ensure column is named exactly "MG" (case-sensitive)
+
+PROBLEM: "Wrong decisions showing"
+SOLUTION: Check MG values in Excel, verify thresholds in code
+
+════════════════════════════════════════════════════════════════════════════════
+
+📊 FINAL RESULTS
+════════════════════════════════════════════════════════════════════════════════
+
+AFTER PROCESSING:
+
+✅ Table with all decisions visible
+✅ Statistics popup showing counts
+✅ Console output for verification
+✅ Can export to new Excel file
+✅ Can generate PV document
+✅ Can archive results
+
+YOU CAN THEN:
+├─ Export data to Excel
+├─ Generate letter grades (PV)
+├─ Print results
+├─ Archive files
+└─ Share with administration
+
+════════════════════════════════════════════════════════════════════════════════
+
+🚀 SUMMARY
+════════════════════════════════════════════════════════════════════════════════
+
+NEW SYSTEM:
+✓ You create Excel with student data + MG (averages)
+✓ Application imports and calculates decisions
+✓ Results displayed with statistics
+✓ Export or generate PV from results
+
+OLD SYSTEM:
+✗ Application creates Excel from database
+✗ You select that file
+✗ Import it
+
+ADVANTAGES OF NEW:
+✓ Simpler - Direct input
+✓ Faster - No database query
+✓ Flexible - Use any source
+✓ Reliable - Consistent calculation
+✓ Professional - Clean workflow
+
+════════════════════════════════════════════════════════════════════════════════
+
+READY TO GO! 🎓✅
