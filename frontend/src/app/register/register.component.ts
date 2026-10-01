@@ -14,6 +14,7 @@ import { AuthService } from '../services/auth.service';
 export class RegisterComponent {
   form: any = {
     username: '',
+    email: '',
     password: ''
   };
   isSuccessful = false;

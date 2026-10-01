@@ -97,6 +97,16 @@
                         <span class="badge badge-blue mb-4" *ngIf="authService.isAdmin()">Administrateur</span>
                         <span class="badge badge-emerald mb-4" *ngIf="!authService.isAdmin()">Approuvé</span>
                     </div>
+                    <div style="text-align: left; max-width: 360px; margin: 0 auto;">
+                        <label class="form-label">Adresse e-mail (réception des PV)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="email" class="form-control" name="myEmail" [(ngModel)]="email" placeholder="prenom.nom@exemple.tn">
+                            <button class="btn btn-primary" (click)="saveEmail()" [disabled]="email === savedEmail">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </div>
+                        <small *ngIf="emailMessage" [style.color]="emailError ? 'var(--rose-text)' : 'var(--emerald-text)'">{{ emailMessage }}</small>
+                    </div>
                 </div>
             </div>
 

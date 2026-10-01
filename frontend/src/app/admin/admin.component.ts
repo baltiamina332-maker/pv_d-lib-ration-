@@ -106,8 +106,22 @@ export class AdminComponent implements OnInit {
 
   loadUsers() {
     this.authService.getUsers().subscribe({
-      next: (data) => this.users = data,
+      next: (data) => this.users = data.map(u => ({ ...u, emailDraft: u.email || '' })),
       error: (err) => console.error('Erreur chargement utilisateurs', err)
+    });
+  }
+
+  saveEmail(user: any) {
+    this.successMessage = '';
+    this.errorMessage = '';
+    const email = (user.emailDraft || '').trim();
+    this.apiService.updateUserEmail(user.id, email).subscribe({
+      next: (res) => {
+        user.email = email;
+        user.emailDraft = email;
+        this.successMessage = res.message;
+      },
+      error: (err) => this.errorMessage = err.error?.message || 'Erreur lors de la mise à jour de l\'e-mail.'
     });
   }
 

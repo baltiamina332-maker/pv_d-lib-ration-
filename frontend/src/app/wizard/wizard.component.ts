@@ -62,6 +62,15 @@ export class WizardComponent implements OnInit {
   // Export state
   downloadClassIndex = 0;
 
+  // Envoi du PV par e-mail (étape 4)
+  mailClassIndex = 0;
+  mailRecipients: any[] = [];
+  mailMessage = '';
+  mailStatus: any = null;
+  mailResult: any = null;
+  mailError = '';
+  isSendingMail = false;
+
   // Machine Learning View State
   mlMode: 'CLASS' | 'SIMULATION' = 'CLASS';
   mlClasses: any[] = [];
@@ -613,17 +622,88 @@ export class WizardComponent implements OnInit {
     });
   }
 
-  generateBatch() {
-    if (!this.parsedClasses || this.parsedClasses.length === 0) return;
+  // --- Wizard Step 4: envoi du PV par e-mail ---
+  initMail() {
+    if (!this.authService.isAdmin()) return;
+    this.mailResult = null;
+    this.mailError = '';
+    this.mailClassIndex = Math.min(this.mailClassIndex, Math.max(this.parsedClasses.length - 1, 0));
+    this.apiService.getPvMailStatus().subscribe({
+      next: (res) => this.mailStatus = res,
+      error: () => this.mailStatus = null
+    });
+    this.loadMailRecipients();
+  }
 
-    const requestData = {
-      classesData: this.parsedClasses,
-      sessionInfo: this.sessionInfo
+  loadMailRecipients() {
+    const cls = this.parsedClasses[this.mailClassIndex];
+    this.mailResult = null;
+    this.mailError = '';
+    if (!cls) {
+      this.mailRecipients = [];
+      return;
+    }
+    this.apiService.getPvMailRecipients(cls.nomClasse).subscribe({
+      next: (list) => {
+        // Les enseignants affectés à la classe qui ont un e-mail sont cochés par défaut
+        this.mailRecipients = list.map(r => ({ ...r, selected: r.affecte && !!r.email, emailDraft: r.email || '' }));
+      },
+      error: (err) => this.mailError = err.error?.message || 'Impossible de charger la liste des enseignants.'
+    });
+  }
+
+  editRecipientEmail(r: any) {
+    r.emailDraft = r.email;
+    r.error = '';
+    r.editing = true;
+  }
+
+  /** Enregistre l'e-mail de l'enseignant dans la base (table users) puis le rend sélectionnable. */
+  saveRecipientEmail(r: any) {
+    const email = (r.emailDraft || '').trim();
+    if (!email) return;
+    r.saving = true;
+    r.error = '';
+    this.apiService.updateUserEmail(r.id, email).subscribe({
+      next: () => {
+        r.email = email;
+        r.editing = false;
+        r.saving = false;
+        r.selected = true;
+      },
+      error: (err) => {
+        r.saving = false;
+        r.error = err.error?.message || "Impossible d'enregistrer l'e-mail.";
+      }
+    });
+  }
+
+  selectedMailCount(): number {
+    return this.mailRecipients.filter(r => r.selected).length;
+  }
+
+  sendPvByEmail() {
+    const cls = this.parsedClasses[this.mailClassIndex];
+    if (!cls || this.selectedMailCount() === 0) return;
+
+    this.isSendingMail = true;
+    this.mailResult = null;
+    this.mailError = '';
+    const payload = {
+      classeData: cls,
+      sessionInfo: this.sessionInfo,
+      enseignantIds: this.mailRecipients.filter(r => r.selected).map(r => r.id),
+      message: this.mailMessage
     };
-
-    this.apiService.generateBatchPv(requestData).subscribe({
-      next: (blob: any) => this.triggerDownload(blob, `PVs_Deliberation_Batch.zip`),
-      error: (err: any) => console.error('Erreur génération batch', err)
+    this.apiService.sendPvByEmail(payload).subscribe({
+      next: (res) => {
+        this.mailResult = res;
+        this.isSendingMail = false;
+      },
+      error: (err) => {
+        this.mailError = err.error?.message || "Erreur lors de l'envoi des e-mails.";
+        this.isSendingMail = false;
+      }
     });
   }
 

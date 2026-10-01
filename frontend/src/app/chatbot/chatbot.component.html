@@ -1,0 +1,41 @@
+<button class="chat-fab" *ngIf="!isOpen" (click)="toggle()" title="Assistant PV-Delib" aria-label="Ouvrir l'assistant">
+    <i class="fa-solid fa-comment-dots"></i>
+</button>
+
+<div class="chat-panel" *ngIf="isOpen" role="dialog" aria-label="Assistant PV-Delib">
+    <div class="chat-header">
+        <div class="chat-title">
+            <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+            <div>
+                <strong>Assistant PV-Delib</strong>
+                <span class="chat-mode" *ngIf="mode === 'claude'"><i class="fa-solid fa-wand-magic-sparkles"></i> IA Claude</span>
+                <span class="chat-mode local" *ngIf="mode === 'local'"><i class="fa-solid fa-database"></i> Mode local</span>
+            </div>
+        </div>
+        <div class="chat-actions">
+            <button (click)="reset()" title="Nouvelle conversation" aria-label="Nouvelle conversation"><i class="fa-solid fa-rotate-right"></i></button>
+            <button (click)="toggle()" title="Fermer" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <div class="chat-body" #scrollArea>
+        <div *ngFor="let m of messages" class="chat-msg" [class.user]="m.role === 'user'">
+            <div class="bubble" [innerHTML]="m.html"></div>
+        </div>
+        <div class="chat-msg" *ngIf="isSending">
+            <div class="bubble typing"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="chat-suggestions" *ngIf="messages.length === 1 && !isSending">
+            <button *ngFor="let s of suggestions" (click)="send(s)">{{ s }}</button>
+        </div>
+    </div>
+
+    <div class="chat-input">
+        <textarea [(ngModel)]="input" (keydown)="onKeydown($event)" rows="1" maxlength="2000"
+                  placeholder="Posez votre question…" [disabled]="isSending"></textarea>
+        <button (click)="send()" [disabled]="isSending || !input.trim()" aria-label="Envoyer">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </div>
+</div>

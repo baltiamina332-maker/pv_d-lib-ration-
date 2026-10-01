@@ -65,6 +65,19 @@ public class AdminController {
         }).orElse(ResponseEntity.badRequest().body(Map.of("message", "Utilisateur non trouvé.")));
     }
 
+    @PutMapping("/users/{id}/email")
+    public ResponseEntity<?> updateEmail(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String email = body.getOrDefault("email", "").trim();
+        if (!email.isEmpty() && !com.amna.project.services.EmailValidator.isValid(email)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Adresse e-mail invalide."));
+        }
+        return userRepository.findById(id).map(user -> {
+            user.setEmail(email.isEmpty() ? null : email);
+            userRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "E-mail de " + user.getUsername() + " mis à jour."));
+        }).orElse(ResponseEntity.badRequest().body(Map.of("message", "Utilisateur non trouvé.")));
+    }
+
     @PostMapping("/users/{id}/role")
     public ResponseEntity<?> changeRole(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String roleStr = body.get("role");

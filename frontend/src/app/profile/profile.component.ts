@@ -22,6 +22,10 @@ export class ProfileComponent implements OnInit {
   };
   successMessage: string = '';
   errorMessage: string = '';
+  email: string = '';
+  savedEmail: string = '';
+  emailMessage: string = '';
+  emailError = false;
 
   constructor(
     public authService: AuthService,
@@ -39,6 +43,26 @@ export class ProfileComponent implements OnInit {
     this.apiService.getMyHistory().subscribe({
       next: (res) => this.myHistory = res,
       error: (err) => console.error("Erreur de chargement de l'historique", err)
+    });
+
+    this.apiService.getMe().subscribe({
+      next: (me) => this.email = this.savedEmail = me.email || '',
+      error: (err) => console.error('Erreur de chargement du profil', err)
+    });
+  }
+
+  saveEmail(): void {
+    const email = this.email.trim();
+    this.apiService.updateMyEmail(email).subscribe({
+      next: (res) => {
+        this.email = this.savedEmail = email;
+        this.emailError = false;
+        this.emailMessage = res.message;
+      },
+      error: (err) => {
+        this.emailError = true;
+        this.emailMessage = err.error?.message || "Erreur lors de l'enregistrement de l'e-mail.";
+      }
     });
   }
 

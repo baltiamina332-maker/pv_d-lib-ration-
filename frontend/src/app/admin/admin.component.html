@@ -87,6 +87,7 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Nom d'utilisateur</th>
+                                        <th>E-mail (envoi des PV)</th>
                                         <th>Rôle actuel</th>
                                         <th>Statut d'Accès</th>
                                         <th>Actions d'Approbation</th>
@@ -97,6 +98,16 @@
                                     <tr *ngFor="let u of users">
                                         <td>#{{ u.id }}</td>
                                         <td><strong>{{ u.username }}</strong></td>
+                                        <td>
+                                            <div style="display: flex; gap: 6px; align-items: center; min-width: 230px;">
+                                                <input type="email" class="form-control form-control-sm" [(ngModel)]="u.emailDraft"
+                                                       placeholder="adresse@exemple.tn" (keydown.enter)="saveEmail(u)">
+                                                <button class="btn btn-sm btn-secondary" title="Enregistrer l'e-mail"
+                                                        [disabled]="(u.emailDraft || '') === (u.email || '')" (click)="saveEmail(u)">
+                                                    <i class="fa-solid fa-floppy-disk"></i>
+                                                </button>
+                                            </div>
+                                        </td>
                                         <td>
                                             <span class="badge" [ngClass]="u.role === 'ROLE_ADMIN' ? 'badge-blue' : 'badge-cyan'">
                                                 {{ u.role === 'ROLE_ADMIN' ? 'Administrateur' : 'Enseignant / Utilisateur' }}
@@ -124,7 +135,7 @@
                                         </td>
                                     </tr>
                                     <tr *ngIf="users.length === 0">
-                                        <td colspan="6" class="text-center text-muted py-4">Aucun utilisateur trouvé.</td>
+                                        <td colspan="7" class="text-center text-muted py-4">Aucun utilisateur trouvé.</td>
                                     </tr>
                                 </tbody>
                             </table>

@@ -161,4 +161,38 @@ export class ApiService {
   getRemarques(matiere: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/enseignant/remarques?matiere=${encodeURIComponent(matiere)}`);
   }
+
+  // --- Chatbot ---
+  getChatbotStatus(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/chatbot/status`);
+  }
+
+  sendChatMessage(message: string, history: { role: string; content: string }[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/chatbot/message`, { message, history });
+  }
+
+  // --- Envoi des PV par e-mail (administrateur) ---
+  getPvMailStatus(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/admin/pv-mail/status`);
+  }
+
+  getPvMailRecipients(classe: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/admin/pv-mail/enseignants?classe=${encodeURIComponent(classe)}`);
+  }
+
+  sendPvByEmail(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/admin/pv-mail/send`, payload);
+  }
+
+  updateUserEmail(userId: number, email: string): Observable<any> {
+    return this.http.put(`${this.baseUrl}/admin/users/${userId}/email`, { email });
+  }
+
+  getMe(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/auth/me`);
+  }
+
+  updateMyEmail(email: string): Observable<any> {
+    return this.http.put(`${this.baseUrl}/auth/email`, { email });
+  }
 }

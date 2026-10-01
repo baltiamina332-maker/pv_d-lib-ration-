@@ -8,6 +8,7 @@ import com.amna.project.entities.UserEntity;
 import com.amna.project.repositories.UserRepository;
 import com.amna.project.security.JwtUtils;
 import com.amna.project.security.UserDetailsImpl;
+import com.amna.project.services.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -71,12 +72,18 @@ public class AuthController {
                     .body(Map.of("message", "Erreur: Ce nom d'utilisateur est déjà pris!"));
         }
 
+        String email = signUpRequest.getEmail() != null ? signUpRequest.getEmail().trim() : "";
+        if (!email.isEmpty() && !EmailValidator.isValid(email)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Adresse e-mail invalide."));
+        }
+
         // Create new user's account
         UserEntity user = UserEntity.builder()
                 .username(signUpRequest.getUsername())
                 .password(encoder.encode(signUpRequest.getPassword()))
                 .role(Role.ROLE_USER)
                 .isApproved(false) // Needs admin approval by default
+                .email(email.isEmpty() ? null : email)
                 .build();
 
         userRepository.save(user);
@@ -101,5 +108,37 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok(Map.of("message", "Mot de passe mis à jour avec succès."));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> currentUser(Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "Non authentifié."));
+        }
+        return userRepository.findByUsername(authentication.getName())
+                .<ResponseEntity<?>>map(u -> ResponseEntity.ok(Map.of(
+                        "id", u.getId(),
+                        "username", u.getUsername(),
+                        "role", u.getRole().name(),
+                        "email", u.getEmail() != null ? u.getEmail() : "")))
+                .orElse(ResponseEntity.badRequest().body(Map.of("message", "Utilisateur introuvable.")));
+    }
+
+    @PutMapping("/email")
+    public ResponseEntity<?> updateMyEmail(@RequestBody Map<String, String> body, Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "Non authentifié."));
+        }
+        String email = body.getOrDefault("email", "").trim();
+        if (!email.isEmpty() && !EmailValidator.isValid(email)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Adresse e-mail invalide."));
+        }
+        UserEntity user = userRepository.findByUsername(authentication.getName()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Utilisateur introuvable."));
+        }
+        user.setEmail(email.isEmpty() ? null : email);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Adresse e-mail mise à jour."));
     }
 }

@@ -30,4 +30,7 @@ public class UserEntity {
 
     @Column(nullable = false)
     private boolean isApproved = false;
+
+    // Adresse utilisée pour l'envoi des PV par e-mail (facultative)
+    private String email;
 }

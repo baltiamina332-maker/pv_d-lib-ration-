@@ -650,7 +650,7 @@
                                 <button class="btn btn-secondary" (click)="currentStep = 2">
                                     <i class="fa-solid fa-arrow-left"></i> Retour
                                 </button>
-                                <button class="btn btn-primary" (click)="currentStep = 4">
+                                <button class="btn btn-primary" (click)="currentStep = 4; initMail()">
                                     Accéder à la Génération <i class="fa-solid fa-arrow-right"></i>
                                 </button>
                             </div>
@@ -667,8 +667,7 @@
                         <div class="card-body text-center py-4">
                             <div class="generation-hero">
                                 <div class="hero-icon-stack">
-                                    <i class="fa-solid fa-file-word icon-word" style="font-size:40px; color:#1E3A8A; margin-right:-10px;"></i>
-                                    <i class="fa-solid fa-file-zipper icon-zip" style="font-size:30px; color:#10B981;"></i>
+                                    <i class="fa-solid fa-file-word icon-word" style="font-size:40px; color:#1E3A8A;"></i>
                                 </div>
                                 <h2 class="mt-3">Vos Procès-Verbaux sont prêts à être générés !</h2>
                                 <p class="text-muted max-w-600 mx-auto" style="max-width: 600px; margin-bottom: 20px;">
@@ -676,27 +675,97 @@
                                 </p>
                             </div>
 
-                            <div class="export-options-grid mt-4">
-                                <div class="export-card">
+                            <div class="export-options-grid mt-4" style="grid-template-columns: 1fr;">
+                                <div class="export-card download-card">
                                     <i class="fa-solid fa-file-word icon-lg text-blue" style="font-size: 32px; margin-bottom: 10px;"></i>
-                                    <h4>Télécharger 1 Seule Classe (.docx)</h4>
-                                    <div class="form-group my-2">
+                                    <h4>Télécharger le PV d'une classe (.docx)</h4>
+                                    <div class="download-row">
                                         <select class="form-control" [(ngModel)]="downloadClassIndex">
                                             <option *ngFor="let c of parsedClasses; let i = index" [value]="i">{{c.nomClasse}}</option>
                                         </select>
+                                        <button class="btn btn-primary" (click)="generateSingle()">
+                                            <i class="fa-solid fa-download"></i> Télécharger le PV Word
+                                        </button>
                                     </div>
-                                    <button class="btn btn-primary btn-block" (click)="generateSingle()">
-                                        <i class="fa-solid fa-download"></i> Télécharger le PV Word
-                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Envoi du PV par e-mail aux enseignants (administrateur) -->
+                            <div class="mail-card mt-4" *ngIf="authService.isAdmin()">
+                                <div class="mail-card-header">
+                                    <i class="fa-solid fa-envelope-open-text"></i>
+                                    <div>
+                                        <h4>Envoyer le PV par e-mail aux enseignants</h4>
+                                        <p class="text-muted small">Le PV Word de la classe choisie est envoyé en pièce jointe aux enseignants cochés.</p>
+                                    </div>
                                 </div>
 
-                                <div class="export-card featured">
-                                    <div class="badge-featured">Recommandé</div>
-                                    <i class="fa-solid fa-file-zipper icon-lg text-emerald" style="font-size: 32px; margin-bottom: 10px;"></i>
-                                    <h4>Génération en Masse (.ZIP)</h4>
-                                    <p class="text-muted small">Téléchargez les PVs Word de <strong>toutes les classes</strong> en 1 seule archive ZIP compressée.</p>
-                                    <button class="btn btn-success btn-block btn-lg mt-3" (click)="generateBatch()">
-                                        <i class="fa-solid fa-file-zipper"></i> Générer l'Archive ZIP Complète
+                                <div *ngIf="mailStatus && !mailStatus.configured" class="mail-alert warning">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    L'envoi d'e-mails n'est pas encore configuré sur le serveur (variables MAIL_USERNAME, MAIL_PASSWORD et MAIL_FROM).
+                                </div>
+
+                                <div class="mail-grid">
+                                    <div>
+                                        <label class="form-label">Classe :</label>
+                                        <select class="form-control" [(ngModel)]="mailClassIndex" (ngModelChange)="loadMailRecipients()">
+                                            <option *ngFor="let c of parsedClasses; let i = index" [ngValue]="i">{{c.nomClasse}}</option>
+                                        </select>
+
+                                        <label class="form-label mt-3">Message (facultatif) :</label>
+                                        <textarea class="form-control" rows="4" [(ngModel)]="mailMessage"
+                                                  placeholder="Ex. : Merci de vérifier le PV avant la réunion de vendredi."></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label">Destinataires :</label>
+                                        <div class="mail-recipients">
+                                            <div *ngFor="let r of mailRecipients" class="mail-recipient" [class.disabled]="!r.email">
+                                                <input type="checkbox" [(ngModel)]="r.selected" [disabled]="!r.email" [attr.aria-label]="'Envoyer à ' + r.username">
+                                                <span class="mail-name">
+                                                    <strong>{{ r.username }}</strong>
+                                                    <span class="badge badge-blue" *ngIf="r.affecte">Affecté</span>
+                                                    <small class="text-muted" *ngIf="r.matieres.length"> · {{ r.matieres.join(', ') }}</small>
+                                                </span>
+
+                                                <!-- Adresse connue : affichage + modification -->
+                                                <span class="mail-address" *ngIf="r.email && !r.editing">
+                                                    {{ r.email }}
+                                                    <button class="btn-icon-sm" title="Modifier l'e-mail" (click)="editRecipientEmail(r)"><i class="fa-solid fa-pen"></i></button>
+                                                </span>
+
+                                                <!-- Adresse manquante ou en modification : saisie enregistrée en base -->
+                                                <span class="mail-edit" *ngIf="!r.email || r.editing">
+                                                    <input type="email" class="form-control form-control-sm" [(ngModel)]="r.emailDraft"
+                                                           placeholder="Ajouter l'e-mail" (keydown.enter)="saveRecipientEmail(r)">
+                                                    <button class="btn btn-sm btn-primary" title="Enregistrer l'e-mail" (click)="saveRecipientEmail(r)"
+                                                            [disabled]="r.saving || !(r.emailDraft || '').trim()">
+                                                        <i class="fa-solid" [ngClass]="r.saving ? 'fa-circle-notch fa-spin' : 'fa-floppy-disk'"></i>
+                                                    </button>
+                                                    <button *ngIf="r.editing" class="btn btn-sm btn-secondary" title="Annuler" (click)="r.editing = false">
+                                                        <i class="fa-solid fa-xmark"></i>
+                                                    </button>
+                                                </span>
+                                                <small class="mail-row-error" *ngIf="r.error">{{ r.error }}</small>
+                                            </div>
+                                            <div *ngIf="mailRecipients.length === 0" class="text-muted small p-2">Aucun utilisateur.</div>
+                                        </div>
+                                        <small class="text-muted">L'adresse saisie ici est enregistrée dans le compte de l'enseignant (base de données).</small>
+                                    </div>
+                                </div>
+
+                                <div class="mail-footer">
+                                    <div>
+                                        <div *ngIf="mailError" class="mail-alert error"><i class="fa-solid fa-circle-xmark"></i> {{ mailError }}</div>
+                                        <div *ngIf="mailResult" class="mail-alert" [class.success]="mailResult.echecs.length === 0" [class.warning]="mailResult.echecs.length > 0">
+                                            <i class="fa-solid fa-paper-plane"></i> {{ mailResult.message }}
+                                            <div *ngFor="let e of mailResult.envoyes" class="small">✓ {{ e.username }} ({{ e.email }})</div>
+                                            <div *ngFor="let e of mailResult.echecs" class="small">✗ {{ e.username }} : {{ e.raison }}</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" (click)="sendPvByEmail()" [disabled]="isSendingMail || selectedMailCount() === 0">
+                                        <i class="fa-solid" [ngClass]="isSendingMail ? 'fa-circle-notch fa-spin' : 'fa-paper-plane'"></i>
+                                        {{ isSendingMail ? 'Envoi en cours…' : 'Envoyer le PV (' + selectedMailCount() + ')' }}
                                     </button>
                                 </div>
                             </div>
